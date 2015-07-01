@@ -1,0 +1,41 @@
+# ©2015 YUICHIRO NAKADA
+
+CATGL=/root/Dropbox/prog/catgl
+
+COMPILER = g++
+CFLAGS   = -Os -MMD -MP -Wall -Wextra -Winit-self -Wno-unused-parameter -Wfloat-equal
+#LDFLAGS  =
+#LIBS     =
+#INCLUDE  = -I../include
+#TARGET   = ../bin/$(shell basename `readlink -f ..`)
+TARGET   = $(shell basename `readlink -f .`)
+OBJDIR   = ./obj
+ifeq "$(strip $(OBJDIR))" ""
+  OBJDIR = .
+endif
+SOURCES  = $(wildcard *.cpp) $(wildcard *.c) $(SRC)
+OBJECTS  = $(addprefix $(OBJDIR)/, $(SOURCES:.cpp=.o))
+OBJECTS  = $(addprefix $(OBJDIR)/, $(SOURCES:.c=.o))
+DEPENDS  = $(OBJECTS:.o=.d)
+
+$(TARGET): $(OBJECTS) $(LIBS)
+	$(COMPILER) -o $@ $^ $(LDFLAGS)
+
+$(OBJDIR)/%.o: %.cpp
+	@[ -d $(OBJDIR) ] || mkdir -p $(OBJDIR)
+	$(COMPILER) -std=c++11 $(CFLAGS) $(INCLUDE) -o $@ -c $<
+
+$(OBJDIR)/%.o: %.c
+	@[ -d $(OBJDIR) ] || mkdir -p $(OBJDIR)
+	$(CC) -std=c11 $(CFLAGS) $(INCLUDE) -o $@ -c $<
+
+all: clean $(TARGET)
+
+clean:
+	rm -f $(OBJECTS) $(DEPENDS) $(TARGET)
+	@rmdir --ignore-fail-on-non-empty `readlink -f $(OBJDIR)`
+
+-include $(DEPENDS)
+
+android:
+	sh $(CATGL)/android-app/build.sh $(TARGET) $(TARGET) "$(SOURCES)" assets $(CATGL)
