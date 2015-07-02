@@ -13,12 +13,13 @@ OBJDIR   = ./obj
 ifeq "$(strip $(OBJDIR))" ""
   OBJDIR = .
 endif
-SOURCES  = $(wildcard *.cpp) $(wildcard *.c) $(SRC)
+SOURCES  = $(wildcard *.cpp)
+CSOURCES = $(wildcard *.c) $(SRC)
 OBJECTS  = $(addprefix $(OBJDIR)/, $(SOURCES:.cpp=.o))
-OBJECTS  = $(addprefix $(OBJDIR)/, $(SOURCES:.c=.o))
-DEPENDS  = $(OBJECTS:.o=.d)
+COBJECTS = $(addprefix $(OBJDIR)/, $(CSOURCES:.c=.o))
+DEPENDS  = $(OBJECTS:.o=.d) $(COBJECTS:.o=.d)
 
-$(TARGET): $(OBJECTS) $(LIBS)
+$(TARGET): $(OBJECTS) $(COBJECTS) $(LIBS)
 	$(COMPILER) -o $@ $^ $(LDFLAGS)
 
 $(OBJDIR)/%.o: %.cpp
@@ -32,10 +33,10 @@ $(OBJDIR)/%.o: %.c
 all: clean $(TARGET)
 
 clean:
-	rm -f $(OBJECTS) $(DEPENDS) $(TARGET)
+	rm -f $(OBJECTS) $(COBJECTS) $(DEPENDS) $(TARGET)
 	@rmdir --ignore-fail-on-non-empty `readlink -f $(OBJDIR)`
 
 -include $(DEPENDS)
 
 android:
-	sh $(CATGL)/android-app/build.sh $(TARGET) $(TARGET) "$(SOURCES)" assets $(CATGL)
+	sh $(CATGL)/android-app/build.sh $(TARGET) $(TARGET) "$(SOURCES) $(CSOURCES)" assets $(CATGL)

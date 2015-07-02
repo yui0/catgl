@@ -42,13 +42,16 @@
 
 #elif __linux
 
-	#include "catgl_glfw.h"
-	//#include <GL/gl.h>
-	//#include <GL/glx.h>
-	//#include <GL/glu.h>
-	//#include <GL/glut.h>
-	//#define GL_GLEXT_PROTOTYPES
+	#ifndef GL_GLEXT_PROTOTYPES
+	#define GL_GLEXT_PROTOTYPES
+	#endif
+	#include <GL/gl.h>
+	#include <GL/glu.h>
 	#include <GL/glext.h>
+	//#include <GL/glx.h>
+	//#include <GL/glut.h>
+
+	#include "catgl_glfw.h"
 
 #elif __unix // all unices not caught above
 	// Unix
@@ -78,7 +81,7 @@ GLuint caLoadShader(GLenum shaderType, const char* pSource)
 	glCompileShader(shader);
 	GLint compiled;
 	glGetShaderiv(shader, GL_COMPILE_STATUS, &compiled);
-	if (!compiled) printf("Error at glCompileShader\n");
+//	if (!compiled) printf("Error at glCompileShader\n");
 	return shader;
 }
 
