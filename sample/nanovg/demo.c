@@ -1,12 +1,10 @@
+#include "catgl_nanovg.h"
+
 #include "demo.h"
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
-#ifdef NANOVG_GLEW
-#  include <GL/glew.h>
-#endif
-#include <GLFW/glfw3.h>
-#include "nanovg.h"
+
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image_write.h"
 
@@ -14,7 +12,7 @@
 #ifdef _MSC_VER
 #define snprintf _snprintf
 #elif !defined(__MINGW32__)
-#include <iconv.h>
+//#include <iconv.h>
 #endif
 
 #define ICON_SEARCH 0x1F50D
@@ -1111,7 +1109,7 @@ void renderDemo(NVGcontext* vg, float mx, float my, float width, float height,
 	drawButton(vg, 0, "Cancel", x+170, y, 110, 28, nvgRGBA(0,0,0,0));
 
 	// Thumbnails box
-	drawThumbnails(vg, 365, popy-30, 160, 300, data->images, 12, t);
+	if (data) drawThumbnails(vg, 365, popy-30, 160, 300, data->images, 12, t);
 
 	nvgRestore(vg);
 }

@@ -5,8 +5,11 @@
 //---------------------------------------------------------
 
 #include <math.h>
+#ifndef M_PI
 #define M_PI 3.141592653589793238
+#endif
 
+#define CATGL_GLES	// Use OpenGL ES1
 #include "catgl.h"
 
 static float angle = 0;

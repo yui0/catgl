@@ -5,9 +5,7 @@
 //---------------------------------------------------------
 
 #include "catgl.h"
-
-#include "nanovg.h"
-#include "nanovg_gl.h"
+#include "catgl_nanovg.h"
 
 void drawWindow(NVGcontext* vg, const char* title, float x, float y, float w, float h)
 {
@@ -72,7 +70,6 @@ void caInit(int w, int h)
 	height = h;
 
 	// Calculate pixel ration for hi-dpi devices.
-	//pixelRatio = 1;//(float)fbWidth / (float)winWidth;
 	pixelRatio = (float)width / (float)height;
 
 	vg = nvgCreate(NVG_ANTIALIAS);

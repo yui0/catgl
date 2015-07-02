@@ -8,8 +8,12 @@
 #include <errno.h>
 
 #include <EGL/egl.h>
+#ifdef CATGL_GLES
 #include <GLES/gl.h>
-#include <math.h>
+#else
+#include <GLES2/gl2.h>
+#include <GLES2/gl2ext.h>
+#endif
 
 #include <android/sensor.h>
 #include <android/log.h>
@@ -17,16 +21,15 @@
 
 // デバッグ用メッセージ
 #define TAG "catgl"
-// デバッグ用メッセージ(Infomation)
-#define LOGI(...) ((void)__android_log_print(ANDROID_LOG_INFO, TAG, __VA_ARGS__))
-// デバッグ用メッセージ(Warning)
-#define LOGW(...) ((void)__android_log_print(ANDROID_LOG_WARN, TAG, __VA_ARGS__))
-// デバッグ用メッセージ(Error)
-#define LOGE(...)  ((void)__android_log_print(ANDROID_LOG_ERROR,TAG,__VA_ARGS__))
+#define LOGI(...) ((void)__android_log_print(ANDROID_LOG_INFO,  TAG, __VA_ARGS__))
+#define LOGW(...) ((void)__android_log_print(ANDROID_LOG_WARN,  TAG, __VA_ARGS__))
+#define LOGE(...) ((void)__android_log_print(ANDROID_LOG_ERROR, TAG, __VA_ARGS__))
 
 
 // for OpenGL ES
 #define glFrustum glFrustumf
+#define glGenVertexArrays
+#define glBindVertexArray
 
 
 // アプリ動作再開に必要なデータ
@@ -77,14 +80,18 @@ static int engine_init_display(struct engine* engine)
 
 	// 有効にするEGLパラメータ
 	const EGLint attribs[] = {
+#ifndef CATGL_GLES
 		EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT,
+#endif
 		EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
 		EGL_BLUE_SIZE,8, EGL_GREEN_SIZE,8, EGL_RED_SIZE,8, EGL_ALPHA_SIZE,8,
 		EGL_STENCIL_SIZE,8,
 		EGL_NONE
 	};
 	const EGLint contextAttribs[] = {
-		EGL_CONTEXT_CLIENT_VERSION, 2,
+#ifndef CATGL_GLES
+		EGL_CONTEXT_CLIENT_VERSION, 2,	// OpenGL ES2
+#endif
 		EGL_NONE
 	};
 
@@ -99,8 +106,7 @@ static int engine_init_display(struct engine* engine)
 	// NativeActivityへバッファを設定
 	ANativeWindow_setBuffersGeometry(engine->app->window, 0, 0, format);
 	// EGLウィンドウサーフェイスの取得
-	surface = eglCreateWindowSurface(display, config, engine->app->window,
-	                                 NULL);
+	surface = eglCreateWindowSurface(display, config, engine->app->window, NULL);
 	// EGLレンダリングコンテキストの取得
 	context = eglCreateContext(display, config, EGL_NO_CONTEXT, contextAttribs);
 	// EGLレンダリングコンテキストをEGLサーフェイスにアタッチする

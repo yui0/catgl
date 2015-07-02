@@ -1,5 +1,5 @@
 #SRC = ../glfw/glfw.c
 INCLUDE = -I../../
-LIBS = -lglfw -lGL -lm
+LIBS = -lglfw -lGL -lGLU -lm
 
 include ../Makefile.in

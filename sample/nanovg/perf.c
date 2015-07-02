@@ -1,17 +1,14 @@
+#include "catgl_nanovg.h"
+
 #include "perf.h"
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
-#ifdef NANOVG_GLEW
-#  include <GL/glew.h>
-#endif
-#include <GLFW/glfw3.h>
-#include "nanovg.h"
 
 #ifdef _MSC_VER
 #define snprintf _snprintf
 #elif !defined(__MINGW32__)
-#include <iconv.h>
+//#include <iconv.h>
 #endif
 
 // timer query support
@@ -59,7 +56,7 @@ int stopGPUTimer(GPUtimer* timer, float* times, int maxTimes)
 	glEndQuery(GL_TIME_ELAPSED);
 	while (available && timer->ret <= timer->cur) {
 		// check for results if there are any
-		glGetQueryObjectiv(timer->queries[timer->ret % GPU_QUERY_COUNT], GL_QUERY_RESULT_AVAILABLE, &available);
+//		glGetQueryObjectiv(timer->queries[timer->ret % GPU_QUERY_COUNT], GL_QUERY_RESULT_AVAILABLE, &available);
 		if (available) {
 /*			GLuint64 timeElapsed = 0;
 			glGetQueryObjectui64v(timer->queries[timer->ret % GPU_QUERY_COUNT], GL_QUERY_RESULT, &timeElapsed);
