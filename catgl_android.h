@@ -19,7 +19,7 @@
 #include <android/log.h>
 #include <android_native_app_glue.h>
 
-// デバッグ用メッセージ
+// for debug
 #define TAG "catgl"
 #define LOGI(...) ((void)__android_log_print(ANDROID_LOG_INFO,  TAG, __VA_ARGS__))
 #define LOGW(...) ((void)__android_log_print(ANDROID_LOG_WARN,  TAG, __VA_ARGS__))
@@ -47,6 +47,9 @@ extern void caEnd();
 // アプリケーション内で共通して利用する情報
 struct engine {
 	struct android_app* app;
+
+	jclass activityClass;
+	const char* apkPath;
 
 	// センサー関連
 	ASensorManager* sensorManager;
@@ -246,23 +249,47 @@ static void engine_handle_cmd(struct android_app* app, int32_t cmd)
 	}
 }
 
+jclass registerEnvironmentAndActivity(ANativeActivity* activity)
+{
+	JavaVM* vm = activity->vm;
+	JNIEnv *jni;
+	(**vm).AttachCurrentThread(activity->vm, &jni, NULL);
 
-// Main
+	jclass activityClass = (*jni)->GetObjectClass(jni, activity->clazz);
+	if (!activityClass) {
+		LOGE("Unable to get class of main activity.\n");
+		return;
+	}
+
+	LOGE("Found android/app/NativeActivity class.\n");
+	return activityClass;
+}
+
 void android_main(struct android_app* state)
 {
-	struct engine engine;
-
 	// glueが削除されないように
 	app_dummy();
 
+	// initialize
+	struct engine engine;
 	memset(&engine, 0, sizeof(engine));
-	// ユーザーデータの配置
-	state->userData = &engine;
-	// コマンド処理関数の設定
-	state->onAppCmd = engine_handle_cmd;
-	// 入力イベント処理関数の設定
-	state->onInputEvent = engine_handle_input;
+	state->userData = &engine;				// ユーザーデータの配置
+	state->onAppCmd = engine_handle_cmd;		// コマンド処理関数
+	state->onInputEvent = engine_handle_input;	// 入力イベント処理関数
 	engine.app = state;
+
+	// get my apk path
+	ANativeActivity* activity = state->activity;
+	JNIEnv* env = activity->env;
+
+	engine.activityClass = registerEnvironmentAndActivity(state->activity);
+//	jclass clazz = (*env)->GetObjectClass(env, activity->clazz);
+	jmethodID methodID = (*env)->GetMethodID(env, engine.activityClass, "getPackageCodePath", "()Ljava/lang/String;");
+	jobject result = (*env)->CallObjectMethod(env, activity->clazz, methodID);
+
+	jboolean isCopy;
+	engine.apkPath = (*env)->GetStringUTFChars(env, (jstring)result, &isCopy);
+//	LOGI("Looked up package code path: %s", engine.apkPath);
 
 	// センサーマネージャの取得
 	engine.sensorManager = ASensorManager_getInstance();
@@ -294,9 +321,9 @@ void android_main(struct android_app* state)
 				if (engine.accelerometerSensor != NULL) {
 					ASensorEvent event;
 					while (ASensorEventQueue_getEvents(engine.sensorEventQueue, &event, 1) > 0) {
-						LOGI("accelerometer: x=%f y=%f z=%f",
+						/*LOGI("accelerometer: x=%f y=%f z=%f",
 						     event.acceleration.x, event.acceleration.y,
-						     event.acceleration.z);
+						     event.acceleration.z);*/
 					}
 				}
 			}
@@ -315,7 +342,6 @@ void android_main(struct android_app* state)
 				engine.state.angle = 0;
 			}
 
-			// 画面の描画
 			engine_draw_frame(&engine);
 		}
 	}
