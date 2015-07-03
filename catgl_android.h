@@ -24,6 +24,11 @@
 #define LOGI(...) ((void)__android_log_print(ANDROID_LOG_INFO,  TAG, __VA_ARGS__))
 #define LOGW(...) ((void)__android_log_print(ANDROID_LOG_WARN,  TAG, __VA_ARGS__))
 #define LOGE(...) ((void)__android_log_print(ANDROID_LOG_ERROR, TAG, __VA_ARGS__))
+#ifdef DEBUG
+#define LOGD(...) ((void)__android_log_print(ANDROID_LOG_INFO,  TAG, __VA_ARGS__))
+#else
+#define LOGD(...)
+#endif
 
 
 // for OpenGL ES
@@ -48,9 +53,6 @@ extern void caEnd();
 struct engine {
 	struct android_app* app;
 
-	jclass activityClass;
-	const char* apkPath;
-
 	// センサー関連
 	ASensorManager* sensorManager;
 	const ASensor* accelerometerSensor;  // 加速度センサー
@@ -71,6 +73,28 @@ struct engine {
 	// 保存データ
 	struct saved_state state;
 };
+
+/*#include "miniz.h"
+char *loadAPK(char *apkPath, char *name)
+{
+	size_t uncomp_size;
+	mz_bool status;
+	mz_zip_archive zip_archive;
+	memset(&zip_archive, 0, sizeof(zip_archive));
+
+	status = mz_zip_reader_init_file(&zip_archive, apkPath, 0);
+	if (!status) return 0;
+
+	char *p = mz_zip_reader_extract_file_to_heap(&zip_archive, name, &uncomp_size, 0);
+	if (!p) {
+		mz_zip_reader_end(&zip_archive);
+		return 0;
+	}
+	//mz_free(p);
+	mz_zip_reader_end(&zip_archive);
+
+	return p;
+}*/
 
 // EGL初期化
 static int engine_init_display(struct engine* engine)
@@ -249,7 +273,7 @@ static void engine_handle_cmd(struct android_app* app, int32_t cmd)
 	}
 }
 
-jclass registerEnvironmentAndActivity(ANativeActivity* activity)
+/*jclass registerEnvironmentAndActivity(ANativeActivity* activity)
 {
 	JavaVM* vm = activity->vm;
 	JNIEnv *jni;
@@ -261,8 +285,77 @@ jclass registerEnvironmentAndActivity(ANativeActivity* activity)
 		return;
 	}
 
-	LOGE("Found android/app/NativeActivity class.\n");
+	LOGD("Found android/app/NativeActivity class.\n");
 	return activityClass;
+}
+
+inline jobject callJavaFunction(struct engine *e, char *method, char *ret)
+{
+	JNIEnv* env = e->app->activity->env;
+
+	jmethodID methodID = (*env)->GetMethodID(env, e->activityClass, method, ret);
+	return (*env)->CallObjectMethod(env, e->app->activity->clazz, methodID);
+}*/
+
+#include <stdio.h>
+#include <android/asset_manager.h>
+const char *apkPath;
+const char *appDir;
+void extract_assets(struct android_app* app, struct engine *e)
+{
+	/* Get usable JNI context */
+	JNIEnv* env = app->activity->env;
+	JavaVM* vm = app->activity->vm;
+	(*vm)->AttachCurrentThread(vm, &env, NULL);
+
+	/* Get a handle on our calling NativeActivity class */
+	jclass activityClass = (*env)->GetObjectClass(env, app->activity->clazz);
+
+	/* Get path to cache dir (/data/data/org.myapp/cache) */
+	jmethodID getCacheDir = (*env)->GetMethodID(env, activityClass, "getCacheDir", "()Ljava/io/File;");
+	jobject file = (*env)->CallObjectMethod(env, app->activity->clazz, getCacheDir);
+	jclass fileClass = (*env)->FindClass(env, "java/io/File");
+	jmethodID getAbsolutePath = (*env)->GetMethodID(env, fileClass, "getAbsolutePath", "()Ljava/lang/String;");
+	jstring jpath = (jstring)(*env)->CallObjectMethod(env, file, getAbsolutePath);
+
+	/* chdir in the application cache directory */
+	appDir = (*env)->GetStringUTFChars(env, jpath, NULL);
+	LOGD("Cache dir: %s", appDir);
+	chdir(appDir);
+	(*env)->ReleaseStringUTFChars(env, jpath, appDir);
+
+	// APK path
+	/*jmethodID methodID = (*env)->GetMethodID(env, activityClass, "getPackageCodePath", "()Ljava/lang/String;");
+	jpath = (jstring)(*env)->CallObjectMethod(env, app->activity->clazz, methodID);
+	e->apkPath = (*env)->GetStringUTFChars(env, jpath, NULL);
+	(*env)->ReleaseStringUTFChars(env, jpath, e->apkPath);
+	LOGD("APK path: %s", e->appDir);*/
+
+	/* Pre-extract assets, to avoid Android-specific file opening */
+	AAssetManager* mgr = app->activity->assetManager;
+	AAssetDir* assetDir = AAssetManager_openDir(mgr, "");
+	const char* filename = (const char*)NULL;
+	while ((filename = AAssetDir_getNextFileName(assetDir)) != NULL) {
+		AAsset* asset = AAssetManager_open(mgr, filename, AASSET_MODE_STREAMING);
+		char buf[BUFSIZ];
+		int nb_read = 0;
+		FILE* out = fopen(filename, "w");
+		while ((nb_read = AAsset_read(asset, buf, BUFSIZ)) > 0) fwrite(buf, nb_read, 1, out);
+		fclose(out);
+		AAsset_close(asset);
+	}
+	AAssetDir_close(assetDir);
+
+	(*vm)->DetachCurrentThread(vm);
+}
+
+char *caGetPath(char *path)
+{
+	static char s[BUFSIZ];
+	strcpy(s, appDir);
+	strcat(s, path);
+	LOGI("Cache dir: %s", s);
+	return s;
 }
 
 void android_main(struct android_app* state)
@@ -278,18 +371,8 @@ void android_main(struct android_app* state)
 	state->onInputEvent = engine_handle_input;	// 入力イベント処理関数
 	engine.app = state;
 
-	// get my apk path
-	ANativeActivity* activity = state->activity;
-	JNIEnv* env = activity->env;
-
-	engine.activityClass = registerEnvironmentAndActivity(state->activity);
-//	jclass clazz = (*env)->GetObjectClass(env, activity->clazz);
-	jmethodID methodID = (*env)->GetMethodID(env, engine.activityClass, "getPackageCodePath", "()Ljava/lang/String;");
-	jobject result = (*env)->CallObjectMethod(env, activity->clazz, methodID);
-
-	jboolean isCopy;
-	engine.apkPath = (*env)->GetStringUTFChars(env, (jstring)result, &isCopy);
-//	LOGI("Looked up package code path: %s", engine.apkPath);
+	// for assets
+	extract_assets(state, &engine);
 
 	// センサーマネージャの取得
 	engine.sensorManager = ASensorManager_getInstance();

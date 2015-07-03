@@ -36,9 +36,18 @@
 
 #elif __ANDROID__
 
+/*	#ifdef __cplusplus
+		#undef __cplusplus
+		#define cxx
+	#endif*/
 	#include "catgl_android.h"
+/*	#ifdef cxx
+		#ifdef __cplusplus
+	#endif*/
 	#include <GLES2/gl2.h>
 	//#include <GLES2/gl2ext.h>
+
+	#define CA_PATH(s)	caGetPath(s)
 
 #elif __linux
 
@@ -52,6 +61,8 @@
 	//#include <GL/glut.h>
 
 	#include "catgl_glfw.h"
+
+	#define CA_PATH(s)	("assets/" s)
 
 #elif __unix // all unices not caught above
 	// Unix
