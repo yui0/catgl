@@ -4,6 +4,7 @@
 //		©2015 Yuichiro Nakada
 //---------------------------------------------------------
 
+#define CATGL_IMPLEMENTATION
 #include "catgl.h"
 
 // Shader sources

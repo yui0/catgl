@@ -8,6 +8,11 @@
 #define CATGL_H_
 
 
+#ifdef CATGL_GLES_IMPLEMENTATION
+#define CATGL_GLES
+#define CATGL_IMPLEMENTATION
+#endif
+
 #ifdef _WIN32
 	//define something for Windows (32-bit and 64-bit, this part is common)
 
@@ -36,6 +41,10 @@
 
 #elif __ANDROID__
 
+	#include <GLES2/gl2.h>
+	//#include <GLES2/gl2ext.h>
+
+#ifdef CATGL_IMPLEMENTATION
 /*	#ifdef __cplusplus
 		#undef __cplusplus
 		#define cxx
@@ -44,10 +53,19 @@
 /*	#ifdef cxx
 		#ifdef __cplusplus
 	#endif*/
-	#include <GLES2/gl2.h>
-	//#include <GLES2/gl2ext.h>
+	#define NANOVG_GLES2_IMPLEMENTATION
+#else
+	#define NANOVG_GLES2
+#endif
+	#define nvgCreate	nvgCreateGLES2
+	#define nvgDelete	nvgDeleteGLES2
 
-	#define CA_PATH(s)	caGetPath(s)
+	/*#include <GLES3/gl3.h>
+	#define NANOVG_GLES3_IMPLEMENTATION
+	#define nvgCreate	nvgCreateGLES3
+	#define nvgDelete	nvgDeleteGLES3*/
+
+	#define CA_ASSETS(s)	caGetPath(s)
 
 #elif __linux
 
@@ -60,9 +78,16 @@
 	//#include <GL/glx.h>
 	//#include <GL/glut.h>
 
+#ifdef CATGL_IMPLEMENTATION
 	#include "catgl_glfw.h"
+	#define NANOVG_GL2_IMPLEMENTATION
+#else
+	#define NANOVG_GL2
+#endif
+	#define nvgCreate	nvgCreateGL2
+	#define nvgDelete	nvgDeleteGL2
 
-	#define CA_PATH(s)	("assets/" s)
+	#define CA_ASSETS(s)	("assets/" s)
 
 #elif __unix // all unices not caught above
 	// Unix
@@ -70,6 +95,11 @@
 	// POSIX
 #endif
 
+#include "nanovg.h"
+#include "nanovg_gl.h"
+
+
+#ifdef CATGL_IMPLEMENTATION
 
 /*void caPrintShaderInfo(GLuint shader)
 {
@@ -133,6 +163,8 @@ GLuint caCreateTexture(unsigned char *tex, int w, int h)
 	return id;
 }
 //GLuint caLoadTexture(char *name)
+
+#endif // !CATGL_IMPLEMENTATION
 
 
 #endif // !CATGL_H_

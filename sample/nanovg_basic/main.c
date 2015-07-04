@@ -4,8 +4,8 @@
 //		©2015 Yuichiro Nakada
 //---------------------------------------------------------
 
+#define CATGL_IMPLEMENTATION
 #include "catgl.h"
-#include "catgl_nanovg.h"
 
 void drawWindow(NVGcontext* vg, const char* title, float x, float y, float w, float h)
 {
