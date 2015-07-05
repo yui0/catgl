@@ -7,58 +7,6 @@
 #define CATGL_IMPLEMENTATION
 #include "catgl.h"
 
-void drawWindow(NVGcontext* vg, const char* title, float x, float y, float w, float h)
-{
-	float cornerRadius = 3.0f;
-	NVGpaint shadowPaint;
-	NVGpaint headerPaint;
-
-	nvgSave(vg);
-//	nvgClearState(vg);
-
-	// Window
-	nvgBeginPath(vg);
-	nvgRoundedRect(vg, x,y, w,h, cornerRadius);
-	nvgFillColor(vg, nvgRGBA(28,30,34,192));
-//	nvgFillColor(vg, nvgRGBA(0,0,0,128));
-	nvgFill(vg);
-
-	// Drop shadow
-	shadowPaint = nvgBoxGradient(vg, x,y+2, w,h, cornerRadius*2, 10, nvgRGBA(0,0,0,128), nvgRGBA(0,0,0,0));
-	nvgBeginPath(vg);
-	nvgRect(vg, x-10,y-10, w+20,h+30);
-	nvgRoundedRect(vg, x,y, w,h, cornerRadius);
-	nvgPathWinding(vg, NVG_HOLE);
-	nvgFillPaint(vg, shadowPaint);
-	nvgFill(vg);
-
-	// Header
-	headerPaint = nvgLinearGradient(vg, x,y,x,y+15, nvgRGBA(255,255,255,8), nvgRGBA(0,0,0,16));
-	nvgBeginPath(vg);
-	nvgRoundedRect(vg, x+1,y+1, w-2,30, cornerRadius-1);
-	nvgFillPaint(vg, headerPaint);
-	nvgFill(vg);
-	nvgBeginPath(vg);
-	nvgMoveTo(vg, x+0.5f, y+0.5f+30);
-	nvgLineTo(vg, x+0.5f+w-1, y+0.5f+30);
-	nvgStrokeColor(vg, nvgRGBA(0,0,0,32));
-	nvgStroke(vg);
-
-	nvgFontSize(vg, 18.0f);
-	nvgFontFace(vg, "sans-bold");
-	nvgTextAlign(vg,NVG_ALIGN_CENTER|NVG_ALIGN_MIDDLE);
-
-	nvgFontBlur(vg,2);
-	nvgFillColor(vg, nvgRGBA(0,0,0,128));
-	nvgText(vg, x+w/2,y+16+1, title, NULL);
-
-	nvgFontBlur(vg,0);
-	nvgFillColor(vg, nvgRGBA(220,220,220,160));
-	nvgText(vg, x+w/2,y+16, title, NULL);
-
-	nvgRestore(vg);
-}
-
 struct NVGcontext* vg;
 int width, height;
 float pixelRatio;
@@ -120,7 +68,22 @@ void caRender()
 	nvgFill(vg);
 	nvgStroke(vg);*/
 
-	drawWindow(vg, "test", 10, 400, 100, 50);
+	nvgCreateFont(vg, "sans-bold", CATGL_ASSETS("Roboto-Bold.ttf"));
+	nvgFontFace(vg, "sans-bold");
+	nvgBeginPath(vg);
+	/* y は中心位置なことに注意。実際ここの部分は nvgTextBounds や nvgTextMetrics などを使って計算して求める必要があるだろう */
+	//int x = 0;
+	//int y = 10;
+	nvgText(vg, /*x, y,*/100,100, "Hello!", NULL);
+
+	// GUI
+	// Widgets
+	caDrawWindow(vg, "Title", 10, 100, 100, 100);
+	caDrawSearchBox(vg, "Search", 20, 120, 280, 25);
+/*	y += 40;
+	drawDropDown(vg, "Effects", x,y,280,28);
+	popy = y + 14;
+	y += 45;*/
 
 	nvgEndFrame(vg);
 }

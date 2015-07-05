@@ -27,7 +27,7 @@ void caInit(int w, int h)
 
 	vg = nvgCreate(NVG_ANTIALIAS);
 
-	handle = nvgCreateImage(vg, CA_ASSETS("cat.jpg"), 0);
+	handle = nvgCreateImage(vg, CATGL_ASSETS("cat.jpg"), 0);
 	nvgImageSize(vg, handle, &_width, &_height);
 	pattern = nvgImagePattern(vg, 100, 100, _width, _height, 0, handle, 1);
 }

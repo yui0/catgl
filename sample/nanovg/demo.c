@@ -810,7 +810,7 @@ int loadDemoData(NVGcontext* vg, DemoData* data)
 	for (i = 0; i < 12; i++) {
 		char file[128];
 		//snprintf(file, 128, PATH "/images/image%d.jpg", i+1);
-		snprintf(file, 128, "%s%d.jpg", CA_ASSETS(PATH "/images/image"), i+1);
+		snprintf(file, 128, "%s%d.jpg", CATGL_ASSETS(PATH "/images/image"), i+1);
 		data->images[i] = nvgCreateImage(vg, file, 0);
 		if (data->images[i] == 0) {
 			printf("Could not load %s.\n", file);
@@ -818,17 +818,17 @@ int loadDemoData(NVGcontext* vg, DemoData* data)
 		}
 	}
 
-	data->fontIcons = nvgCreateFont(vg, "icons", CA_ASSETS(PATH "/entypo.ttf"));
+	data->fontIcons = nvgCreateFont(vg, "icons", CATGL_ASSETS(PATH "/entypo.ttf"));
 	if (data->fontIcons == -1) {
 		printf("Could not add font icons.\n");
 		return -1;
 	}
-	data->fontNormal = nvgCreateFont(vg, "sans", CA_ASSETS(PATH "/Roboto-Regular.ttf"));
+	data->fontNormal = nvgCreateFont(vg, "sans", CATGL_ASSETS(PATH "/Roboto-Regular.ttf"));
 	if (data->fontNormal == -1) {
 		printf("Could not add font italic.\n");
 		return -1;
 	}
-	data->fontBold = nvgCreateFont(vg, "sans-bold", CA_ASSETS(PATH "/Roboto-Bold.ttf"));
+	data->fontBold = nvgCreateFont(vg, "sans-bold", CATGL_ASSETS(PATH "/Roboto-Bold.ttf"));
 	if (data->fontBold == -1) {
 		printf("Could not add font bold.\n");
 		return -1;
