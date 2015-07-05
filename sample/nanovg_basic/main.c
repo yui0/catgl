@@ -21,9 +21,12 @@ void caInit(int w, int h)
 	pixelRatio = (float)width / (float)height;
 
 	vg = nvgCreate(NVG_ANTIALIAS);
+
+	nvgCreateFont(vg, "sans-bold", CATGL_ASSETS("Roboto-Bold.ttf"));
+	nvgFontFace(vg, "sans-bold");
 }
 
-// 四角形の描画
+// 描画
 void caRender()
 {
 	glViewport(0, 0, width, height);
@@ -68,13 +71,12 @@ void caRender()
 	nvgFill(vg);
 	nvgStroke(vg);*/
 
-	nvgCreateFont(vg, "sans-bold", CATGL_ASSETS("Roboto-Bold.ttf"));
-	nvgFontFace(vg, "sans-bold");
 	nvgBeginPath(vg);
 	/* y は中心位置なことに注意。実際ここの部分は nvgTextBounds や nvgTextMetrics などを使って計算して求める必要があるだろう */
 	//int x = 0;
 	//int y = 10;
 	nvgText(vg, /*x, y,*/100,100, "Hello!", NULL);
+	nvgFill(vg);
 
 	// GUI
 	// Widgets
