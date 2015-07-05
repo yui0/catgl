@@ -1,3 +1,4 @@
+#define CATGL_NANOVG
 #include "catgl.h"
 
 #include "demo.h"

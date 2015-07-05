@@ -1,0 +1,170 @@
+//---------------------------------------------------------
+//	catgl
+//
+//		©2015 Yuichiro Nakada
+//---------------------------------------------------------
+
+#define CATGL_IMPLEMENTATION
+#include "catgl.h"
+
+GLuint program;
+GLuint vao;
+
+#include <stdio.h>
+// シェーダオブジェクトのコンパイル結果を表示する
+static GLboolean printShaderInfoLog(GLuint shader, const char *str)
+{
+	// コンパイル結果を取得する
+	GLint status;
+	glGetShaderiv(shader, GL_COMPILE_STATUS, &status);
+	if (status == GL_FALSE) fprintf(stderr, "Compile Error in %s\n", str);
+
+	// シェーダのコンパイル時のログの長さを取得する
+	GLsizei bufSize;
+	glGetShaderiv(shader, GL_INFO_LOG_LENGTH , &bufSize);
+
+	if (bufSize > 1) {
+		// シェーダのコンパイル時のログの内容を取得する
+		GLchar infoLog[bufSize];
+		GLsizei length;
+		glGetShaderInfoLog(shader, bufSize, &length, infoLog);
+		fprintf(stderr, "%s\n", infoLog);
+	}
+
+	return (GLboolean)status;
+}
+ 
+// プログラムオブジェクトのリンク結果を表示する
+static GLboolean printProgramInfoLog(GLuint program)
+{
+	// リンク結果を取得する
+	GLint status;
+	glGetProgramiv(program, GL_LINK_STATUS, &status);
+	if (status == GL_FALSE) fprintf(stderr, "Link Error\n");
+
+	// シェーダのリンク時のログの長さを取得する
+	GLsizei bufSize;
+	glGetProgramiv(program, GL_INFO_LOG_LENGTH , &bufSize);
+
+	if (bufSize > 1) {
+		// シェーダのリンク時のログの内容を取得する
+		GLchar infoLog[bufSize];
+		GLsizei length;
+		glGetProgramInfoLog(program, bufSize, &length, infoLog);
+		fprintf(stderr, "%s\n", infoLog);
+	}
+
+	return (GLboolean)status;
+}
+
+// プログラムオブジェクトの作成
+GLuint createProgram(const char *vsrc, const char *pv, const char *fsrc, const char *fc)
+{
+	// バーテックスシェーダのシェーダオブジェクト
+	GLuint vobj = glCreateShader(GL_VERTEX_SHADER);
+	glShaderSource(vobj, 1, &vsrc, NULL);
+	glCompileShader(vobj);
+	printShaderInfoLog(vobj, "vertex shader");
+
+	// フラグメントシェーダのシェーダオブジェクトの作成
+	GLuint fobj = glCreateShader(GL_FRAGMENT_SHADER);
+	glShaderSource(fobj, 1, &fsrc, NULL);
+	glCompileShader(fobj);
+	printShaderInfoLog(fobj, "fragment shader");
+
+	// シェーダオブジェクトの取り付け
+	GLuint program = glCreateProgram();
+	glAttachShader(program, vobj);
+	glDeleteShader(vobj);
+	glAttachShader(program, fobj);
+	glDeleteShader(fobj);
+
+	// プログラムオブジェクトのリンク
+	glBindAttribLocation(program, 0, pv);
+	glBindFragDataLocation(program, 0, fc);
+	glLinkProgram(program);
+	printProgramInfoLog(program);
+
+	return program;
+}
+
+// 頂点配列オブジェクトの作成
+GLuint createObject(GLuint vertices, const GLfloat (*position)[2])
+{
+	// 頂点配列オブジェクト
+	GLuint vao;
+	glGenVertexArrays(1, &vao);
+	glBindVertexArray(vao);
+
+	// 頂点バッファオブジェクト
+	GLuint vbo;
+	glGenBuffers(1, &vbo);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 2 * vertices, position, GL_STATIC_DRAW);
+
+	// 結合されている頂点バッファオブジェクトを attribute 変数から参照できるようにする
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, 0);
+	glEnableVertexAttribArray(0);
+
+	// 頂点バッファオブジェクトと頂点配列オブジェクトの結合を解除する
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindVertexArray(0);
+
+	return vao;
+}
+
+int vertices;
+// 表示の初期化
+void caInit(int width, int height)
+{
+	// バーテックスシェーダのソースプログラム
+	static const GLchar vsrc[] =
+	"#version 120\n"
+	"attribute vec2 position;"
+	"void main() {"
+	"   gl_Position = vec4(position, 0.0, 1.0);"
+	"}";
+
+	// フラグメントシェーダのソースプログラム
+	static const GLchar fsrc[] =
+	"#version 120\n"
+	"void main() {"
+	"   gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);"
+	"}";
+
+	// プログラムオブジェクトの作成
+	program = createProgram(vsrc, "position", fsrc, "gl_FragColor");
+
+	// 図形データ
+	static const GLfloat position[][2] =
+	{
+		{ -0.5f, -0.5f },
+		{  0.5f, -0.5f },
+		{  0.5f,  0.5f },
+		{ -0.5f,  0.5f }
+	};
+	vertices = sizeof position / sizeof position[0];
+
+	// 頂点配列オブジェクトの作成
+	vao = createObject(vertices, position);
+}
+
+// 描画
+void caRender()
+{
+	glClearColor(1.0f, 1.0f, 1.0f, 0.0f);
+	glClear(GL_COLOR_BUFFER_BIT);
+
+	glUseProgram(program);
+
+	glBindVertexArray(vao);
+	glDrawArrays(GL_LINE_LOOP, 0, vertices);
+	glBindVertexArray(0);
+
+	glUseProgram(0);
+}
+
+void caEnd()
+{
+	glDeleteProgram(program);
+}

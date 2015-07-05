@@ -95,6 +95,7 @@
 	// POSIX
 #endif
 
+#ifdef CATGL_NANOVG
 #include "nanovg.h"
 #include "nanovg_gl.h"
 
@@ -105,9 +106,11 @@
 #define ICON_CHECK 0x2713
 #define ICON_LOGIN 0xE740
 #define ICON_TRASH 0xE729
+#endif
 
 
 #ifdef CATGL_IMPLEMENTATION
+#ifdef CATGL_NANOVG
 char* cpToUTF8(int cp, char* str)
 {
 	int n = 0;
@@ -130,6 +133,7 @@ char* cpToUTF8(int cp, char* str)
 }
 #include "catgl_window.h"
 #include "catgl_searchbox.h"
+#endif
 
 /*void caPrintShaderInfo(GLuint shader)
 {
@@ -156,7 +160,7 @@ GLuint caLoadShader(GLenum shaderType, const char* pSource)
 	return shader;
 }
 
-GLuint caCreateProgram(const char* pVertexSource, const char* pFragmentSource)
+GLuint caCreateProgram(const char* pVertexSource, const char *pv, const char* pFragmentSource, const char *fc)
 {
 	GLuint vertexShader = caLoadShader(GL_VERTEX_SHADER, pVertexSource);
 	GLuint pixelShader = caLoadShader(GL_FRAGMENT_SHADER, pFragmentSource);
@@ -165,12 +169,32 @@ GLuint caCreateProgram(const char* pVertexSource, const char* pFragmentSource)
 	glDeleteShader(vertexShader);
 	glAttachShader(program, pixelShader);
 	glDeleteShader(pixelShader);
-//	glBindAttribLocation(program, 0, "vPosition");
-//	glBindFragDataLocation(program, 0, "gl_FragColor");
+	glBindAttribLocation(program, 0, pv);
+	glBindFragDataLocation(program, 0, fc);
 	glLinkProgram(program);
 	GLint linkStatus = GL_FALSE;
 	glGetProgramiv(program, GL_LINK_STATUS, &linkStatus);
 	return program;
+}
+
+GLuint caCreateObject(const GLfloat *position, int size, GLuint num)
+{
+	GLuint vao;
+	glGenVertexArrays(1, &vao);
+	glBindVertexArray(vao);
+
+	GLuint vbo;
+	glGenBuffers(1, &vbo);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * size * num, position, GL_STATIC_DRAW);
+
+	glVertexAttribPointer(0, size, GL_FLOAT, GL_FALSE, 0, 0);
+	glEnableVertexAttribArray(0);
+
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindVertexArray(0);
+
+	return vao;
 }
 
 GLuint caCreateTexture(unsigned char *tex, int w, int h)

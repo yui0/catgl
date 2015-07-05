@@ -7,6 +7,7 @@ This application is designed for Android, iOS, Linux, Windows.
 
 - OpenGL / OpenGLES
 - NanoVG (https://github.com/memononen/nanovg)
+- stb single-file public domain libraries (https://github.com/nothings/stb)
 - GLFW (for Linux)
 - Android NDK (for Android)
 

@@ -34,6 +34,9 @@ void caInit(int width, int height)
 {
 	glViewport(0, 0, width, height);
 
+	GLuint program = caCreateProgram(vertexSource, "position", fragmentSource, "gl_FragColor");
+	glUseProgram(program);
+
 	// Create Vertex Array Object
 	GLuint vao;
 	glGenVertexArrays(1, &vao);
@@ -51,16 +54,11 @@ void caInit(int width, int height)
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
-	GLuint shaderProgram = caCreateProgram(vertexSource, fragmentSource);
-	glUseProgram(shaderProgram);
-
 	// Specify the layout of the vertex data
-	GLint posAttrib = glGetAttribLocation(shaderProgram, "position");
+	GLint posAttrib = glGetAttribLocation(program, "position");
 	glEnableVertexAttribArray(posAttrib);
 	glVertexAttribPointer(posAttrib, 2, GL_FLOAT, GL_FALSE, 0, 0);
-
-//	glBindBuffer(GL_ARRAY_BUFFER, 0);// 0 を入れておかないといけない
-//	glVertexAttribPointer(posAttrib, 2, GL_FLOAT, GL_FALSE, 0, vertices);
+//	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, 0);
 }
 
 // 描画
@@ -86,7 +84,7 @@ void caRender()
 
 void caEnd()
 {
-/*	glDeleteProgram(shaderProgram);
+/*	glDeleteProgram(program);
 
 	glDeleteBuffers(1, &vbo);
 	glDeleteVertexArrays(1, &vao);*/

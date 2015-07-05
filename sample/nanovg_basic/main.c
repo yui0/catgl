@@ -4,12 +4,74 @@
 //		©2015 Yuichiro Nakada
 //---------------------------------------------------------
 
+#define CATGL_NANOVG
 #define CATGL_IMPLEMENTATION
 #include "catgl.h"
 
 struct NVGcontext* vg;
 int width, height;
 float pixelRatio;
+
+/*float angle, rad, speed, x, y, diam;
+int nbPts;
+static int s_RADIUS = 30;
+    for (int i = 0; i<nbPts; i++) {
+        angle[i] = random(0.0,TWO_PI);
+        rad[i] = random(1, 5) * s_RADIUS;
+        speed[i] = random(-.01, .01);
+        x[i] = width/2;
+        y[i] = height/2;
+        nbConnex[i] = 0;
+        diam[i] = 0;
+    }
+void draw()
+{
+	// draw background
+	nvgBeginPath(vg);
+	nvgRect(vg, 0,0, width,height);
+	nvgFillColor(vg, nvgRGBA(255,255,255,255));
+	nvgFill(vg);
+
+	nvgStrokeColor(vg, nvgRGBA(0,0,0,50));
+	for (int i=0; i<nbPts-1; i++) {
+		for (int j=i+1; j<nbPts; j++) {
+			if (dist(x[i], y[i], x[j], y[j])<RADIUS+10) {
+				nvgBeginPath(vg);
+				nvgMoveTo(vg, x[i], y[i]);
+				nvgLineTo(vg, x[j], y[j]);
+				nvgStroke(vg);
+				nbConnex[i]++;
+				nbConnex[j]++;
+			}
+		}
+	}
+
+	for (int i=0; i<nbPts; i++) {
+		angle[i] += speed[i];
+		x[i] = ease(x[i], width/2 + cos(angle[i]) * rad[i], 0.1);
+		y[i] = ease(y[i], height/2 + sin(angle[i]) * rad[i], 0.1);
+		diam[i] = ease(diam[i], min(nbConnex[i], 7)*max(0.5,(rad[i]/RADIUS/5.0)), 0.1);
+
+		nvgBeginPath(vg);
+		nvgFillColor(vg, nvgRGBA(0,0,0,100));
+		nvgEllipse(vg, x[i], y[i], diam[i] + 3, diam[i] + 3);
+		nvgFill(vg);
+
+		nvgBeginPath(vg);
+		nvgFillColor(vg, nvgRGBA(0,0,0,255));
+		nvgEllipse(vg, x[i], y[i], diam[i], diam[i]);
+		nvgFill(vg);
+
+		nbConnex[i] = 0;
+	}
+
+	nvgBeginPath(vg);
+	nvgMoveTo(vg, 0,0);
+	nvgLineTo(vg, 100, 40);
+	nvgStrokeColor(vg, nvgRGB(255,255,255));
+	nvgStrokeWidth(vg, 3);
+	nvgStroke(vg);
+}*/
 
 // 表示の初期化
 void caInit(int w, int h)
@@ -39,10 +101,6 @@ void caRender()
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glEnable(GL_CULL_FACE);
 	glDisable(GL_DEPTH_TEST);
-
-	/*nvgBeginFrame(vg, width, height, pxRatio);
-	renderDemo(vg, 200,200, width,height,5,0,0);
-	nvgEndFrame(vg);*/
 
 	nvgBeginFrame(vg, width, height, pixelRatio);
 
@@ -86,6 +144,8 @@ void caRender()
 	drawDropDown(vg, "Effects", x,y,280,28);
 	popy = y + 14;
 	y += 45;*/
+
+//	draw();
 
 	nvgEndFrame(vg);
 }
