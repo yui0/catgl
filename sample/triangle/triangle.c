@@ -8,71 +8,80 @@
 #include "catgl.h"
 
 // Shader sources
-const GLchar* vertexSource =
+static const GLchar vsrc[] =
 	"#version 120\n"
-	"attribute vec2 position;"
+	"uniform mat4 projectionMatrix;"
+	"uniform mat4 modelviewMatrix;"
+	"attribute vec3 position;"		// in
+	"attribute vec3 v_color;"		// in
+	"varying vec3 f_color;"		// out
+//	"attribute vec2 texcoord;"		// in
+//	"varying vec2 texcoordVarying;"	// out
 	"void main() {"
-	"   gl_Position = vec4(position, 0.0, 1.0);"
+	"   gl_Position = projectionMatrix * modelviewMatrix * vec4(position, 1.0);"
+//ok	"   gl_Position = gl_ModelViewMatrix * vec4(position, 1.0);"
+//x	"   gl_Position = gl_ProjectionMatrix * gl_ModelViewMatrix * gl_Vertex;"
+	"   f_color = v_color;"
+//	"   texcoordVarying = texcoord;"
 	"}";
-const GLchar* fragmentSource =
+static const GLchar fsrc[] =
 	"#version 120\n"
-	"void main() {"
-	"   gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);"
+	"varying vec3 f_color;"
+	"void main(void) {"
+	"  gl_FragColor = vec4(f_color.x, f_color.y, f_color.z, 1.0);"
 	"}";
-/*const GLchar* fragmentSource =
-	"out vec4 gl_FrontColor;"
-	"void main() {"
-//	"  // 位置座標を座標変換\n"
-	"  gl_Position = ftransform();"
-//	"  // 法線から色を決定\n"
-	"  gl_FrontColor.rgb = 0.5 * gl_Normal.xyz + 0.5;"
-	"  gl_FrontColor.a = 1.0;"
-	"}";*/
+
+CATGL_VERTEX obj[] =
+{
+	{  0.0f,  0.8f,  0.0f,  1.0f, 1.0f, 0.0f, 0.0f,  0.0f, 0.0f },
+	{ -0.8f, -0.8f,  0.0f,  0.0f, 0.0f, 1.0f, 0.0f,  0.0f, 1.0f },
+	{  0.8f, -0.8f,  0.0f,  1.0f, 0.0f, 0.0f, 0.0f,  1.0f, 0.0f },
+};
+
+GLuint program;
+GLuint vbo;
 
 // 表示の初期化
 void caInit(int width, int height)
 {
 	glViewport(0, 0, width, height);
 
-	GLuint program = caCreateProgram(vertexSource, "position", fragmentSource, "gl_FragColor");
+	program = caCreateProgram(vsrc, "position", fsrc, "gl_FragColor");
+
+	GLuint att[3];
+	att[0] = glGetAttribLocation(program, "position");
+	att[1] = glGetAttribLocation(program, "v_color");
+	att[2] = 65535;
+	vbo = caCreateObject(obj, sizeof(obj)/sizeof(obj[0]), att);
+
 	glUseProgram(program);
-
-	// Create Vertex Array Object
-	GLuint vao;
-	glGenVertexArrays(1, &vao);
-	glBindVertexArray(vao);
-
-	GLfloat vertices[] = {
-		0.0f, 0.5f,
-		0.5f, -0.5f,
-		-0.5f, -0.5f
-	};
-
-	// Create a Vertex Buffer Object and copy the vertex data to it
-	GLuint vbo;
-	glGenBuffers(1, &vbo);
-	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-	// Specify the layout of the vertex data
-	GLint posAttrib = glGetAttribLocation(program, "position");
-	glEnableVertexAttribArray(posAttrib);
-	glVertexAttribPointer(posAttrib, 2, GL_FLOAT, GL_FALSE, 0, 0);
-//	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, 0);
 }
 
 // 描画
 void caRender()
 {
-	/*glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
-	glTranslatef(0.0, 0.0, -50.0);
+//	glMatrixMode(GL_MODELVIEW);
+//	glLoadIdentity();
+	//glTranslatef(0.0, 0.0, -50.0);
 	static float angle;
 	angle += 2;
 	if (angle > 360) {
 		angle = 0;
 	}
-	glRotatef(angle, 0, 0, 1.0f);*/
+//	glRotatef(angle, 0, 0, 1.0f);
+
+/*	GLfloat m[16];
+	glGetFloatv(GL_MODELVIEW_MATRIX, m);
+	caPrintMatrix(m);
+	glUniformMatrix4fv(glGetUniformLocation(program, "modelviewMatrix"), 1, GL_FALSE, m);
+	glGetFloatv(GL_PROJECTION_MATRIX, m);
+	glUniformMatrix4fv(glGetUniformLocation(program, "projectionMatrix"), 1, GL_FALSE, m);*/
+
+	float m[16];
+	caMakeUnit(m);
+	glUniformMatrix4fv(glGetUniformLocation(program, "projectionMatrix"), 1, GL_FALSE, m);
+	caRotationZ(m, angle);
+	glUniformMatrix4fv(glGetUniformLocation(program, "modelviewMatrix"), 1, GL_FALSE, m);
 
 	// Clear the screen to black
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
@@ -84,8 +93,6 @@ void caRender()
 
 void caEnd()
 {
-/*	glDeleteProgram(program);
-
 	glDeleteBuffers(1, &vbo);
-	glDeleteVertexArrays(1, &vao);*/
+	glDeleteProgram(program);
 }

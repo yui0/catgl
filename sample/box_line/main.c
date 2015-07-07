@@ -36,13 +36,33 @@ static const GLfloat position[][2] =
 
 int vertices;
 
+GLuint _caCreateObject(const GLfloat *position, int size, GLuint num)
+{
+	GLuint vao;
+	glGenVertexArrays(1, &vao);
+	glBindVertexArray(vao);
+
+	GLuint vbo;
+	glGenBuffers(1, &vbo);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * size * num, position, GL_STATIC_DRAW);
+
+	glVertexAttribPointer(0, size, GL_FLOAT, GL_FALSE, 0, 0);
+	glEnableVertexAttribArray(0);
+
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindVertexArray(0);
+
+	return vao;
+}
+
 // 表示の初期化
 void caInit(int width, int height)
 {
 	vertices = sizeof position / sizeof position[0];
 
 	program = caCreateProgram(vsrc, "position", fsrc, "gl_FragColor");
-	vao = caCreateObject(position, 2, vertices);
+	vao = _caCreateObject(position, 2, vertices);
 }
 
 // 描画

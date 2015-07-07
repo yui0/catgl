@@ -23,7 +23,6 @@ COBJECTS = $(addprefix $(OBJDIR)/, $(CSOURCES:.c=.o)) $(addprefix $(OBJDIR)/, $(
 DEPENDS  = $(OBJECTS:.o=.d) $(COBJECTS:.o=.d) $(COBJS:.o=.d)
 
 $(TARGET): $(OBJECTS) $(COBJECTS) $(COBJS) $(LIBS)
-	echo $(COBJECTS) + $(CSRCS) + $(COBJS)
 	$(COMPILER) -o $@ $^ $(LDFLAGS)
 
 $(OBJDIR)/%.o: %.cpp
