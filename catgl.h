@@ -115,6 +115,8 @@
 #endif
 
 
+#define CATGL_PI	3.14159265358979
+
 typedef struct _CATGL_VERTEX
 {
 	float x, y, z;
@@ -258,6 +260,8 @@ void makeOrthoMatrix(float left, float right, float bottom, float top, float *re
 	ret[10] = -2.0f / dz;	ret[11] = tz;
 	ret[15] = 1;
 }*/
+#include <math.h>
+#include <memory.h>
 void caPrintMatrix(float *m)
 {
 	LOGD("m[0]:% 7.5f m[4]:% 7.5f m[8] :% 7.5f m[12]:% 7.5f\n", m[0], m[4], m[8],  m[12]);
@@ -271,8 +275,6 @@ void caMakeUnit(float *m)
 	memset(m, 0, sizeof(float)*16);
 	m[0] = m[5] = m[10]= m[15] = 1.0f;
 }
-//#include <math.h>
-#define CATGL_PI	3.14159265358979
 void caRotationX(float *m, float degree)
 {
 	float rad = ((float)degree * CATGL_PI / 180.0);
