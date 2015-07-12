@@ -1,4 +1,4 @@
-void drawEditBoxBase(NVGcontext* vg, float x, float y, float w, float h)
+void caDrawEditBoxBase(NVGcontext* vg, float x, float y, float w, float h)
 {
 	NVGpaint bg;
 	// Edit
@@ -14,9 +14,9 @@ void drawEditBoxBase(NVGcontext* vg, float x, float y, float w, float h)
 	nvgStroke(vg);
 }
 
-void drawEditBox(NVGcontext* vg, const char* text, float x, float y, float w, float h)
+void caDrawEditBox(NVGcontext* vg, const char* text, float x, float y, float w, float h)
 {
-	drawEditBoxBase(vg, x,y, w,h);
+	caDrawEditBoxBase(vg, x,y, w,h);
 
 	nvgFontSize(vg, 20.0f);
 	nvgFontFace(vg, "sans");
@@ -25,11 +25,11 @@ void drawEditBox(NVGcontext* vg, const char* text, float x, float y, float w, fl
 	nvgText(vg, x+h*0.3f,y+h*0.5f,text, NULL);
 }
 
-void drawEditBoxNum(NVGcontext* vg, const char* text, const char* units, float x, float y, float w, float h)
+void caDrawEditBoxNum(NVGcontext* vg, const char* text, const char* units, float x, float y, float w, float h)
 {
 	float uw;
 
-	drawEditBoxBase(vg, x,y, w,h);
+	caDrawEditBoxBase(vg, x,y, w,h);
 
 	uw = nvgTextBounds(vg, 0,0, units, NULL, NULL);
 

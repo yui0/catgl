@@ -1,4 +1,4 @@
-void drawLabel(NVGcontext* vg, const char* text, float x, float y, float w, float h)
+void caDrawLabel(NVGcontext* vg, const char* text, float x, float y, float w, float h)
 {
 	NVG_NOTUSED(w);
 

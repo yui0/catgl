@@ -133,6 +133,7 @@ void caRender()
 	nvgBeginPath(vg);
 	/* y は中心位置なことに注意。実際ここの部分は nvgTextBounds や nvgTextMetrics などを使って計算して求める必要があるだろう */
 	nvgText(vg, /*x, y,*/100,100, "Hello!", NULL);
+	nvgText(vg, 10, 10, "こんにちは！ ハロー", NULL);
 	nvgFill(vg);
 
 	// GUI
@@ -140,31 +141,27 @@ void caRender()
 	int y = 100;
 
 	// Widgets
-	caDrawWindow(vg, "Title", x, y, 300, 300);
+	caDrawWindow(vg, "Title", x, y, 300, 360);
 	caDrawSearchBox(vg, "Search", x+10, y+40, 280, 25);
-	drawDropDown(vg, "Effects", x+10, y+70, 280, 28);
+	caDrawDropDown(vg, "Effects", x+10, y+70, 280, 28);
 
 	// Form
-	drawLabel(vg, "Login", x+10, y+110, 280, 20);
-	drawEditBox(vg, "Email",  x+10, y+135, 280, 28);
-	drawEditBox(vg, "Password", x+10, y+170, 280, 28);
-/*	y += 38;
-	drawCheckBox(vg, "Remember me", x,y, 140,28);
-	drawButton(vg, ICON_LOGIN, "Sign in", x+138, y, 140, 28, nvgRGBA(0,96,128,255));
-	y += 45;*/
+	caDrawLabel(vg, "Login", x+10, y+110, 280, 20);
+	caDrawEditBox(vg, "Email",  x+10, y+135, 280, 28);
+	caDrawEditBox(vg, "Password", x+10, y+170, 280, 28);
+	caDrawCheckBox(vg, "Remember me", x+10, y+200, 140, 28);
+	caDrawButton(vg, ICON_LOGIN, "Sign in", x+148, y+200, 140, 28, nvgRGBA(0,96,128,255));
 
 	// Slider
-/*	drawLabel(vg, "Diameter", x,y, 280,20);
-	y += 25;
-	drawEditBoxNum(vg, "123.00", "px", x+180,y, 100,28);
-	drawSlider(vg, 0.4f, x,y, 170,28);
-	y += 55;
+	caDrawLabel(vg, "Diameter", x+10, y+245, 280, 20);
+	caDrawEditBoxNum(vg, "123.00", "px", x+190, y+270, 100, 28);
+	caDrawSlider(vg, 0.4f, x+10, y+270, 170,28);
 
-	drawButton(vg, ICON_TRASH, "Delete", x, y, 160, 28, nvgRGBA(128,16,8,255));
-	drawButton(vg, 0, "Cancel", x+170, y, 110, 28, nvgRGBA(0,0,0,0));
+	caDrawButton(vg, ICON_TRASH, "Delete", x+10, y+325, 160, 28, nvgRGBA(128,16,8,255));
+	caDrawButton(vg, 0, "Cancel", x+180, y+325, 110, 28, nvgRGBA(0,0,0,0));
 
 	// Thumbnails box
-	if (data) drawThumbnails(vg, 365, popy-30, 160, 300, data->images, 12, t);*/
+//	if (data) drawThumbnails(vg, 365, popy-30, 160, 300, data->images, 12, t);
 
 //	draw();
 

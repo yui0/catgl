@@ -152,6 +152,14 @@ typedef struct _CATGL_VERTEX
 	nvgFontFace(vg, "icons");
 //	nvgCreateFontMem(vg, "icons", (unsigned char*)icons, sizeof(icons), 0);
 //	nvgFontFace(vg, "icons");
+// Returns 1 if col.rgba is 0.0f,0.0f,0.0f,0.0f, 0 otherwise
+inline int isBlack(NVGcolor col)
+{
+	if (!(int)col.r && !(int)col.g && !(int)col.b && !(int)col.a) {
+		return 1;
+	}
+	return 0;
+}
 char* cpToUTF8(int cp, char* str)
 {
 	int n = 0;
@@ -177,6 +185,9 @@ char* cpToUTF8(int cp, char* str)
 #include "catgl_dropdown.h"
 #include "catgl_label.h"
 #include "catgl_editbox.h"
+#include "catgl_checkbox.h"
+#include "catgl_button.h"
+#include "catgl_slider.h"
 #endif
 
 
