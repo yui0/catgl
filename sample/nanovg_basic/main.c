@@ -82,10 +82,11 @@ void caInit(int w, int h)
 	// Calculate pixel ration for hi-dpi devices.
 	pixelRatio = (float)width / (float)height;
 
-	vg = nvgCreate(NVG_ANTIALIAS);
+	nvgCreateEx(vg, NVG_ANTIALIAS);
+//	vg = nvgCreate(NVG_ANTIALIAS);
 
-	nvgCreateFont(vg, "sans-bold", CATGL_ASSETS("Roboto-Bold.ttf"));
-	nvgFontFace(vg, "sans-bold");
+//	nvgCreateFont(vg, "sans-bold", CATGL_ASSETS("Roboto-Bold.ttf"));
+//	nvgFontFace(vg, "sans-bold");
 }
 
 // 描画
@@ -131,19 +132,39 @@ void caRender()
 
 	nvgBeginPath(vg);
 	/* y は中心位置なことに注意。実際ここの部分は nvgTextBounds や nvgTextMetrics などを使って計算して求める必要があるだろう */
-	//int x = 0;
-	//int y = 10;
 	nvgText(vg, /*x, y,*/100,100, "Hello!", NULL);
 	nvgFill(vg);
 
 	// GUI
+	int x = 10;
+	int y = 100;
+
 	// Widgets
-	caDrawWindow(vg, "Title", 10, 100, 100, 100);
-	caDrawSearchBox(vg, "Search", 20, 120, 280, 25);
-/*	y += 40;
-	drawDropDown(vg, "Effects", x,y,280,28);
-	popy = y + 14;
+	caDrawWindow(vg, "Title", x, y, 300, 300);
+	caDrawSearchBox(vg, "Search", x+10, y+40, 280, 25);
+	drawDropDown(vg, "Effects", x+10, y+70, 280, 28);
+
+	// Form
+	drawLabel(vg, "Login", x+10, y+110, 280, 20);
+	drawEditBox(vg, "Email",  x+10, y+135, 280, 28);
+	drawEditBox(vg, "Password", x+10, y+170, 280, 28);
+/*	y += 38;
+	drawCheckBox(vg, "Remember me", x,y, 140,28);
+	drawButton(vg, ICON_LOGIN, "Sign in", x+138, y, 140, 28, nvgRGBA(0,96,128,255));
 	y += 45;*/
+
+	// Slider
+/*	drawLabel(vg, "Diameter", x,y, 280,20);
+	y += 25;
+	drawEditBoxNum(vg, "123.00", "px", x+180,y, 100,28);
+	drawSlider(vg, 0.4f, x,y, 170,28);
+	y += 55;
+
+	drawButton(vg, ICON_TRASH, "Delete", x, y, 160, 28, nvgRGBA(128,16,8,255));
+	drawButton(vg, 0, "Cancel", x+170, y, 110, 28, nvgRGBA(0,0,0,0));
+
+	// Thumbnails box
+	if (data) drawThumbnails(vg, 365, popy-30, 160, 300, data->images, 12, t);*/
 
 //	draw();
 

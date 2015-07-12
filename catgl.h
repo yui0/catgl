@@ -7,6 +7,10 @@
 #ifndef CATGL_H_
 #define CATGL_H_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 
 #ifdef CATGL_GLES_IMPLEMENTATION
 #define CATGL_GLES
@@ -58,14 +62,7 @@
 	#define CATGL_ASSETS(s)	caGetPath(s)
 
 #ifdef CATGL_IMPLEMENTATION
-/*	#ifdef __cplusplus
-		#undef __cplusplus
-		#define cxx
-	#endif*/
 	#include "catgl_android.h"
-/*	#ifdef cxx
-		#ifdef __cplusplus
-	#endif*/
 	#define NANOVG_GLES2_IMPLEMENTATION
 #else
 	#define NANOVG_GLES2
@@ -140,6 +137,21 @@ typedef struct _CATGL_VERTEX
 
 #ifdef CATGL_IMPLEMENTATION
 #ifdef CATGL_NANOVG
+//#include "fonts/icons.h"
+#include "fonts/entypo.h"
+#include "fonts/mplus-1c-regular-sub.h"
+#include "fonts/mplus-1c-black-sub.h"
+//#include "fonts/mplus-1c-light-sub.h"
+#define nvgCreateEx(vg,opt)	\
+	vg = nvgCreate(opt); \
+	nvgCreateFontMem(vg, "sans", mplus_1c_regular_sub_ttf, sizeof(mplus_1c_regular_sub_ttf), 0); \
+	nvgFontFace(vg, "sans"); \
+	nvgCreateFontMem(vg, "sans-bold", mplus_1c_black_sub_ttf, sizeof(mplus_1c_black_sub_ttf), 0); \
+	nvgFontFace(vg, "sans-bold"); \
+	nvgCreateFontMem(vg, "icons", (unsigned char*)entypo_ttf, sizeof(entypo_ttf), 0); \
+	nvgFontFace(vg, "icons");
+//	nvgCreateFontMem(vg, "icons", (unsigned char*)icons, sizeof(icons), 0);
+//	nvgFontFace(vg, "icons");
 char* cpToUTF8(int cp, char* str)
 {
 	int n = 0;
@@ -162,6 +174,9 @@ char* cpToUTF8(int cp, char* str)
 }
 #include "catgl_window.h"
 #include "catgl_searchbox.h"
+#include "catgl_dropdown.h"
+#include "catgl_label.h"
+#include "catgl_editbox.h"
 #endif
 
 
@@ -408,5 +423,9 @@ GLuint caCreateTexture(unsigned char *tex, int w, int h)
 
 #endif // !CATGL_IMPLEMENTATION
 
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // !CATGL_H_
