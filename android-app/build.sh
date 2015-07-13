@@ -26,7 +26,7 @@ sed -e "s/@@NAME@@/${name}/" -i /tmp/android-app/res/values/strings.xml
 #sed -e "s/@@PACKAGE@@/${package}/" -i /tmp/android-app/src/berry/${package}/${name}.java
 
 [ -r ${assets} ] && cp -a ${assets} /tmp/android-app/assets
-cp -a ${path}/*.h ${path}/nanovg/* *.c* *.h /tmp/android-app/jni/
+cp -a ${path}/*.h ${path}/nanovg/* ${path}/fonts *.[ch]* /tmp/android-app/jni/
 sed -e "s:@@SOURCE@@:${source}:" -i /tmp/android-app/jni/Android.mk
 sed -e "s:@@INCLUDES@@:${path}/include:" -i /tmp/android-app/jni/Android.mk
 sed -e "s:@@LIBS@@:${path}/project/android/lib -L${path}/project/android/obj/local/armeabi:" -i /tmp/android-app/jni/Android.mk

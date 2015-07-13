@@ -211,6 +211,7 @@ static int32_t engine_handle_input(struct android_app* app, AInputEvent* event)
 		// タッチ位置を取得
 		engine->state.x = AMotionEvent_getX(event, 0);
 		engine->state.y = AMotionEvent_getY(event, 0);
+		if (caMouseEvent) caMouseEvent(AInputEvent_getSource(event), AMotionEvent_getAction(event), AMotionEvent_getX(event, 0), AMotionEvent_getY(event, 0));
 		return 1;
 	}
 	return 0;

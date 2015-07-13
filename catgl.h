@@ -17,6 +17,8 @@ extern "C" {
 #define CATGL_IMPLEMENTATION
 #endif
 
+void (*caMouseEvent)(int button, int action, int x, int y);
+
 #ifdef _WIN32
 	//define something for Windows (32-bit and 64-bit, this part is common)
 
@@ -75,6 +77,14 @@ extern "C" {
 	#define nvgCreate	nvgCreateGLES3
 	#define nvgDelete	nvgDeleteGLES3*/
 
+	#define CATGL_ACTION_UP		AMOTION_EVENT_ACTION_UP
+	#define CATGL_ACTION_DOWN		AMOTION_EVENT_ACTION_DOWN
+	#define CATGL_ACTION_MOVE		AMOTION_EVENT_ACTION_MOVE
+
+	#define CATGL_MOUSE_BUTTON_LEFT	AINPUT_SOURCE_TOUCHSCREEN
+	#define CATGL_MOUSE_BUTTON_RIGHT	-1
+	#define CATGL_MOUSE_BUTTON_MIDDLE	-1
+
 #elif __linux
 
 	#ifndef GL_GLEXT_PROTOTYPES
@@ -104,6 +114,14 @@ extern "C" {
 #endif
 	#define nvgCreate	nvgCreateGL2
 	#define nvgDelete	nvgDeleteGL2
+
+	#define CATGL_ACTION_UP		GLFW_RELEASE	// 0
+	#define CATGL_ACTION_DOWN		GLFW_PRESS	// 1
+	#define CATGL_ACTION_MOVE		2
+
+	#define CATGL_MOUSE_BUTTON_LEFT	GLFW_MOUSE_BUTTON_LEFT
+	#define CATGL_MOUSE_BUTTON_RIGHT	GLFW_MOUSE_BUTTON_RIGHT
+	#define CATGL_MOUSE_BUTTON_MIDDLE	GLFW_MOUSE_BUTTON_MIDDLE
 
 #elif __unix // all unices not caught above
 	// Unix

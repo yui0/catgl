@@ -73,6 +73,11 @@ void draw()
 	nvgStroke(vg);
 }*/
 
+void mouseEvent(int button, int action, int x, int y)
+{
+	LOGD("(%d,%d) %d\n", x, y, action);
+}
+
 // 表示の初期化
 void caInit(int w, int h)
 {
@@ -81,6 +86,8 @@ void caInit(int w, int h)
 
 	// Calculate pixel ration for hi-dpi devices.
 	pixelRatio = (float)width / (float)height;
+
+	caMouseEvent = mouseEvent;
 
 	nvgCreateEx(vg, NVG_ANTIALIAS);
 //	vg = nvgCreate(NVG_ANTIALIAS);

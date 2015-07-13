@@ -11,6 +11,24 @@ extern void caInit(int width, int height);
 extern void caRender();
 extern void caEnd();
 
+int _button/*, _action*/;
+void mouseButtonCallback(GLFWwindow* window, const int button, const int action, const int mods)
+{
+//	int xpos, ypos;
+//	glfwGetMousePos(&xpos, &ypos);
+	double xpos, ypos;
+	glfwGetCursorPos(window, &xpos, &ypos);
+	if (caMouseEvent) {
+		_button = button;
+//		_action = action;
+		caMouseEvent(button, action, xpos, ypos);
+	}
+}
+void mouseMoveCallback(GLFWwindow* window, const double xpos, const double ypos)
+{
+	if (caMouseEvent) caMouseEvent(_button, /*_action*/2, xpos, ypos);
+}
+
 int main()
 {
 	GLFWwindow* window;
@@ -48,6 +66,8 @@ int main()
 	}
 
 	glfwMakeContextCurrent(window);
+	glfwSetMouseButtonCallback(window, mouseButtonCallback);
+	glfwSetCursorPosCallback(window, mouseMoveCallback);
 	caInit(640, 480);
 	while (!glfwWindowShouldClose(window)) {
 		caRender();
