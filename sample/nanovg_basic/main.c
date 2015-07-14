@@ -77,7 +77,14 @@ CATGL_UI ui[] = {
 	{ CATGL_UI_BUTTON, 0, 30, 640, 30, "OK!", 0, ICON_CIRCLED_CROSS, 0,96,128,255 },
 	{ CATGL_UI_BUTTON, 0, 60, 640, 30, "CANCEL!", 0, ICON_CIRCLED_CROSS, 0,96,128,255 },
 	{ CATGL_UI_EYES, 350, 200, 100, 50, 0, 0, 0, 0,0,0,0 },
-	{ CATGL_UI_SPINNER, 350, 200, 20, 20, 0, 0, 0, 0,0,0,0 },
+	{ CATGL_UI_SPINNER, 350, 250, 20, 20, 0, 0, 0, 0,0,0,0 },
+	{ CATGL_UI_THUMBNAIL, -1, -1, 40, 40, 0, 0, 0, 0,0,0,0 },
+};
+
+CATGL_UI confirm[] = {
+	{ CATGL_UI_WINDOW, 350, 300, 200, 150, "Confirm", 0, 0, 0,0,0,0 },
+	{ CATGL_UI_BUTTON, -1, -1, 180, 40, "OK!", 0, ICON_CIRCLED_CROSS, 0,96,128,255 },
+	{ CATGL_UI_BUTTON, -1, -1, 180, 40, "CANCEL!", 0, ICON_CIRCLED_CROSS, 128,16,8,255 },
 };
 
 int c_action, c_x, c_y;
@@ -103,6 +110,8 @@ void caInit(int w, int h)
 	pixelRatio = (float)width / (float)height;
 
 	caMouseEvent = mouseEvent;
+	caUiRegister(ui, sizeof(ui)/sizeof(CATGL_UI));
+	caUiRegister(confirm, sizeof(confirm)/sizeof(CATGL_UI));
 
 	nvgCreateEx(vg, NVG_ANTIALIAS);
 }
@@ -148,9 +157,8 @@ void caRender()
 	nvgStroke(vg);*/
 
 	nvgBeginPath(vg);
-	/* y は中心位置なことに注意。実際ここの部分は nvgTextBounds や nvgTextMetrics などを使って計算して求める必要があるだろう */
-	nvgText(vg, /*x, y,*/100,100, "Hello!", NULL);
-	nvgText(vg, 10, 10, "こんにちは！ ハロー", NULL);
+	// y は中心位置!!
+	nvgText(vg, 100, 100, "Hello! Aloha! こんにちは！ ハロー", NULL);
 	nvgFill(vg);
 
 	// GUI
@@ -181,7 +189,8 @@ void caRender()
 //	if (data) drawThumbnails(vg, 365, popy-30, 160, 300, data->images, 12, t);
 
 //	draw();
-	caUiDraw(vg, ui, sizeof(ui)/sizeof(CATGL_UI), c_action, c_x, c_y);
+//	caUiDraw(vg, ui, sizeof(ui)/sizeof(CATGL_UI), c_action, c_x, c_y);
+	caUiDraws(vg, c_action, c_x, c_y);
 
 	nvgEndFrame(vg);
 }

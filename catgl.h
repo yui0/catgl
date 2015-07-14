@@ -17,7 +17,7 @@ extern "C" {
 #define CATGL_IMPLEMENTATION
 #endif
 
-#define CATGL_PI	3.14159265358979
+#define CATGL_PI			3.14159265358979
 
 typedef struct _CATGL_VERTEX
 {
@@ -140,8 +140,12 @@ void (*caMouseEvent)(int button, int action, int x, int y);
 
 
 #ifdef CATGL_NANOVG
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wfloat-equal"
+#pragma GCC diagnostic ignored "-Wsign-compare"
 #include "nanovg.h"
 #include "nanovg_gl.h"
+#pragma GCC diagnostic pop
 // icon font
 #define ICON_SEARCH 0x1F50D
 #define ICON_CIRCLED_CROSS 0x2716
@@ -206,6 +210,7 @@ char* cpToUTF8(int cp, char* str)
 #include "catgl_ui_button.h"
 #include "catgl_ui_slider.h"
 #include "catgl_ui_spinner.h"
+#include "catgl_ui_thumbnail.h"
 #include "catgl_ui_eyes.h"
 #endif
 #include "catgl_ui.h"

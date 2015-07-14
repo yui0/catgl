@@ -7,6 +7,9 @@
 #define GLFW_INCLUDE_GLU
 #include <GLFW/glfw3.h>
 
+#define SCREEN_WIDTH	1280
+#define SCREEN_HEIGHT	720
+
 extern void caInit(int width, int height);
 extern void caRender();
 extern void caEnd();
@@ -58,7 +61,7 @@ int main()
 	//glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 	//glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-	window = glfwCreateWindow(640, 480, "Catgl", /*nullptr*/0, /*nullptr*/0);
+	window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Catgl", 0, 0);
 	if (!window) {
 		//printf("Error at glfwCreateWindow!\n");
 		glfwTerminate();
@@ -68,7 +71,7 @@ int main()
 	glfwMakeContextCurrent(window);
 	glfwSetMouseButtonCallback(window, mouseButtonCallback);
 	glfwSetCursorPosCallback(window, mouseMoveCallback);
-	caInit(640, 480);
+	caInit(SCREEN_WIDTH, SCREEN_HEIGHT);
 	while (!glfwWindowShouldClose(window)) {
 		caRender();
 
