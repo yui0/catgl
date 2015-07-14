@@ -73,9 +73,24 @@ void draw()
 	nvgStroke(vg);
 }*/
 
+CATGL_UI ui[] = {
+	{ CATGL_UI_BUTTON, 0, 30, 640, 30, "OK!", 0, ICON_CIRCLED_CROSS, 0,96,128,255 },
+	{ CATGL_UI_BUTTON, 0, 60, 640, 30, "CANCEL!", 0, ICON_CIRCLED_CROSS, 0,96,128,255 },
+	{ CATGL_UI_EYES, 350, 200, 100, 50, 0, 0, 0, 0,0,0,0 },
+	{ CATGL_UI_SPINNER, 350, 200, 20, 20, 0, 0, 0, 0,0,0,0 },
+};
+
+int c_action, c_x, c_y;
 void mouseEvent(int button, int action, int x, int y)
 {
-	LOGD("(%d,%d) %d\n", x, y, action);
+//	LOGD("(%d,%d) %d\n", x, y, action);
+	char s[256];
+	sprintf(s, "(%d,%d) %d\n", x, y, action);
+	nvgText(vg, 350, 170, s, NULL);
+
+	c_action = action;
+	c_x = x;
+	c_y = y;
 }
 
 // 表示の初期化
@@ -90,10 +105,6 @@ void caInit(int w, int h)
 	caMouseEvent = mouseEvent;
 
 	nvgCreateEx(vg, NVG_ANTIALIAS);
-//	vg = nvgCreate(NVG_ANTIALIAS);
-
-//	nvgCreateFont(vg, "sans-bold", CATGL_ASSETS("Roboto-Bold.ttf"));
-//	nvgFontFace(vg, "sans-bold");
 }
 
 // 描画
@@ -101,7 +112,6 @@ void caRender()
 {
 	glViewport(0, 0, width, height);
 
-	//glClearColor(0.3f, 0.3f, 0.32f, 1.0f);
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 	glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT|GL_STENCIL_BUFFER_BIT);
 
@@ -157,20 +167,21 @@ void caRender()
 	caDrawEditBox(vg, "Email",  x+10, y+135, 280, 28);
 	caDrawEditBox(vg, "Password", x+10, y+170, 280, 28);
 	caDrawCheckBox(vg, "Remember me", x+10, y+200, 140, 28);
-	caDrawButton(vg, ICON_LOGIN, "Sign in", x+148, y+200, 140, 28, nvgRGBA(0,96,128,255));
+	caDrawButton(vg, ICON_LOGIN, "Sign in", x+148, y+200, 140, 28, nvgRGBA(0,96,128,255), 0);
 
 	// Slider
 	caDrawLabel(vg, "Diameter", x+10, y+245, 280, 20);
 	caDrawEditBoxNum(vg, "123.00", "px", x+190, y+270, 100, 28);
-	caDrawSlider(vg, 0.4f, x+10, y+270, 170,28);
+	caDrawSlider(vg, 0.4f, x+10, y+270, 170, 28);
 
-	caDrawButton(vg, ICON_TRASH, "Delete", x+10, y+325, 160, 28, nvgRGBA(128,16,8,255));
-	caDrawButton(vg, 0, "Cancel", x+180, y+325, 110, 28, nvgRGBA(0,0,0,0));
+	caDrawButton(vg, ICON_TRASH, "Delete", x+10, y+325, 160, 28, nvgRGBA(128,16,8,255), 0);
+	caDrawButton(vg, 0, "Cancel", x+180, y+325, 110, 28, nvgRGBA(0,0,0,0), 0);
 
 	// Thumbnails box
 //	if (data) drawThumbnails(vg, 365, popy-30, 160, 300, data->images, 12, t);
 
 //	draw();
+	caUiDraw(vg, ui, sizeof(ui)/sizeof(CATGL_UI), c_action, c_x, c_y);
 
 	nvgEndFrame(vg);
 }

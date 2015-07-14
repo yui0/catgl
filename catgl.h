@@ -17,6 +17,15 @@ extern "C" {
 #define CATGL_IMPLEMENTATION
 #endif
 
+#define CATGL_PI	3.14159265358979
+
+typedef struct _CATGL_VERTEX
+{
+	float x, y, z;
+	float r, g, b, a;
+	float u, v;
+} CATGL_VERTEX;
+
 void (*caMouseEvent)(int button, int action, int x, int y);
 
 #ifdef _WIN32
@@ -130,16 +139,6 @@ void (*caMouseEvent)(int button, int action, int x, int y);
 #endif
 
 
-#define CATGL_PI	3.14159265358979
-
-typedef struct _CATGL_VERTEX
-{
-	float x, y, z;
-	float r, g, b, a;
-	float u, v;
-} CATGL_VERTEX;
-
-
 #ifdef CATGL_NANOVG
 #include "nanovg.h"
 #include "nanovg_gl.h"
@@ -198,15 +197,18 @@ char* cpToUTF8(int cp, char* str)
 	}
 	return str;
 }
-#include "catgl_window.h"
-#include "catgl_searchbox.h"
-#include "catgl_dropdown.h"
-#include "catgl_label.h"
-#include "catgl_editbox.h"
-#include "catgl_checkbox.h"
-#include "catgl_button.h"
-#include "catgl_slider.h"
+#include "catgl_ui_window.h"
+#include "catgl_ui_searchbox.h"
+#include "catgl_ui_dropdown.h"
+#include "catgl_ui_label.h"
+#include "catgl_ui_editbox.h"
+#include "catgl_ui_checkbox.h"
+#include "catgl_ui_button.h"
+#include "catgl_ui_slider.h"
+#include "catgl_ui_spinner.h"
+#include "catgl_ui_eyes.h"
 #endif
+#include "catgl_ui.h"
 
 
 // 合成(glMultMatrixf)
