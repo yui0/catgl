@@ -145,20 +145,13 @@ void (*caMouseEvent)(int button, int action, int x, int y);
 #pragma GCC diagnostic ignored "-Wsign-compare"
 #include "nanovg.h"
 #include "nanovg_gl.h"
+#include "catgl_ui_entypo.h"
 #pragma GCC diagnostic pop
-// icon font
-#define ICON_SEARCH 0x1F50D
-#define ICON_CIRCLED_CROSS 0x2716
-#define ICON_CHEVRON_RIGHT 0xE75E
-#define ICON_CHECK 0x2713
-#define ICON_LOGIN 0xE740
-#define ICON_TRASH 0xE729
 #endif
 
 
 #ifdef CATGL_IMPLEMENTATION
 #ifdef CATGL_NANOVG
-//#include "fonts/icons.h"
 #include "fonts/entypo.h"
 #include "fonts/mplus-1c-regular-sub.h"
 #include "fonts/mplus-1c-black-sub.h"

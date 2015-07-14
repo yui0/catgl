@@ -18,12 +18,12 @@ void caDrawDropDown(NVGcontext* vg, const char* text, float x, float y, float w,
 	nvgFontSize(vg, 20.0f);
 	nvgFontFace(vg, "sans");
 	nvgFillColor(vg, nvgRGBA(255,255,255,160));
-	nvgTextAlign(vg,NVG_ALIGN_LEFT|NVG_ALIGN_MIDDLE);
-	nvgText(vg, x+h*0.3f,y+h*0.5f,text, NULL);
+	nvgTextAlign(vg, NVG_ALIGN_LEFT|NVG_ALIGN_MIDDLE);
+	nvgText(vg, x+h*0.3f, y+h*0.5f, text, NULL);
 
 	nvgFontSize(vg, h*1.3f);
 	nvgFontFace(vg, "icons");
 	nvgFillColor(vg, nvgRGBA(255,255,255,64));
-	nvgTextAlign(vg,NVG_ALIGN_CENTER|NVG_ALIGN_MIDDLE);
-	nvgText(vg, x+w-h*0.5f, y+h*0.5f, cpToUTF8(ICON_CHEVRON_RIGHT,icon), NULL);
+	nvgTextAlign(vg, NVG_ALIGN_CENTER|NVG_ALIGN_MIDDLE);
+	nvgText(vg, x+w-h*0.5f, y+h*0.5f, cpToUTF8(CATGL_ICON_CHEVRON_RIGHT, icon), NULL);
 }

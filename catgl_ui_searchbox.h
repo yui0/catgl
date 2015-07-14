@@ -19,19 +19,19 @@ void caDrawSearchBox(NVGcontext* vg, const char* text, float x, float y, float w
 	nvgFontSize(vg, h*1.3f);
 	nvgFontFace(vg, "icons");
 	nvgFillColor(vg, nvgRGBA(255,255,255,64));
-	nvgTextAlign(vg,NVG_ALIGN_CENTER|NVG_ALIGN_MIDDLE);
-	nvgText(vg, x+h*0.55f, y+h*0.55f, cpToUTF8(ICON_SEARCH,icon), NULL);
+	nvgTextAlign(vg, NVG_ALIGN_CENTER|NVG_ALIGN_MIDDLE);
+	nvgText(vg, x+h*0.55f, y+h*0.55f, cpToUTF8(CATGL_ICON_SEARCH, icon), NULL);
 
 	nvgFontSize(vg, 20.0f);
 	nvgFontFace(vg, "sans");
 	nvgFillColor(vg, nvgRGBA(255,255,255,32));
 
-	nvgTextAlign(vg,NVG_ALIGN_LEFT|NVG_ALIGN_MIDDLE);
-	nvgText(vg, x+h*1.05f,y+h*0.5f,text, NULL);
+	nvgTextAlign(vg, NVG_ALIGN_LEFT|NVG_ALIGN_MIDDLE);
+	nvgText(vg, x+h*1.05f, y+h*0.5f, text, NULL);
 
 	nvgFontSize(vg, h*1.3f);
 	nvgFontFace(vg, "icons");
 	nvgFillColor(vg, nvgRGBA(255,255,255,32));
-	nvgTextAlign(vg,NVG_ALIGN_CENTER|NVG_ALIGN_MIDDLE);
-	nvgText(vg, x+w-h*0.55f, y+h*0.55f, cpToUTF8(ICON_CIRCLED_CROSS,icon), NULL);
+	nvgTextAlign(vg, NVG_ALIGN_CENTER|NVG_ALIGN_MIDDLE);
+	nvgText(vg, x+w-h*0.55f, y+h*0.55f, cpToUTF8(CATGL_ICON_CIRCLED_CROSS, icon), NULL);
 }

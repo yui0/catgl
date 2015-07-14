@@ -83,28 +83,29 @@ CATGL_UI win[] = {
 	{ CATGL_UI_EDITBOX,     10, 135, 280, 28, "Email", 0, 0, 0,0,0,0 },
 	{ CATGL_UI_EDITBOX,     10, 170, 280, 28, "Password", 0, 0, 0,0,0,0 },
 	{ CATGL_UI_CHECKBOX,    10, 200, 140, 28, "Remember me", 0, 0, 0,0,0,0 },
-	{ CATGL_UI_BUTTON,     148, 200, 140, 28, "Sign in", 0, ICON_LOGIN, 0,96,128,255 },
+	{ CATGL_UI_BUTTON,     148, 200, 140, 28, "Sign in", 0, CATGL_ICON_LOGIN, 0,96,128,255 },
 	// Slider
 	{ CATGL_UI_LABEL,       10, 245, 280, 20, "Diameter", 0, 0, 0,0,0,0 },
 	{ CATGL_UI_EDITBOXNUM, 190, 270, 100, 28, "123.00", "px", 0, 0,0,0,0 },
 	{ CATGL_UI_SLIDER,      10, 270, 170, 28, 0, 0, 0.4f, 0,0,0,0 },
 
-	{ CATGL_UI_BUTTON,      10, 325, 160, 28, "Delete", 0, ICON_TRASH, 128,16,8,255 },
+	{ CATGL_UI_BUTTON,      10, 325, 160, 28, "Delete", 0, CATGL_ICON_TRASH, 128,16,8,255 },
 	{ CATGL_UI_BUTTON,     180, 325, 110, 28, "Cancel", 0, 0, 0,0,0,0 },
 };
 
 CATGL_UI ui[] = {
-	{ CATGL_UI_BUTTON, 0, 30, 640, 30, "OK!", 0, ICON_CIRCLED_CROSS, 0,96,128,255 },
-	{ CATGL_UI_BUTTON, 0, 60, 640, 30, "CANCEL!", 0, ICON_CIRCLED_CROSS, 0,96,128,255 },
-	{ CATGL_UI_EYES, 350, 200, 100, 50, 0, 0, 0, 0,0,0,0 },
-	{ CATGL_UI_SPINNER, 350, 250, 20, 20, 0, 0, 0, 0,0,0,0 },
-	{ CATGL_UI_THUMBNAIL, -1, -1, 40, 40, 0, 0, 0, 0,0,0,0 },
+	{ CATGL_UI_BUTTON,       0,  30, 640, 30, "OK!", 0, CATGL_ICON_STAR, 0,96,128,255 },
+	{ CATGL_UI_BUTTON,       0,  60, 640, 30, "CANCEL!", 0, CATGL_ICON_MOON, 0,96,128,255 },
+	{ CATGL_UI_EYES,       350, 200, 100, 50, 0, 0, 0, 0,0,0,0 },
+	{ CATGL_UI_SPINNER,    350, 250,  20, 20, 0, 0, 0, 0,0,0,0 },
+	{ CATGL_UI_THUMBNAIL,   -1,  -1,  40, 40, 0, 0, 0, 0,0,0,0 },
 };
 
 CATGL_UI confirm[] = {
-	{ CATGL_UI_WINDOW, 350, 300, 200, 150, "Confirm", 0, 0, 0,0,0,0 },
-	{ CATGL_UI_BUTTON, -1, -1, 180, 40, "OK!", 0, ICON_CIRCLED_CROSS, 0,96,128,255 },
-	{ CATGL_UI_BUTTON, -1, -1, 180, 40, "CANCEL!", 0, ICON_CIRCLED_CROSS, 128,16,8,255 },
+	{ CATGL_UI_WINDOW,     350, 300, 200, 150, "Confirm", 0, 0, 0,0,0,0 },
+	{ CATGL_UI_LABEL,       -1,  -1, 180, 20, "これでよろしいですか？", 0, 0, 0,0,0,0 },
+	{ CATGL_UI_BUTTON,      -1,  -1, 180, 40, "OK!", 0, CATGL_ICON_HEART, 0,96,128,255 },
+	{ CATGL_UI_BUTTON,      -1,  -1, 180, 40, "CANCEL!", 0, CATGL_ICON_CIRCLED_CROSS, 128,16,8,255 },
 };
 
 int c_action, c_x, c_y;
@@ -120,7 +121,6 @@ void mouseEvent(int button, int action, int x, int y)
 	c_y = y;
 }
 
-// 表示の初期化
 void caInit(int w, int h)
 {
 	width = w;
@@ -137,7 +137,6 @@ void caInit(int w, int h)
 	nvgCreateEx(vg, NVG_ANTIALIAS);
 }
 
-// 描画
 void caRender()
 {
 	glViewport(0, 0, width, height);
@@ -191,6 +190,7 @@ void caRender()
 
 	nvgEndFrame(vg);
 }
+
 void caEnd()
 {
 	nvgDelete(vg);
