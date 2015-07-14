@@ -4,17 +4,18 @@
 //		©2015 Yuichiro Nakada
 //---------------------------------------------------------
 
-#define CATGL_UI_BUTTON	1
-#define CATGL_UI_CHECKBOX	2
-#define CATGL_UI_DROPDOWN	3
-#define CATGL_UI_EDITBOX	4
-#define CATGL_UI_LABEL	5
-#define CATGL_UI_SEARCHBOX	6
-#define CATGL_UI_SLIDER	7
-#define CATGL_UI_SPINNER	8
-#define CATGL_UI_THUMBNAIL	9
-#define CATGL_UI_WINDOW	10
-#define CATGL_UI_EYES	100
+#define CATGL_UI_BUTTON		1
+#define CATGL_UI_CHECKBOX		2
+#define CATGL_UI_DROPDOWN		3
+#define CATGL_UI_EDITBOX		4
+#define CATGL_UI_EDITBOXNUM	5
+#define CATGL_UI_LABEL		6
+#define CATGL_UI_SEARCHBOX		7
+#define CATGL_UI_SLIDER		8
+#define CATGL_UI_SPINNER		9
+#define CATGL_UI_THUMBNAIL		10
+#define CATGL_UI_WINDOW		11
+#define CATGL_UI_EYES		100
 
 typedef struct _CATGL_UI
 {
@@ -22,7 +23,10 @@ typedef struct _CATGL_UI
 	//UIhandler handler;
 	int x, y, w, h;
 	char *s, *s2;
-	int image;	// or icon
+	union {
+		int image;	// or icon
+		float a;
+	} data;
 	int r, g, b, a;
 } CATGL_UI;
 
@@ -52,7 +56,7 @@ void caUiDraw(NVGcontext* vg, CATGL_UI *ui, int n, int action, int tx, int ty)
 
 		switch (ui->type) {
 		case CATGL_UI_BUTTON:
-			caDrawButton(vg, ui->image, ui->s, x, y, ui->w, ui->h, nvgRGBA(ui->r, ui->g, ui->b, ui->a), f);
+			caDrawButton(vg, ui->data.image, ui->s, x, y, ui->w, ui->h, nvgRGBA(ui->r, ui->g, ui->b, ui->a), f);
 			break;
 		case CATGL_UI_CHECKBOX:
 			caDrawCheckBox(vg, ui->s, x, y, ui->w, ui->h);
@@ -70,14 +74,14 @@ void caUiDraw(NVGcontext* vg, CATGL_UI *ui, int n, int action, int tx, int ty)
 			caDrawSearchBox(vg, ui->s, x, y, ui->w, ui->h);
 			break;
 		case CATGL_UI_SLIDER:
-			caDrawSlider(vg, (float)ui->image, x, y, ui->w, ui->h);
+			caDrawSlider(vg, ui->data.a, x, y, ui->w, ui->h);
 			break;
 		case CATGL_UI_SPINNER:
 //			caDrawSpinner(vg, x, y, ui->w/*r*/, /*ui->h*/1000.0/tx/*t*/);
 			caDrawSpinner(vg, x, y, ui->w/*r*/, t);
 			break;
 		case CATGL_UI_THUMBNAIL:
-			caDrawThumbnail(vg, x, y, ui->w, ui->h, ui->image);
+			caDrawThumbnail(vg, x, y, ui->w, ui->h, ui->data.image);
 			break;
 		case CATGL_UI_WINDOW:
 			caDrawWindow(vg, ui->s, ui->x, ui->y, ui->w, ui->h);

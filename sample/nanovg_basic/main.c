@@ -73,6 +73,26 @@ void draw()
 	nvgStroke(vg);
 }*/
 
+CATGL_UI win[] = {
+	// Widgets
+	{ CATGL_UI_WINDOW,      10, 100, 300, 360, "Title", 0, 0, 0,0,0,0 },
+	{ CATGL_UI_SEARCHBOX,   10,  40, 280, 25, "Search", 0, 0, 0,0,0,0 },
+	{ CATGL_UI_DROPDOWN,    10,  70, 280, 28, "Effects", 0, 0, 0,0,0,0 },
+	// Form
+	{ CATGL_UI_LABEL,       10, 110, 280, 20, "Login", 0, 0, 0,0,0,0 },
+	{ CATGL_UI_EDITBOX,     10, 135, 280, 28, "Email", 0, 0, 0,0,0,0 },
+	{ CATGL_UI_EDITBOX,     10, 170, 280, 28, "Password", 0, 0, 0,0,0,0 },
+	{ CATGL_UI_CHECKBOX,    10, 200, 140, 28, "Remember me", 0, 0, 0,0,0,0 },
+	{ CATGL_UI_BUTTON,     148, 200, 140, 28, "Sign in", 0, ICON_LOGIN, 0,96,128,255 },
+	// Slider
+	{ CATGL_UI_LABEL,       10, 245, 280, 20, "Diameter", 0, 0, 0,0,0,0 },
+	{ CATGL_UI_EDITBOXNUM, 190, 270, 100, 28, "123.00", "px", 0, 0,0,0,0 },
+	{ CATGL_UI_SLIDER,      10, 270, 170, 28, 0, 0, 0.4f, 0,0,0,0 },
+
+	{ CATGL_UI_BUTTON,      10, 325, 160, 28, "Delete", 0, ICON_TRASH, 128,16,8,255 },
+	{ CATGL_UI_BUTTON,     180, 325, 110, 28, "Cancel", 0, 0, 0,0,0,0 },
+};
+
 CATGL_UI ui[] = {
 	{ CATGL_UI_BUTTON, 0, 30, 640, 30, "OK!", 0, ICON_CIRCLED_CROSS, 0,96,128,255 },
 	{ CATGL_UI_BUTTON, 0, 60, 640, 30, "CANCEL!", 0, ICON_CIRCLED_CROSS, 0,96,128,255 },
@@ -110,6 +130,7 @@ void caInit(int w, int h)
 	pixelRatio = (float)width / (float)height;
 
 	caMouseEvent = mouseEvent;
+	caUiRegister(win, sizeof(win)/sizeof(CATGL_UI));
 	caUiRegister(ui, sizeof(ui)/sizeof(CATGL_UI));
 	caUiRegister(confirm, sizeof(confirm)/sizeof(CATGL_UI));
 
@@ -161,30 +182,6 @@ void caRender()
 	nvgText(vg, 100, 100, "Hello! Aloha! こんにちは！ ハロー", NULL);
 	nvgFill(vg);
 
-	// GUI
-	int x = 10;
-	int y = 100;
-
-	// Widgets
-	caDrawWindow(vg, "Title", x, y, 300, 360);
-	caDrawSearchBox(vg, "Search", x+10, y+40, 280, 25);
-	caDrawDropDown(vg, "Effects", x+10, y+70, 280, 28);
-
-	// Form
-	caDrawLabel(vg, "Login", x+10, y+110, 280, 20);
-	caDrawEditBox(vg, "Email",  x+10, y+135, 280, 28);
-	caDrawEditBox(vg, "Password", x+10, y+170, 280, 28);
-	caDrawCheckBox(vg, "Remember me", x+10, y+200, 140, 28);
-	caDrawButton(vg, ICON_LOGIN, "Sign in", x+148, y+200, 140, 28, nvgRGBA(0,96,128,255), 0);
-
-	// Slider
-	caDrawLabel(vg, "Diameter", x+10, y+245, 280, 20);
-	caDrawEditBoxNum(vg, "123.00", "px", x+190, y+270, 100, 28);
-	caDrawSlider(vg, 0.4f, x+10, y+270, 170, 28);
-
-	caDrawButton(vg, ICON_TRASH, "Delete", x+10, y+325, 160, 28, nvgRGBA(128,16,8,255), 0);
-	caDrawButton(vg, 0, "Cancel", x+180, y+325, 110, 28, nvgRGBA(0,0,0,0), 0);
-
 	// Thumbnails box
 //	if (data) drawThumbnails(vg, 365, popy-30, 160, 300, data->images, 12, t);
 
@@ -194,7 +191,6 @@ void caRender()
 
 	nvgEndFrame(vg);
 }
-
 void caEnd()
 {
 	nvgDelete(vg);
