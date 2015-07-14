@@ -34,11 +34,15 @@ typedef struct _CATGL_UI
 void caUiDraw(NVGcontext* vg, CATGL_UI *ui, int n, int action, int tx, int ty)
 {
 	static int t = 0; t++;
+	static void *drag;
 	int xpos = 0;
 	int ypos = 0;
 	int i, f;
 	int nx = 0;
 	int ny = 0;
+
+	if (action==CATGL_ACTION_DOWN) drag = (void*)1;
+	if (action==CATGL_ACTION_UP) drag = 0;
 
 	for (i=0; i<n; i++) {
 		int x, y;
@@ -65,7 +69,10 @@ void caUiDraw(NVGcontext* vg, CATGL_UI *ui, int n, int action, int tx, int ty)
 			caDrawDropDown(vg, ui->s, x, y, ui->w, ui->h);
 			break;
 		case CATGL_UI_EDITBOX:
-			caDrawEditBox(vg, ui->s,  x, y, ui->w, ui->h);
+			caDrawEditBox(vg, ui->s, x, y, ui->w, ui->h);
+			break;
+		case CATGL_UI_EDITBOXNUM:
+			caDrawEditBoxNum(vg, ui->s, ui->s2, x, y, ui->w, ui->h);
 			break;
 		case CATGL_UI_LABEL:
 			caDrawLabel(vg, ui->s, x, y, ui->w, ui->h);
@@ -84,9 +91,14 @@ void caUiDraw(NVGcontext* vg, CATGL_UI *ui, int n, int action, int tx, int ty)
 			caDrawThumbnail(vg, x, y, ui->w, ui->h, ui->data.image);
 			break;
 		case CATGL_UI_WINDOW:
+			if (drag==(void*)1 && tx >= x && tx <= x+ui->w && ty >= y && ty <= y+40) drag = ui;
+			if (action==CATGL_ACTION_MOVE && drag==ui/*tx >= x && tx <= x+ui->w && ty >= y && ty <= y+40*/) {
+				ui->x = tx -ui->w/2;
+				ui->y = ty -20;
+			}
 			caDrawWindow(vg, ui->s, ui->x, ui->y, ui->w, ui->h);
-			xpos = x;
-			ypos = y;
+			xpos = ui->x;
+			ypos = ui->y;
 			nx = 0;
 			ny = 40;
 			break;
