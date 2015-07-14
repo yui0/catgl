@@ -1,4 +1,4 @@
-void caDrawCheckBox(NVGcontext* vg, const char* text, float x, float y, float w, float h)
+void caDrawCheckBox(NVGcontext* vg, const char* text, float x, float y, float w, float h, int f)
 {
 	NVGpaint bg;
 	char icon[8];
@@ -17,9 +17,11 @@ void caDrawCheckBox(NVGcontext* vg, const char* text, float x, float y, float w,
 	nvgFillPaint(vg, bg);
 	nvgFill(vg);
 
-	nvgFontSize(vg, 40);
-	nvgFontFace(vg, "icons");
-	nvgFillColor(vg, nvgRGBA(255,255,255,128));
-	nvgTextAlign(vg, NVG_ALIGN_CENTER|NVG_ALIGN_MIDDLE);
-	nvgText(vg, x+9+2, y+h*0.5f, cpToUTF8(CATGL_ICON_CHECK, icon), NULL);
+	if (f) {
+		nvgFontSize(vg, 40);
+		nvgFontFace(vg, "icons");
+		nvgFillColor(vg, nvgRGBA(255,255,255,128));
+		nvgTextAlign(vg, NVG_ALIGN_CENTER|NVG_ALIGN_MIDDLE);
+		nvgText(vg, x+9+2, y+h*0.5f, cpToUTF8(CATGL_ICON_CHECK, icon), NULL);
+	}
 }

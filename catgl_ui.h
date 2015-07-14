@@ -24,6 +24,7 @@ typedef struct _CATGL_UI
 	char *s, *s2;
 	union {
 		int image;	// or icon
+		int d;
 		float a;
 	} data;
 	int r, g, b, a;
@@ -66,7 +67,8 @@ void caUiDraw(NVGcontext* vg, CATGL_UI *ui, int n, int action, int tx, int ty)
 			caDrawButton(vg, ui->data.image, ui->s, x, y, ui->w, ui->h, nvgRGBA(ui->r, ui->g, ui->b, ui->a), f);
 			break;
 		case CATGL_UI_CHECKBOX:
-			caDrawCheckBox(vg, ui->s, x, y, ui->w, ui->h);
+			if (f) ui->data.d = !ui->data.d;
+			caDrawCheckBox(vg, ui->s, x, y, ui->w, ui->h, ui->data.d);
 			break;
 		case CATGL_UI_DROPDOWN:
 			caDrawDropDown(vg, ui->s, x, y, ui->w, ui->h);
