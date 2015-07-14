@@ -20,7 +20,6 @@
 typedef struct _CATGL_UI
 {
 	unsigned char type;
-	//UIhandler handler;
 	int x, y, w, h;
 	char *s, *s2;
 	union {
@@ -28,6 +27,7 @@ typedef struct _CATGL_UI
 		float a;
 	} data;
 	int r, g, b, a;
+	void (*handler)(int action, int x, int y);
 } CATGL_UI;
 
 #ifdef CATGL_IMPLEMENTATION
@@ -56,7 +56,10 @@ void caUiDraw(NVGcontext* vg, CATGL_UI *ui, int n, int action, int tx, int ty)
 		y += ypos;
 
 		f = 0;
-		if (action==CATGL_ACTION_DOWN && tx >= x && tx <= x+ui->w && ty >= y && ty <= y+ui->h) f = 1;
+		if (action==CATGL_ACTION_DOWN && tx >= x && tx <= x+ui->w && ty >= y && ty <= y+ui->h) {
+			f = 1;
+			if (ui->handler) ui->handler(action, tx, ty);
+		}
 
 		switch (ui->type) {
 		case CATGL_UI_BUTTON:

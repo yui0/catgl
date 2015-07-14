@@ -75,37 +75,51 @@ void draw()
 
 CATGL_UI win[] = {
 	// Widgets
-	{ CATGL_UI_WINDOW,      10, 100, 300, 360, "Title", 0, 0, 0,0,0,0 },
-	{ CATGL_UI_SEARCHBOX,   10,  40, 280, 25, "Search", 0, 0, 0,0,0,0 },
-	{ CATGL_UI_DROPDOWN,    10,  70, 280, 28, "Effects", 0, 0, 0,0,0,0 },
+	{ CATGL_UI_WINDOW,      10, 100, 300, 360, "Title", 0, 0, 0,0,0,0, 0 },
+	{ CATGL_UI_SEARCHBOX,   10,  40, 280,  25, "Search", 0, 0, 0,0,0,0, 0 },
+	{ CATGL_UI_DROPDOWN,    10,  70, 280,  28, "Effects", 0, 0, 0,0,0,0, 0 },
 	// Form
-	{ CATGL_UI_LABEL,       10, 110, 280, 20, "Login", 0, 0, 0,0,0,0 },
-	{ CATGL_UI_EDITBOX,     10, 135, 280, 28, "Email", 0, 0, 0,0,0,0 },
-	{ CATGL_UI_EDITBOX,     10, 170, 280, 28, "Password", 0, 0, 0,0,0,0 },
-	{ CATGL_UI_CHECKBOX,    10, 200, 140, 28, "Remember me", 0, 0, 0,0,0,0 },
-	{ CATGL_UI_BUTTON,     148, 200, 140, 28, "Sign in", 0, CATGL_ICON_LOGIN, 0,96,128,255 },
+	{ CATGL_UI_LABEL,       10, 110, 280,  20, "Login", 0, 0, 0,0,0,0, 0 },
+	{ CATGL_UI_EDITBOX,     10, 135, 280,  28, "Email", 0, 0, 0,0,0,0, 0 },
+	{ CATGL_UI_EDITBOX,     10, 170, 280,  28, "Password", 0, 0, 0,0,0,0, 0 },
+	{ CATGL_UI_CHECKBOX,    10, 200, 140,  28, "Remember me", 0, 0, 0,0,0,0, 0 },
+	{ CATGL_UI_BUTTON,     148, 200, 140,  28, "Sign in", 0, CATGL_ICON_LOGIN, 0,96,128,255, 0 },
 	// Slider
-	{ CATGL_UI_LABEL,       10, 245, 280, 20, "Diameter", 0, 0, 0,0,0,0 },
-	{ CATGL_UI_EDITBOXNUM, 190, 270, 100, 28, "123.00", "px", 0, 0,0,0,0 },
-	{ CATGL_UI_SLIDER,      10, 270, 170, 28, 0, 0, 0.4f, 0,0,0,0 },
+	{ CATGL_UI_LABEL,       10, 245, 280,  20, "Diameter", 0, 0, 0,0,0,0, 0 },
+	{ CATGL_UI_EDITBOXNUM, 190, 270, 100,  28, "123.00", "px", 0, 0,0,0,0, 0 },
+	{ CATGL_UI_SLIDER,      10, 270, 170,  28, 0, 0, 0.4f, 0,0,0,0, 0 },
 
-	{ CATGL_UI_BUTTON,      10, 325, 160, 28, "Delete", 0, CATGL_ICON_TRASH, 128,16,8,255 },
-	{ CATGL_UI_BUTTON,     180, 325, 110, 28, "Cancel", 0, 0, 0,0,0,0 },
+	{ CATGL_UI_BUTTON,      10, 325, 160,  28, "Delete", 0, CATGL_ICON_TRASH, 128,16,8,255, 0 },
+	{ CATGL_UI_BUTTON,     180, 325, 110,  28, "Cancel", 0, 0, 0,0,0,0, 0 },
 };
 
 CATGL_UI ui[] = {
-	{ CATGL_UI_BUTTON,       0,  30, 640, 30, "OK!", 0, CATGL_ICON_STAR, 0,96,128,255 },
-	{ CATGL_UI_BUTTON,       0,  60, 640, 30, "CANCEL!", 0, CATGL_ICON_MOON, 0,96,128,255 },
-	{ CATGL_UI_EYES,       350, 200, 100, 50, 0, 0, 0, 0,0,0,0 },
-	{ CATGL_UI_SPINNER,    350, 250,  20, 20, 0, 0, 0, 0,0,0,0 },
-	{ CATGL_UI_THUMBNAIL,   -1,  -1,  40, 40, 0, 0, 0, 0,0,0,0 },
+	{ CATGL_UI_BUTTON,       0,  30, 640,  30, "OK!", 0, CATGL_ICON_STAR, 0,70,128,255, 0 },
+	{ CATGL_UI_BUTTON,       0,  60, 640,  30, "CANCEL!", 0, CATGL_ICON_MOON, 0,70,128,255, 0 },
+	{ CATGL_UI_EYES,       350, 200, 100,  50, 0, 0, 0, 0,0,0,0, 0 },
+	{ CATGL_UI_SPINNER,    350, 250,  20,  20, 0, 0, 0, 0,0,0,0, 0 },
+	{ CATGL_UI_THUMBNAIL,   -1,  -1,  40,  40, 0, 0, 0, 0,0,0,0, 0 },
 };
 
+void onOK(int action, int x, int y)
+{
+//	LOGD("(%d,%d) %d\n", x, y, action);
+//	nvgBeginPath(vg);
+	nvgText(vg, 350, 120, "Push OK button!", NULL);
+//	nvgFill(vg);
+}
+void onCancel(int action, int x, int y)
+{
+//	LOGD("(%d,%d) %d\n", x, y, action);
+//	nvgBeginPath(vg);
+	nvgText(vg, 350, 120, "Push Cancel button!", NULL);
+//	nvgFill(vg);
+}
 CATGL_UI confirm[] = {
-	{ CATGL_UI_WINDOW,     350, 300, 200, 150, "Confirm", 0, 0, 0,0,0,0 },
-	{ CATGL_UI_LABEL,       -1,  -1, 180, 20, "これでよろしいですか？", 0, 0, 0,0,0,0 },
-	{ CATGL_UI_BUTTON,      -1,  -1, 180, 40, "OK!", 0, CATGL_ICON_HEART, 0,96,128,255 },
-	{ CATGL_UI_BUTTON,      -1,  -1, 180, 40, "CANCEL!", 0, CATGL_ICON_CIRCLED_CROSS, 128,16,8,255 },
+	{ CATGL_UI_WINDOW,     350, 300, 200, 150, "Confirm", 0, 0, 0,0,0,0, 0 },
+	{ CATGL_UI_LABEL,       -1,  -1, 180,  20, "これでよろしいですか？", 0, 0, 0,0,0,0, 0 },
+	{ CATGL_UI_BUTTON,      -1,  -1, 180,  40, "OK!", 0, CATGL_ICON_HEART, 0,96,128,255, onOK },
+	{ CATGL_UI_BUTTON,      -1,  -1, 180,  40, "CANCEL!", 0, CATGL_ICON_CIRCLED_CROSS, 128,16,8,255, onCancel },
 };
 
 int c_action, c_x, c_y;

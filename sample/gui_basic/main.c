@@ -51,14 +51,14 @@ void caRender()
 	caDrawEditBox(vg, "Email",  x+10, y+135, 280, 28);
 	caDrawEditBox(vg, "Password", x+10, y+170, 280, 28);
 	caDrawCheckBox(vg, "Remember me", x+10, y+200, 140, 28);
-	caDrawButton(vg, ICON_LOGIN, "Sign in", x+148, y+200, 140, 28, nvgRGBA(0,96,128,255), 0);
+	caDrawButton(vg, CATGL_ICON_LOGIN, "Sign in", x+148, y+200, 140, 28, nvgRGBA(0,96,128,255), 0);
 
 	// Slider
 	caDrawLabel(vg, "Diameter", x+10, y+245, 280, 20);
 	caDrawEditBoxNum(vg, "123.00", "px", x+190, y+270, 100, 28);
 	caDrawSlider(vg, 0.4f, x+10, y+270, 170, 28);
 
-	caDrawButton(vg, ICON_TRASH, "Delete", x+10, y+325, 160, 28, nvgRGBA(128,16,8,255), 0);
+	caDrawButton(vg, CATGL_ICON_TRASH, "Delete", x+10, y+325, 160, 28, nvgRGBA(128,16,8,255), 0);
 	caDrawButton(vg, 0, "Cancel", x+180, y+325, 110, 28, nvgRGBA(0,0,0,0), 0);
 
 	nvgEndFrame(vg);
