@@ -8,15 +8,16 @@
 
 #define CATGL_UI_BUTTON		1
 #define CATGL_UI_CHECKBOX		2
-#define CATGL_UI_DROPDOWN		3
-#define CATGL_UI_EDITBOX		4
-#define CATGL_UI_EDITBOXNUM	5
-#define CATGL_UI_LABEL		6
-#define CATGL_UI_SEARCHBOX		7
-#define CATGL_UI_SLIDER		8
-#define CATGL_UI_SPINNER		9
-#define CATGL_UI_THUMBNAIL		10
-#define CATGL_UI_WINDOW		11
+#define CATGL_UI_COLORWHEEL	3
+#define CATGL_UI_DROPDOWN		4
+#define CATGL_UI_EDITBOX		5
+#define CATGL_UI_EDITBOXNUM	6
+#define CATGL_UI_LABEL		7
+#define CATGL_UI_SEARCHBOX		8
+#define CATGL_UI_SLIDER		9
+#define CATGL_UI_SPINNER		10
+#define CATGL_UI_THUMBNAIL		11
+#define CATGL_UI_WINDOW		12
 #define CATGL_UI_EYES		100
 
 typedef struct _CATGL_UI
@@ -75,6 +76,7 @@ char* cpToUTF8(int cp, char* str)
 #include "catgl_ui_spinner.h"
 #include "catgl_ui_thumbnail.h"
 #include "catgl_ui_eyes.h"
+#include "catgl_ui_colorwheel.h"
 
 void caUiDraw(NVGcontext* vg, CATGL_UI *ui, int n, int action, int tx, int ty)
 {
@@ -114,6 +116,9 @@ void caUiDraw(NVGcontext* vg, CATGL_UI *ui, int n, int action, int tx, int ty)
 			if (f) ui->data.d = !ui->data.d;
 			caDrawCheckBox(vg, ui->s, x, y, ui->w, ui->h, ui->data.d);
 			break;
+		case CATGL_UI_COLORWHEEL:
+			caDrawColorwheel(vg, x, y, ui->w, ui->h, t/100);
+			break;
 		case CATGL_UI_DROPDOWN:
 			caDrawDropDown(vg, ui->s, x, y, ui->w, ui->h);
 			break;
@@ -134,7 +139,7 @@ void caUiDraw(NVGcontext* vg, CATGL_UI *ui, int n, int action, int tx, int ty)
 			break;
 		case CATGL_UI_SPINNER:
 //			caDrawSpinner(vg, x, y, ui->w/*r*/, /*ui->h*/1000.0/tx/*t*/);
-			caDrawSpinner(vg, x, y, ui->w/*r*/, t);
+			caDrawSpinner(vg, x, y, ui->w/*r*/, t/5);
 			break;
 		case CATGL_UI_THUMBNAIL:
 			caDrawThumbnail(vg, x, y, ui->w, ui->h, ui->data.image);
@@ -152,7 +157,7 @@ void caUiDraw(NVGcontext* vg, CATGL_UI *ui, int n, int action, int tx, int ty)
 			ny = 40;
 			break;
 		case CATGL_UI_EYES:
-			caDrawEyes(vg, x, y, ui->w, ui->h, tx, ty, 1/*t*/);
+			caDrawEyes(vg, x, y, ui->w, ui->h, tx, ty, t/30);
 			break;
 		}
 		ui++;

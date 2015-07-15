@@ -97,8 +97,10 @@ CATGL_UI ui[] = {
 	{ CATGL_UI_BUTTON,       0,  30, 640,  30, "OK!", 0, CATGL_ICON_STAR, 0,70,128,255, 0 },
 	{ CATGL_UI_BUTTON,       0,  60, 640,  30, "CANCEL!", 0, CATGL_ICON_MOON, 0,70,128,255, 0 },
 	{ CATGL_UI_EYES,       350, 200, 100,  50, 0, 0, 0, 0,0,0,0, 0 },
-	{ CATGL_UI_SPINNER,    350, 250,  20,  20, 0, 0, 0, 0,0,0,0, 0 },
+	{ CATGL_UI_THUMBNAIL,  350, 250,  40,  40, 0, 0, 0, 0,0,0,0, 0 },
+	{ CATGL_UI_SPINNER,    390, 290,  20,  20, 0, 0, 0, 0,0,0,0, 0 },
 	{ CATGL_UI_THUMBNAIL,   -1,  -1,  40,  40, 0, 0, 0, 0,0,0,0, 0 },
+	{ CATGL_UI_COLORWHEEL,  -1,  -1, 100, 100, 0, 0, 0, 0,0,0,0, 0 },
 };
 
 void onOK(int action, int x, int y)
@@ -143,12 +145,15 @@ void caInit(int w, int h)
 	// Calculate pixel ration for hi-dpi devices.
 	pixelRatio = (float)width / (float)height;
 
+	nvgCreateEx(vg, NVG_ANTIALIAS);
+	ui[5].data.image = nvgCreateImage(vg, CATGL_ASSETS("cat.jpg"), 0);
+//	nvgImageSize(vg, handle, &_width, &_height);
+//	pattern = nvgImagePattern(vg, 100, 100, _width, _height, 0, handle, 1);
+
 	caMouseEvent = mouseEvent;
 	caUiRegister(win, sizeof(win)/sizeof(CATGL_UI));
 	caUiRegister(ui, sizeof(ui)/sizeof(CATGL_UI));
 	caUiRegister(confirm, sizeof(confirm)/sizeof(CATGL_UI));
-
-	nvgCreateEx(vg, NVG_ANTIALIAS);
 }
 
 void caRender()
@@ -201,6 +206,7 @@ void caRender()
 //	draw();
 //	caUiDraw(vg, ui, sizeof(ui)/sizeof(CATGL_UI), c_action, c_x, c_y);
 	caUiDraws(vg, c_action, c_x, c_y);
+	//c_action = -1;
 
 	nvgEndFrame(vg);
 }

@@ -6,7 +6,7 @@ CATGL=/root/Dropbox/prog/catgl
 #CXX      = g++
 CC       = clang
 CXX      = clang++
-CFLAGS   = -Os -MMD -MP -Wall -Wextra -Winit-self -Wno-unused-parameter -Wfloat-equal
+CFLAGS   = -Os -MMD -MP -Wall -Wextra -Winit-self -Wno-unused-parameter -Wno-float-equal -Wno-missing-braces
 TARGET   = $(shell basename `readlink -f .`)
 OBJDIR   = ./obj
 ifeq "$(strip $(OBJDIR))" ""
