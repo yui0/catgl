@@ -14,12 +14,12 @@ This application is designed for Android, iOS, Linux, Windows.
 ## Install
 
 - Download android-sdk-linux and install it.
- - tools/android update sdk
-  - Android SDK Tools
-  - Android SDK Platform-tools
-  - Android SDK Build-tools
-  - API 10 SDK Platform
-  - Android Support Library
+    - tools/android update sdk
+        - Android SDK Tools
+        - Android SDK Platform-tools
+        - Android SDK Build-tools
+        - API 10 SDK Platform
+        - Android Support Library
 - Download android-ndk
 - yum install ant
 
@@ -39,4 +39,5 @@ make android
 
 ## Screenshot
 
-[![Screen Shot](sample/eyes/eyes.png)]
+![Screenshot](sample/eyes/eyes.png)
+![Screenshot](sample/box_GL1/box.png)

@@ -145,7 +145,7 @@ void (*caMouseEvent)(int button, int action, int x, int y);
 #pragma GCC diagnostic ignored "-Wsign-compare"
 #include "nanovg.h"
 #include "nanovg_gl.h"
-#include "catgl_ui_entypo.h"
+#include "catgl_ui.h"
 #pragma GCC diagnostic pop
 #endif
 
@@ -166,48 +166,7 @@ void (*caMouseEvent)(int button, int action, int x, int y);
 	nvgFontFace(vg, "icons");
 //	nvgCreateFontMem(vg, "icons", (unsigned char*)icons, sizeof(icons), 0);
 //	nvgFontFace(vg, "icons");
-// Returns 1 if col.rgba is 0.0f,0.0f,0.0f,0.0f, 0 otherwise
-inline int isBlack(NVGcolor col)
-{
-	if (!(int)col.r && !(int)col.g && !(int)col.b && !(int)col.a) {
-		return 1;
-	}
-	return 0;
-}
-char* cpToUTF8(int cp, char* str)
-{
-	int n = 0;
-	if (cp < 0x80) n = 1;
-	else if (cp < 0x800) n = 2;
-	else if (cp < 0x10000) n = 3;
-	else if (cp < 0x200000) n = 4;
-	else if (cp < 0x4000000) n = 5;
-	else if (cp <= 0x7fffffff) n = 6;
-	str[n] = '\0';
-	switch (n) {
-	case 6: str[5] = 0x80 | (cp & 0x3f); cp = cp >> 6; cp |= 0x4000000;
-	case 5: str[4] = 0x80 | (cp & 0x3f); cp = cp >> 6; cp |= 0x200000;
-	case 4: str[3] = 0x80 | (cp & 0x3f); cp = cp >> 6; cp |= 0x10000;
-	case 3: str[2] = 0x80 | (cp & 0x3f); cp = cp >> 6; cp |= 0x800;
-	case 2: str[1] = 0x80 | (cp & 0x3f); cp = cp >> 6; cp |= 0xc0;
-	case 1: str[0] = cp;
-	}
-	return str;
-}
-#include "catgl_ui_window.h"
-#include "catgl_ui_searchbox.h"
-#include "catgl_ui_dropdown.h"
-#include "catgl_ui_label.h"
-#include "catgl_ui_editbox.h"
-#include "catgl_ui_checkbox.h"
-#include "catgl_ui_button.h"
-#include "catgl_ui_slider.h"
-#include "catgl_ui_spinner.h"
-#include "catgl_ui_thumbnail.h"
-#include "catgl_ui_eyes.h"
 #endif
-#include "catgl_ui.h"
-
 
 // 合成(glMultMatrixf)
 /*void caMultMatrix(float *s1, float *s2, float *d)

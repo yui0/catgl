@@ -2,12 +2,11 @@
 
 CATGL=/root/Dropbox/prog/catgl
 
-COMPILER = g++
+#CC       = gcc
+#CXX      = g++
+CC       = clang
+CXX      = clang++
 CFLAGS   = -Os -MMD -MP -Wall -Wextra -Winit-self -Wno-unused-parameter -Wfloat-equal
-#LDFLAGS  =
-#LIBS     =
-#INCLUDE  = -I../include
-#TARGET   = ../bin/$(shell basename `readlink -f ..`)
 TARGET   = $(shell basename `readlink -f .`)
 OBJDIR   = ./obj
 ifeq "$(strip $(OBJDIR))" ""
@@ -23,11 +22,11 @@ COBJECTS = $(addprefix $(OBJDIR)/, $(CSOURCES:.c=.o)) $(addprefix $(OBJDIR)/, $(
 DEPENDS  = $(OBJECTS:.o=.d) $(COBJECTS:.o=.d) $(COBJS:.o=.d)
 
 $(TARGET): $(OBJECTS) $(COBJECTS) $(COBJS) $(LIBS)
-	$(COMPILER) -o $@ $^ $(LDFLAGS)
+	$(CXX) -o $@ $^ $(LDFLAGS)
 
 $(OBJDIR)/%.o: %.cpp
 	@[ -d $(OBJDIR) ] || mkdir -p $(OBJDIR)
-	$(COMPILER) -std=c++11 $(CFLAGS) $(INCLUDE) -o $@ -c $<
+	$(CXX) -std=c++11 $(CFLAGS) $(INCLUDE) -o $@ -c $<
 
 $(OBJDIR)/%.o: %.c
 	@[ -d $(OBJDIR) ] || mkdir -p $(OBJDIR)
