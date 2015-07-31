@@ -56,7 +56,9 @@ void (*caMouseEvent)(int button, int action, int x, int y);
 
 #elif __ANDROID__
 
-	//#include <GLES/gl.h>
+#ifdef CATGL_GLES
+	#include <GLES/gl.h>
+#endif
 	#include <GLES2/gl2.h>
 	//#include <GLES2/gl2ext.h>
 

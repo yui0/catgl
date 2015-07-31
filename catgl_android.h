@@ -6,6 +6,7 @@
 
 #include <jni.h>
 #include <errno.h>
+#include <stdio.h>
 
 #include <EGL/egl.h>
 #ifdef CATGL_GLES
@@ -18,6 +19,10 @@
 #include <android/sensor.h>
 #include <android/log.h>
 #include <android_native_app_glue.h>
+
+#ifdef CATGL_CAMERA
+#include "catgl_android_camera.h"
+#endif
 
 // for debug
 #define TAG "catgl"
@@ -206,6 +211,9 @@ static int32_t engine_handle_input(struct android_app* app, AInputEvent* event)
 	// ユーザデータの取得
 	struct engine* engine = (struct engine*) app->userData;
 	if (AInputEvent_getType(event) == AINPUT_EVENT_TYPE_MOTION) {
+#ifdef CATGL_CAMERA
+caCameraInit(app);
+#endif
 		// アニメーション有効化
 		engine->animating = 1;
 		// タッチ位置を取得
@@ -269,31 +277,7 @@ static void engine_handle_cmd(struct android_app* app, int32_t cmd)
 	}
 }
 
-/*jclass registerEnvironmentAndActivity(ANativeActivity* activity)
-{
-	JavaVM* vm = activity->vm;
-	JNIEnv *jni;
-	(**vm).AttachCurrentThread(activity->vm, &jni, NULL);
-
-	jclass activityClass = (*jni)->GetObjectClass(jni, activity->clazz);
-	if (!activityClass) {
-		LOGE("Unable to get class of main activity.\n");
-		return;
-	}
-
-	LOGD("Found android/app/NativeActivity class.\n");
-	return activityClass;
-}
-
-inline jobject callJavaFunction(struct engine *e, char *method, char *ret)
-{
-	JNIEnv* env = e->app->activity->env;
-
-	jmethodID methodID = (*env)->GetMethodID(env, e->activityClass, method, ret);
-	return (*env)->CallObjectMethod(env, e->app->activity->clazz, methodID);
-}*/
-
-#include <stdio.h>
+//#include <stdio.h>
 #include <android/asset_manager.h>
 const char *apkPath;
 const char *appDir;
@@ -356,7 +340,7 @@ char *caGetPath(char *path)
 
 void android_main(struct android_app* state)
 {
-	// glueが削除されないように
+	// Make sure glue isn't stripped.
 	app_dummy();
 
 	// initialize

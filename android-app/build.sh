@@ -20,16 +20,19 @@ sed -e "s/@@PACKAGE@@/${package}/" -i /tmp/android-app/AndroidManifest.xml
 sed -e "s/native-activity/CatNative/" -i /tmp/android-app/AndroidManifest.xml
 sed -e "s/@@NAME@@/${name}/" -i /tmp/android-app/res/values/strings.xml
 
-#mv /tmp/android-app/src/berry/package /tmp/android-app/src/berry/${package}
-#mv /tmp/android-app/src/berry/${package}/Act.java /tmp/android-app/src/berry/${package}/${name}.java
-#sed -e "s/@@NAME@@/${name}/" -i /tmp/android-app/src/berry/${package}/${name}.java
-#sed -e "s/@@PACKAGE@@/${package}/" -i /tmp/android-app/src/berry/${package}/${name}.java
+#if [ -r /tmp/android-app/src ]; then
+#	mv /tmp/android-app/src/berry/package /tmp/android-app/src/berry/${package}
+#	mv /tmp/android-app/src/berry/${package}/Act.java /tmp/android-app/src/berry/${package}/${name}.java
+#	sed -e "s/@@NAME@@/${name}/" -i /tmp/android-app/src/berry/${package}/${name}.java
+#	sed -e "s/@@PACKAGE@@/${package}/" -i /tmp/android-app/src/berry/${package}/${name}.java
+#fi
 
 [ -r ${assets} ] && cp -a ${assets} /tmp/android-app/assets
 cp -a ${path}/*.h ${path}/nanovg/* ${path}/fonts *.[ch]* /tmp/android-app/jni/
 sed -e "s:@@SOURCE@@:${source}:" -i /tmp/android-app/jni/Android.mk
-sed -e "s:@@INCLUDES@@:${path}/include:" -i /tmp/android-app/jni/Android.mk
-sed -e "s:@@LIBS@@:${path}/project/android/lib -L${path}/project/android/obj/local/armeabi:" -i /tmp/android-app/jni/Android.mk
+#sed -e "s:@@INCLUDES@@:${path}/include:" -i /tmp/android-app/jni/Android.mk
+sed -e 's:@@INCLUDES@@:$(LOCAL_PATH)/include:' -i /tmp/android-app/jni/Android.mk
+sed -e "s:@@LIBS@@:${path}/project/android/lib -L${path}/project/android/obj/local/armeabi -L\$(LOCAL_PATH)/lib -lcutils:" -i /tmp/android-app/jni/Android.mk
 
 
 pushd /tmp/android-app/
