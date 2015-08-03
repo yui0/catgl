@@ -14,6 +14,15 @@ extern void caInit(int width, int height);
 extern void caRender();
 extern void caEnd();
 
+#include <string.h>
+char *caGetPath(char *path)
+{
+	static char s[BUFSIZ];
+	strcpy(s, "assets/");
+	strcat(s, path);
+	return s;
+}
+
 int _button/*, _action*/;
 void mouseButtonCallback(GLFWwindow* window, const int button, const int action, const int mods)
 {
@@ -78,6 +87,9 @@ int main()
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 
+		if (glfwGetKey(window, GLFW_KEY_P)) caMode = CATGL_MODE_POINT;
+		if (glfwGetKey(window, GLFW_KEY_W)) caMode = CATGL_MODE_LINE;
+		if (glfwGetKey(window, GLFW_KEY_T)) caMode = CATGL_MODE_TRIANGLES;
 		if (glfwGetKey(window, GLFW_KEY_ESCAPE)) break;
 	}
 	caEnd();

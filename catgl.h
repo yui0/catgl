@@ -19,6 +19,11 @@ extern "C" {
 
 #define CATGL_PI			3.14159265358979
 
+#define CATGL_MODE_POINT		GL_POINTS
+#define CATGL_MODE_LINE		GL_LINE_STRIP
+#define CATGL_MODE_TRIANGLES	GL_TRIANGLES
+int caMode;// = CATGL_MODE_TRIANGLES;
+
 typedef struct _CATGL_VERTEX
 {
 	float x, y, z;
@@ -115,7 +120,8 @@ void (*caMouseEvent)(int button, int action, int x, int y);
 //	#define LOGD(...)
 //	#endif
 
-	#define CATGL_ASSETS(s)	("assets/" s)
+//	#define CATGL_ASSETS(s)	("assets/" s)
+	#define CATGL_ASSETS(s)	caGetPath(s)
 
 #ifdef CATGL_IMPLEMENTATION
 	#include "catgl_glfw.h"
