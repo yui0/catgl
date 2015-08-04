@@ -332,8 +332,8 @@ void extract_assets(struct android_app* app, struct engine *e)
 char *caGetPath(char *path)
 {
 	static char s[BUFSIZ];
-	strcpy(s, appDir);
-	strcat(s, path);
+	strncpy(s, appDir, BUFSIZ);
+	strncat(s, path, BUFSIZ);
 	LOGI("Cache dir: %s", s);
 	return s;
 }

@@ -18,8 +18,8 @@ extern void caEnd();
 char *caGetPath(char *path)
 {
 	static char s[BUFSIZ];
-	strcpy(s, "assets/");
-	strcat(s, path);
+	strncpy(s, "assets/", BUFSIZ);
+	strncat(s, path, BUFSIZ);
 	return s;
 }
 
@@ -39,6 +39,17 @@ void mouseButtonCallback(GLFWwindow* window, const int button, const int action,
 void mouseMoveCallback(GLFWwindow* window, const double xpos, const double ypos)
 {
 	if (caMouseEvent) caMouseEvent(_button, /*_action*/2, xpos, ypos);
+}
+
+void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
+{
+	if (caKeyEvent) {
+		caKeyEvent(key, action);
+	} //else {
+		if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
+			glfwSetWindowShouldClose(window, GL_TRUE);
+		}
+//	}
 }
 
 int main()
@@ -80,6 +91,7 @@ int main()
 	glfwMakeContextCurrent(window);
 	glfwSetMouseButtonCallback(window, mouseButtonCallback);
 	glfwSetCursorPosCallback(window, mouseMoveCallback);
+	glfwSetKeyCallback(window, keyCallback);
 	caInit(SCREEN_WIDTH, SCREEN_HEIGHT);
 	while (!glfwWindowShouldClose(window)) {
 		caRender();
@@ -87,10 +99,10 @@ int main()
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 
-		if (glfwGetKey(window, GLFW_KEY_P)) caMode = CATGL_MODE_POINT;
+		/*if (glfwGetKey(window, GLFW_KEY_P)) caMode = CATGL_MODE_POINT;
 		if (glfwGetKey(window, GLFW_KEY_W)) caMode = CATGL_MODE_LINE;
 		if (glfwGetKey(window, GLFW_KEY_T)) caMode = CATGL_MODE_TRIANGLES;
-		if (glfwGetKey(window, GLFW_KEY_ESCAPE)) break;
+		if (glfwGetKey(window, GLFW_KEY_ESCAPE)) break;*/
 	}
 	caEnd();
 	glfwTerminate();

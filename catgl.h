@@ -20,7 +20,7 @@ extern "C" {
 #define CATGL_PI			3.14159265358979
 
 #define CATGL_MODE_POINT		GL_POINTS
-#define CATGL_MODE_LINE		GL_LINE_STRIP
+#define CATGL_MODE_LINE		GL_LINES
 #define CATGL_MODE_TRIANGLES	GL_TRIANGLES
 int caMode;// = CATGL_MODE_TRIANGLES;
 
@@ -32,6 +32,7 @@ typedef struct _CATGL_VERTEX
 } CATGL_VERTEX;
 
 void (*caMouseEvent)(int button, int action, int x, int y);
+void (*caKeyEvent)(int key, int action);
 
 #ifdef _WIN32
 	//define something for Windows (32-bit and 64-bit, this part is common)
@@ -101,6 +102,14 @@ void (*caMouseEvent)(int button, int action, int x, int y);
 	#define CATGL_MOUSE_BUTTON_RIGHT	-1
 	#define CATGL_MOUSE_BUTTON_MIDDLE	-1
 
+	#define CATGL_KEY_ESCAPE		AKEYCODE_ESCAPE
+	#define CATGL_KEY_A			AKEYCODE_A
+	#define CATGL_KEY_P			AKEYCODE_P
+	#define CATGL_KEY_T			AKEYCODE_T
+	#define CATGL_KEY_W			AKEYCODE_W
+	#define CATGL_KEY_RIGHT		AKEYCODE_B
+	#define CATGL_KEY_LEFT		AKEYCODE_C
+
 #elif __linux
 
 	#ifndef GL_GLEXT_PROTOTYPES
@@ -140,12 +149,22 @@ void (*caMouseEvent)(int button, int action, int x, int y);
 	#define CATGL_MOUSE_BUTTON_RIGHT	GLFW_MOUSE_BUTTON_RIGHT
 	#define CATGL_MOUSE_BUTTON_MIDDLE	GLFW_MOUSE_BUTTON_MIDDLE
 
+	#define CATGL_KEY_ESCAPE		GLFW_KEY_ESCAPE
+	#define CATGL_KEY_A			GLFW_KEY_A
+	#define CATGL_KEY_P			GLFW_KEY_P
+	#define CATGL_KEY_T			GLFW_KEY_T
+	#define CATGL_KEY_W			GLFW_KEY_W
+	#define CATGL_KEY_RIGHT		GLFW_KEY_RIGHT
+	#define CATGL_KEY_LEFT		GLFW_KEY_LEFT
+
 #elif __unix // all unices not caught above
 	// Unix
 #elif __posix
 	// POSIX
 #endif
 
+
+#include "catgl_obj.h"
 
 #ifdef CATGL_NANOVG
 #pragma GCC diagnostic push
@@ -416,6 +435,26 @@ GLuint caCreateTexture(unsigned char *tex, int w, int h)
 	return id;
 }
 //GLuint caLoadTexture(char *name)
+
+// model for .obj
+void caCreateObject_GL1(GLuint *vbo, CATGL_MODEL *m)
+{
+	glGenBuffers(2, vbo);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * m->num_vertices, m->vertices, GL_STATIC_DRAW);
+}
+void caDeleteObject_GL1(GLuint *vbo)
+{
+	glDeleteBuffers(2, vbo);
+}
+void caDrawObject_GL1(GLuint *vbo, CATGL_MODEL *m)
+{
+	glEnableClientState(GL_VERTEX_ARRAY);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
+	glVertexPointer(3, GL_FLOAT, 0, 0);
+	glDrawArrays(caMode, 0, m->num_vertices / 3);
+	glDisableClientState(GL_VERTEX_ARRAY);
+}
 
 #endif // !CATGL_IMPLEMENTATION
 
