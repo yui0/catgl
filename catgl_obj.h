@@ -1,10 +1,13 @@
 #ifndef CATGL_OBJ_H_
 #define CATGL_OBJ_H_
 
-/* モデルデータ */
+// モデルデータ
 typedef struct {
 	float *vertices;
 	int num_vertices;
+	int normal;
+//	int *index;
+//	int num_indexes;
 } CATGL_MODEL;
 
 int caLoadObj(CATGL_MODEL *m, char *file_name);
@@ -15,17 +18,17 @@ void caUnloadObj(CATGL_MODEL *m);
 //#include <stdio.h>
 #include <stdlib.h>
 
-/* 初期バッファサイズ */
+// 初期バッファサイズ
 #define DEF_BUF_SIZE 20
 
-/* 浮動小数点数バッファ */
+// 浮動小数点数バッファ
 typedef struct {
 	int buf_size;
 	int current_index;
 	float *buf;
 } float_buffer;
 
-/* 整数バッファ */
+// 整数バッファ
 typedef struct {
 	int buf_size;
 	int current_index;
@@ -41,7 +44,7 @@ float_buffer *alloc_float_buffer()
 
 	fbuf = malloc(sizeof(float_buffer));
 	if (!fbuf) {
-		fprintf(stderr, "Memory allocation error.\n");
+		LOGE("Memory allocation error.\n");
 		//exit(EXIT_FAILURE);
 	}
 
@@ -72,7 +75,7 @@ void add_float(float_buffer *fbuf, float value)
 		fbuf->buf_size *= 2;
 		fbuf->buf = realloc(fbuf->buf, sizeof(float) * fbuf->buf_size);
 		if (!fbuf->buf) {
-			fprintf(stderr, "Memory allocation error.\n");
+			LOGE("Memory allocation error.\n");
 			//exit(EXIT_FAILURE);
 		}
 	}
@@ -95,7 +98,7 @@ int_buffer *alloc_int_buffer()
 
 	ibuf = malloc(sizeof(int_buffer));
 	if (!ibuf) {
-		fprintf(stderr, "Memory allocation error.\n");
+		LOGE("Memory allocation error.\n");
 		//exit(EXIT_FAILURE);
 	}
 
@@ -126,7 +129,7 @@ void add_int(int_buffer *ibuf, int value)
 		ibuf->buf_size *= 2;
 		ibuf->buf = realloc(ibuf->buf, sizeof(int) * ibuf->buf_size);
 		if (!ibuf->buf) {
-			fprintf(stderr, "Memory allocation error.\n");
+			LOGE("Memory allocation error.\n");
 			//exit(EXIT_FAILURE);
 		}
 	}
@@ -164,6 +167,7 @@ void read_indices(const char *line, int_buffer *fs)
 {
 	int count;
 //	count = sscanf(line, "%*s%d%d%d%d%d%d%d%d%d%d", &v[0], &v[1], &v[2], &v[3], &v[4], &v[5], &v[6], &v[7], &v[8], &v[9]);
+//	count = sscanf(line, "%*s %d%*[/]%d %d%*[/]%d %d%*[/]%d", &v1, &n1, &v2, &n2, &v3, &n3);
 
 	unsigned short pp[54+1];
 	switch (1) {
@@ -212,9 +216,12 @@ void read_indices(const char *line, int_buffer *fs)
 		add_int(fs, pp[3]);
 		break;
 	case 6:
-		add_int(fs, pp[0]);
-		add_int(fs, pp[2]);
-		add_int(fs, pp[4]);
+		add_int(fs, pp[0]);	// v
+		add_int(fs, pp[1]);	// n
+		add_int(fs, pp[2]);	// v
+		add_int(fs, pp[3]);	// n
+		add_int(fs, pp[4]);	// v
+		add_int(fs, pp[5]);	// n
 		break;
 	case 8:
 		add_int(fs, pp[0]);
@@ -230,7 +237,7 @@ void read_indices(const char *line, int_buffer *fs)
 /*------------------------------*
 ** モデルの作成
 **------------------------------*/
-void create_model(CATGL_MODEL *m, float_buffer *vs, int_buffer *fs)
+void create_model(CATGL_MODEL *m, float_buffer *vs, float_buffer *vns, int_buffer *fs)
 {
 	int i, j;
 
@@ -238,14 +245,28 @@ void create_model(CATGL_MODEL *m, float_buffer *vs, int_buffer *fs)
 	m->vertices = malloc(sizeof(float) * m->num_vertices);
 
 	if (!m->vertices) {
-		fprintf(stderr, "Memory allocation error.\n");
-		//exit(EXIT_FAILURE);
+		LOGE("Memory allocation error.\n");
+		exit(EXIT_FAILURE);
 	}
 
-	for (i = 0; i < fs->current_index; i++) {
+	m->normal = 0;
+	if (vns->current_index) {
+		m->num_vertices /= 2;
+		m->normal = 1;
+	}
+
+	for (i=0; i < fs->current_index; i++) {
 		int idx = fs->buf[i] - 1;
-		for (j = 0; j < 3; j++) {
-			m->vertices[i * 3 + j] = vs->buf[idx * 3 + j];
+		if (!m->normal || (i % 2 == 0)) {
+			// vertex
+			for (j=0; j<3; j++) {
+				m->vertices[i * 3 + j] = vs->buf[idx * 3 + j];
+			}
+		} else {
+			// normal
+			for (j=0; j<3; j++) {
+				m->vertices[i * 3 + j] = vns->buf[idx * 3 + j];
+			}
 		}
 	}
 }
@@ -323,34 +344,42 @@ int caLoadObj(CATGL_MODEL *m, char *file_name)
 {
 	FILE *fp;
 	char line[1024];
-	float_buffer *vs;
+	float_buffer *vs, *vns, *vts;
 	int_buffer *fs;
 
 	fp = fopen(CATGL_ASSETS(file_name), "r");
 	if (!fp) {
-		fprintf(stderr, "Cannot open %s.\n", file_name);
+		LOGE("Cannot open %s.\n", file_name);
 		return 0;
 	}
 
-	vs = alloc_float_buffer();	// x,y,z and nx,ny,nz and ux,uy
-	fs = alloc_int_buffer();	// index
+	vs = alloc_float_buffer();		// x,y,z
+	vns = alloc_float_buffer();	// nx,ny,nz
+	vts = alloc_float_buffer();	// ux,uy
+	fs = alloc_int_buffer();		// index
 
 	while (!feof(fp)) {
 		fgets(line, sizeof(line), fp);
-		if (line[0] == 'v' && (line[1] == ' ' || line[1] == '\t')) {
+		if (line[0]=='v' && (line[1]==' ' || line[1]=='\t')) {
 			read_vertices(line, vs);
-		} else if (line[0] == 'f' && (line[1] == ' ' || line[1] == '\t')) {
+		} else if (line[0]=='v' && line[1]=='n' && (line[2]==' ' || line[2]=='\t')) {
+			read_vertices(line, vns);
+		} else if (line[0]=='v' && line[1]=='t' && (line[2]==' ' || line[2]=='\t')) {
+//			read_uvs(line, vts);
+		} else if (line[0]=='f' && (line[1]==' ' || line[1]=='\t')) {
 			read_indices(line, fs);
 		}
 	}
 
 	centre_and_rescale(vs->buf, vs->current_index/3);
 	printf("vertices:%d\n", vs->current_index/3);
-	create_model(m, vs, fs);
+	create_model(m, vs, vns, fs);
 	//centre_and_rescale(m->vertices, m->num_vertices/3);
 	printf("vertices:%d\n", m->num_vertices);
 
 	free_float_buffer(vs);
+	free_float_buffer(vns);
+	free_float_buffer(vts);
 	free_int_buffer(fs);
 
 	fclose(fp);
@@ -364,6 +393,8 @@ void caUnloadObj(CATGL_MODEL *m)
 		free(m->vertices);
 	}
 }
+
+#undef DEF_BUF_SIZE
 
 #endif
 #endif

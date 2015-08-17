@@ -22,7 +22,7 @@ extern "C" {
 #define CATGL_MODE_POINT		GL_POINTS
 #define CATGL_MODE_LINE		GL_LINES
 #define CATGL_MODE_TRIANGLES	GL_TRIANGLES
-int caMode;// = CATGL_MODE_TRIANGLES;
+int caMode = 4;// = CATGL_MODE_TRIANGLES;
 
 typedef struct _CATGL_VERTEX
 {
@@ -69,6 +69,7 @@ void (*caKeyEvent)(int key, int action);
 	//#include <GLES2/gl2ext.h>
 
 	// for debug
+	#define LOGE(...) ((void)__android_log_print(ANDROID_LOG_ERROR,  TAG, __VA_ARGS__))
 //	#ifdef DEBUG
 	#define LOGD(...) ((void)__android_log_print(ANDROID_LOG_INFO,  TAG, __VA_ARGS__))
 //	#else
@@ -122,6 +123,7 @@ void (*caKeyEvent)(int key, int action);
 	//#include <GL/glut.h>
 
 	// for debug
+	#define LOGE(...) (fprintf(stderr, __VA_ARGS__))
 //	#ifdef DEBUG
 	#include <stdio.h>
 	#define LOGD(...) (fprintf(stderr, __VA_ARGS__))
@@ -194,6 +196,44 @@ void (*caKeyEvent)(int key, int action);
 //	nvgCreateFontMem(vg, "icons", (unsigned char*)icons, sizeof(icons), 0);
 //	nvgFontFace(vg, "icons");
 #endif
+
+// ファイルの内容をメモリに割り当て
+char *caGetFileContents(const char *file_name)
+{
+	char *buf;
+	FILE *fp;
+	size_t read_size, buf_size;
+
+	fp = fopen(file_name, "r");
+	if (!fp) {
+		LOGE("Cannot open %s.\n", file_name);
+		exit(EXIT_FAILURE);
+	}
+
+	buf_size = BUFSIZ;
+	buf = malloc(sizeof(char) * buf_size);
+	if (!buf) {
+		LOGE("Memory allocation error.\n");
+		exit(EXIT_FAILURE);
+	}
+
+	read_size = 0;
+	for (;;) {
+		size_t s;
+		s = fread(buf + read_size, sizeof(char), BUFSIZ, fp);
+		read_size += s;
+		if (s < BUFSIZ) break;
+		buf_size += BUFSIZ;
+		buf = realloc(buf, sizeof(char) * buf_size);
+		if (!buf) {
+			LOGE("Memory allocation error.\n");
+			exit(EXIT_FAILURE);
+		}
+	}
+	*(buf + read_size) = '\0';
+
+	return buf;
+}
 
 // 合成(glMultMatrixf)
 /*void caMultMatrix(float *s1, float *s2, float *d)
@@ -329,8 +369,14 @@ void caRotationZ(float *m, float degree)
 	m[ 1] = sin(rad);
 	m[ 5] = cos(rad);
 }
+void caSetPosition(float *m, float x, float y, float z)
+{
+	m[12] = x;
+	m[13] = y;
+	m[14] = z;
+}
 // 射影行列を近面、遠面、視野角、アスペクト比で指定
-void makeProjectionMatrix(float *m, float n, float f, float hfov, float r)
+void caMakeProjectionMatrix(float *m, float n, float f, float hfov, float r)
 {
 	float w = 1.0f / tan(hfov * 0.5f * CATGL_PI / 180);
 	float h = w * r;
@@ -361,7 +407,7 @@ void caPrintShaderInfo(GLuint shader, const char *str)
 GLuint caLoadShader(GLenum shaderType, const char* pSource)
 {
 	GLuint shader = glCreateShader(shaderType);
-	glShaderSource(shader, 1, &pSource, /*nullptr*/0);
+	glShaderSource(shader, 1, &pSource, 0);
 	glCompileShader(shader);
 	GLint compiled;
 	glGetShaderiv(shader, GL_COMPILE_STATUS, &compiled);
@@ -381,8 +427,9 @@ GLuint caCreateProgram(const char* pVertexSource, const char *pv, const char* pF
 	glBindAttribLocation(program, 0, pv);
 	glBindFragDataLocation(program, 0, fc);
 	glLinkProgram(program);
-	GLint linkStatus = GL_FALSE;
-	glGetProgramiv(program, GL_LINK_STATUS, &linkStatus);
+	//GLint linkStatus = GL_FALSE;
+	//glGetProgramiv(program, GL_LINK_STATUS, &linkStatus);
+	glUseProgram(program);
 	return program;
 }
 
@@ -414,6 +461,23 @@ GLuint caCreateObject(void *obj, GLuint num, GLuint att[3])
 
 	return vbo;
 }
+GLuint caCreateObject_(void *obj, int size, GLuint num, GLuint d[], int len)
+{
+	GLuint vbo;
+	glGenBuffers(1, &vbo);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+	glBufferData(GL_ARRAY_BUFFER, size * num, obj, GL_STATIC_DRAW);
+
+	int i, offset = 0;
+	for (i=0; i<len; i++) {
+		glEnableVertexAttribArray(d[i*2]);
+		glVertexAttribPointer(d[i*2], d[i*2+1], GL_FLOAT, GL_FALSE, size, (const void*)offset);
+		offset += sizeof(float) * d[i*2+1];
+	}
+
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	return vbo;
+}
 
 GLuint caCreateTexture(unsigned char *tex, int w, int h)
 {
@@ -437,6 +501,14 @@ GLuint caCreateTexture(unsigned char *tex, int w, int h)
 //GLuint caLoadTexture(char *name)
 
 // model for .obj
+void caDrawObject(GLuint *vbo, CATGL_MODEL *m)
+{
+	glEnableClientState(GL_VERTEX_ARRAY);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
+//	glVertexPointer(3, GL_FLOAT, 0, 0);
+	glDrawArrays(caMode, 0, m->num_vertices / 3);
+	glDisableClientState(GL_VERTEX_ARRAY);
+}
 void caCreateObject_GL1(GLuint *vbo, CATGL_MODEL *m)
 {
 	glGenBuffers(2, vbo);
@@ -446,14 +518,6 @@ void caCreateObject_GL1(GLuint *vbo, CATGL_MODEL *m)
 void caDeleteObject_GL1(GLuint *vbo)
 {
 	glDeleteBuffers(2, vbo);
-}
-void caDrawObject_GL1(GLuint *vbo, CATGL_MODEL *m)
-{
-	glEnableClientState(GL_VERTEX_ARRAY);
-	glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
-	glVertexPointer(3, GL_FLOAT, 0, 0);
-	glDrawArrays(caMode, 0, m->num_vertices / 3);
-	glDisableClientState(GL_VERTEX_ARRAY);
 }
 
 #endif // !CATGL_IMPLEMENTATION

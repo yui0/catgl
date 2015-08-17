@@ -157,7 +157,7 @@ void caRender()
 
 	// バッファをクリアー
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	caDrawObject_GL1(vbo, &m);
+	caDrawObject(vbo, &m);
 }
 
 void caEnd()
