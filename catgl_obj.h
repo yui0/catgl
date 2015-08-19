@@ -161,6 +161,22 @@ void read_vertices(const char *line, float_buffer *vs)
 }
 
 /*------------------------------*
+** UV座標の読み込み
+**------------------------------*/
+void read_uvs(const char *line, float_buffer *vts)
+{
+	float u, v;
+	int count;
+
+	count = sscanf(line, "%*s%f%f", &u, &v);
+
+	if (count == 2) {
+		add_float(vts, u);
+		add_float(vts, v);
+	}
+}
+
+/*------------------------------*
 ** インデックスの読み込み
 **------------------------------*/
 void read_indices(const char *line, int_buffer *fs)
@@ -230,6 +246,17 @@ void read_indices(const char *line, int_buffer *fs)
 		add_int(fs, pp[0]);
 		add_int(fs, pp[4]);
 		add_int(fs, pp[6]);
+		break;
+	case 9:
+		add_int(fs, pp[0]);	// v1
+		add_int(fs, pp[1]);	// t1
+		add_int(fs, pp[2]);	// n1
+		add_int(fs, pp[3]);	// v2
+		add_int(fs, pp[4]);	// t2
+		add_int(fs, pp[5]);	// n2
+		add_int(fs, pp[6]);	// v3
+		add_int(fs, pp[7]);	// t3
+		add_int(fs, pp[8]);	// n3
 		break;
 	}
 }
@@ -365,7 +392,7 @@ int caLoadObj(CATGL_MODEL *m, char *file_name)
 		} else if (line[0]=='v' && line[1]=='n' && (line[2]==' ' || line[2]=='\t')) {
 			read_vertices(line, vns);
 		} else if (line[0]=='v' && line[1]=='t' && (line[2]==' ' || line[2]=='\t')) {
-//			read_uvs(line, vts);
+			read_uvs(line, vts);
 		} else if (line[0]=='f' && (line[1]==' ' || line[1]=='\t')) {
 			read_indices(line, fs);
 		}

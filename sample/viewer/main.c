@@ -23,6 +23,7 @@ char fsrc[] =
 	"  gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);"
 	"}";*/
 
+// Lighting 1
 /*char vsrc[] =
 	"#version 120\n"
 	"uniform mat4 projectionMatrix;"	// param
@@ -35,6 +36,7 @@ char fsrc[] =
 	"  color = vec3(1.0, 1.0, 1.0) * clamp(dot(normal, light), 0, 1);"
 	"  gl_Position = projectionMatrix * modelviewMatrix * vec4(position, 1.0);"
 	"}";*/
+// Lighting 2
 char vsrc[] =
 	"#version 120\n"
 	"uniform mat4 projectionMatrix;"	// param
@@ -46,10 +48,15 @@ char vsrc[] =
 //	"attribute vec2 texcoord;"		// in
 //	"varying vec2 texcoordVarying;"	// out
 	"void main() {"
-	"  vec4 n = normalize(modelviewMatrix * viewMatrix * vec4(normal, 1));"
-	"  vec4 light = normalize(viewMatrix * vec4(4.0, 4.0, 4.0, 1.0));"
-	"  color = vec3(1.0, 1.0, 1.0) * clamp(dot(n, light), 0, 1);"
-	"  gl_Position = projectionMatrix * viewMatrix * modelviewMatrix * vec4(position, 1.0);"
+	"  vec4 n = normalize(modelviewMatrix * viewMatrix * vec4(normal, 1));"	// 法線
+	"  vec4 light = normalize(viewMatrix * vec4(4.0, 4.0, 4.0, 1.0));"		// 光
+	"  vec4 pos = viewMatrix * modelviewMatrix * vec4(position, 1.0);"		// ワールド座標位置
+	"  vec4 eye = normalize(vec4(0, 0, 0, 0) - pos);"				// 目ベクトル
+	"  float cosa = clamp(dot(eye, reflect(-light, n)), 0, 1);"			// 反射ベクトル
+	"  color = vec3(0.1,0.1,0.1)"							// 環境光
+	"    + vec3(1.0, 1.0, 1.0) * clamp(dot(n, light), 0, 1)"			// 拡散光
+	"    + vec3(1.0, 1.0, 1.0) * pow(cosa, 5);"					// 反射光
+	"  gl_Position = projectionMatrix * pos;"
 //	"  texcoordVarying = texcoord;"
 	"}";
 char fsrc[] =
@@ -181,14 +188,22 @@ void caRender()
 		angle = 0;
 	}
 
-	float mat[16];
+	float mat[16], r[4][16];
 	// 透視投影変換行列
 	caMakeProjectionMatrix(mat, 1, 1000, 53, aspect);
 	glUniformMatrix4fv(glGetUniformLocation(program, "projectionMatrix"), 1, GL_FALSE, mat);
 	caMakeUnit(mat);
-	caSetPosition(mat, 0, 0, -1);
+	caSetPosition(mat, 0, 0, -2);
 	glUniformMatrix4fv(glGetUniformLocation(program, "viewMatrix"), 1, GL_FALSE, mat);
-	caRotationZ(mat, angle);
+	caMakeUnit(r[0]);
+	caRotationX(r[0], angle);
+	caMakeUnit(r[1]);
+	caRotationY(r[1], angle);
+	caMakeUnit(r[2]);
+	caRotationZ(r[2], angle);
+	//caRotationX(mat, angle);
+	caMultMatrix(r[0], r[1], r[3]);
+	caMultMatrix(r[3], r[2], mat);
 	glUniformMatrix4fv(glGetUniformLocation(program, "modelviewMatrix"), 1, GL_FALSE, mat);
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
