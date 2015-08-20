@@ -254,21 +254,8 @@ void caMultMatrix(float *a, float *b, float *r)
 	r[14] = a[2] * b[12]+ a[6] * b[13]+ a[10] * b[14]+ a[14] * b[15];
 	r[15] = a[3] * b[12]+ a[7] * b[13]+ a[11] * b[14]+ a[15] * b[15];
 }
-/*void caMultMatrix(float *m1, float *m2, float *r)
-{
-	int i, j;
-	for (i=0; i<16; i++) {
-		float sum = 0.0f;
-		for (j=0; j<4; j++) {
-			(*r) += m1[i%4*4 + j] * m2[j*4 + i>>2];
-		}
-		r++;
-	}
-	
-	return;
-}
 // 合成(glMultMatrixf)
-void caMultMatrix(float *s1, float *s2, float *r)
+/*void caMultMatrix(float *s1, float *s2, float *r)
 {
 	int x, y;
 	for (y=0; y<4; y++) {

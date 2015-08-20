@@ -45,7 +45,7 @@ float_buffer *alloc_float_buffer()
 	fbuf = malloc(sizeof(float_buffer));
 	if (!fbuf) {
 		LOGE("Memory allocation error.\n");
-		//exit(EXIT_FAILURE);
+		exit(EXIT_FAILURE);
 	}
 
 	fbuf->buf_size = DEF_BUF_SIZE;
@@ -76,7 +76,7 @@ void add_float(float_buffer *fbuf, float value)
 		fbuf->buf = realloc(fbuf->buf, sizeof(float) * fbuf->buf_size);
 		if (!fbuf->buf) {
 			LOGE("Memory allocation error.\n");
-			//exit(EXIT_FAILURE);
+			exit(EXIT_FAILURE);
 		}
 	}
 }
@@ -99,7 +99,7 @@ int_buffer *alloc_int_buffer()
 	ibuf = malloc(sizeof(int_buffer));
 	if (!ibuf) {
 		LOGE("Memory allocation error.\n");
-		//exit(EXIT_FAILURE);
+		exit(EXIT_FAILURE);
 	}
 
 	ibuf->buf_size = DEF_BUF_SIZE;
@@ -130,7 +130,7 @@ void add_int(int_buffer *ibuf, int value)
 		ibuf->buf = realloc(ibuf->buf, sizeof(int) * ibuf->buf_size);
 		if (!ibuf->buf) {
 			LOGE("Memory allocation error.\n");
-			//exit(EXIT_FAILURE);
+			exit(EXIT_FAILURE);
 		}
 	}
 }
@@ -181,83 +181,60 @@ void read_uvs(const char *line, float_buffer *vts)
 **------------------------------*/
 void read_indices(const char *line, int_buffer *fs)
 {
-	int count;
-//	count = sscanf(line, "%*s%d%d%d%d%d%d%d%d%d%d", &v[0], &v[1], &v[2], &v[3], &v[4], &v[5], &v[6], &v[7], &v[8], &v[9]);
-//	count = sscanf(line, "%*s %d%*[/]%d %d%*[/]%d %d%*[/]%d", &v1, &n1, &v2, &n2, &v3, &n3);
-
+	int i, count;
 	unsigned short pp[54+1];
-	switch (1) {
-	case 1:
-		count = sscanf(line, "f"" %hu %hu %hu %hu %hu %hu %hu %hu %hu %hu %hu %hu %hu %hu %hu %hu %hu %hu",
-			pp+ 0, pp+ 1, pp+ 2, pp+ 3, pp+ 4, pp+ 5, pp+ 6, pp+ 7, pp+ 8, pp+ 9, pp+10, pp+11, pp+12, pp+13, pp+14, pp+15, pp+16, pp+17);
-		if (count>=3) break;
 
-		count = sscanf(line, "f"" %hu//%hu %hu//%hu %hu//%hu %hu//%hu %hu//%hu %hu//%hu"
-			" %hu//%hu %hu//%hu %hu//%hu %hu//%hu %hu//%hu %hu//%hu"
-			" %hu//%hu %hu//%hu %hu//%hu %hu//%hu %hu//%hu %hu//%hu %hu",
-			pp+ 0, pp+ 1, pp+ 2, pp+ 3, pp+ 4, pp+ 5, pp+ 6, pp+ 7, pp+ 8, pp+ 9, pp+10, pp+11,
-			pp+12, pp+13, pp+14, pp+15, pp+16, pp+17, pp+18, pp+19, pp+20, pp+21, pp+22, pp+23,
-			pp+24, pp+25, pp+26, pp+27, pp+28, pp+29, pp+30, pp+32, pp+32, pp+33, pp+34, pp+35, pp+36);
-		if (count>=6) break;
+	// f v1 v2 v3 ...
+	count = sscanf(line, "%*s%hu%hu%hu%hu%hu%hu%hu%hu%hu%hu%hu%hu%hu%hu%hu%hu%hu%hu", pp+ 0, pp+ 1, pp+ 2, pp+ 3, pp+ 4, pp+ 5, pp+ 6, pp+ 7, pp+ 8, pp+ 9, pp+10, pp+11, pp+12, pp+13, pp+14, pp+15, pp+16, pp+17);
+	if (count>=3) {
+		for (i=0; i<count; i++) add_int(fs, pp[i]);
+		return;
+	}
 
-		count = sscanf(line, "f"" %hu/%hu %hu/%hu %hu/%hu %hu/%hu %hu/%hu %hu/%hu"
-			" %hu/%hu %hu/%hu %hu/%hu %hu/%hu %hu/%hu %hu/%hu"
-			" %hu/%hu %hu/%hu %hu/%hu %hu/%hu %hu/%hu %hu/%hu %hu",
-			pp+ 0, pp+ 1, pp+ 2, pp+ 3, pp+ 4, pp+ 5, pp+ 6, pp+ 7, pp+ 8, pp+ 9, pp+10, pp+11,
-			pp+12, pp+13, pp+14, pp+15, pp+16, pp+17, pp+18, pp+19, pp+20, pp+21, pp+22, pp+23,
-			pp+24, pp+25, pp+26, pp+27, pp+28, pp+29, pp+30, pp+32, pp+32, pp+33, pp+34, pp+35, pp+36);
-		if (count>=6) break;
+	// f v1//n1 v2//n2 v3//n3 ...
+//	count = sscanf(line, "%*s %d%*[/]%d %d%*[/]%d %d%*[/]%d", &v1, &n1, &v2, &n2, &v3, &n3);
+	count = sscanf(line, "f"" %hu//%hu %hu//%hu %hu//%hu %hu//%hu %hu//%hu %hu//%hu"
+		" %hu//%hu %hu//%hu %hu//%hu %hu//%hu %hu//%hu %hu//%hu"
+		" %hu//%hu %hu//%hu %hu//%hu %hu//%hu %hu//%hu %hu//%hu %hu",
+		pp+ 0, pp+ 1, pp+ 2, pp+ 3, pp+ 4, pp+ 5, pp+ 6, pp+ 7, pp+ 8, pp+ 9, pp+10, pp+11,
+		pp+12, pp+13, pp+14, pp+15, pp+16, pp+17, pp+18, pp+19, pp+20, pp+21, pp+22, pp+23,
+		pp+24, pp+25, pp+26, pp+27, pp+28, pp+29, pp+30, pp+32, pp+32, pp+33, pp+34, pp+35, pp+36);
+	if (count>=6) {
+		for (i=0; i<count; i++) {
+			add_int(fs, pp[i]);
+		}
+		return;
+	}
 
-		count = sscanf(line, "f"" %hu/%hu/%hu %hu/%hu/%hu %hu/%hu/%hu %hu/%hu/%hu %hu/%hu/%hu %hu/%hu/%hu"
-			" %hu/%hu/%hu %hu/%hu/%hu %hu/%hu/%hu %hu/%hu/%hu %hu/%hu/%hu %hu/%hu/%hu"
-			" %hu/%hu/%hu %hu/%hu/%hu %hu/%hu/%hu %hu/%hu/%hu %hu/%hu/%hu %hu/%hu/%hu %hu",
-			pp+ 0, pp+ 1, pp+ 2, pp+ 3, pp+ 4, pp+ 5, pp+ 6, pp+ 7, pp+ 8, pp+ 9, pp+10, pp+11, pp+12, pp+13, pp+14, pp+15, pp+16, pp+17,
+	// f v1/t1 v2/t2 v3/t3 ...
+	count = sscanf(line, "f"" %hu/%hu %hu/%hu %hu/%hu %hu/%hu %hu/%hu %hu/%hu"
+		" %hu/%hu %hu/%hu %hu/%hu %hu/%hu %hu/%hu %hu/%hu"
+		" %hu/%hu %hu/%hu %hu/%hu %hu/%hu %hu/%hu %hu/%hu %hu",
+		pp+ 0, pp+ 1, pp+ 2, pp+ 3, pp+ 4, pp+ 5, pp+ 6, pp+ 7, pp+ 8, pp+ 9, pp+10, pp+11,
+		pp+12, pp+13, pp+14, pp+15, pp+16, pp+17, pp+18, pp+19, pp+20, pp+21, pp+22, pp+23,
+		pp+24, pp+25, pp+26, pp+27, pp+28, pp+29, pp+30, pp+32, pp+32, pp+33, pp+34, pp+35, pp+36);
+	if (count>=6) {
+		for (i=0; i<count/2; i++) {
+			add_int(fs, pp[i*2]);
+		}
+		return;
+	}
+
+	// f v1//t1//n1 v2//t2//n2 v3//t3//n3 ...
+	count = sscanf(line,
+		"%*s %hu%*c%hu%*c%hu %hu%*c%hu%*c%hu %hu%*c%hu%*c%hu %hu%*c%hu%*c%hu %hu%*c%hu%*c%hu %hu%*c%hu%*c%hu"
+		" %hu%*c%hu%*c%hu %hu%*c%hu%*c%hu %hu%*c%hu%*c%hu %hu%*c%hu%*c%hu %hu%*c%hu%*c%hu %hu%*c%hu%*c%hu"
+		" %hu%*c%hu%*c%hu %hu%*c%hu%*c%hu %hu%*c%hu%*c%hu %hu%*c%hu%*c%hu %hu%*c%hu%*c%hu %hu%*c%hu%*c%hu %hu",
+		pp+ 0, pp+ 1, pp+ 2, pp+ 3, pp+ 4, pp+ 5, pp+ 6, pp+ 7, pp+ 8, pp+ 9, pp+10, pp+11, pp+12, pp+13, pp+14, pp+15, pp+16, pp+17,
 			pp+18, pp+19, pp+20, pp+21, pp+22, pp+23, pp+24, pp+25, pp+26, pp+27, pp+28, pp+29, pp+30, pp+32, pp+32, pp+33, pp+34, pp+35,
 			pp+36, pp+37, pp+38, pp+39, pp+40, pp+41, pp+42, pp+43, pp+44, pp+45, pp+46, pp+47, pp+48, pp+49, pp+50, pp+51, pp+52, pp+53, pp+54);
-	}
-	//printf("%d-%d ", count, pp[0]);
-
-	switch (count) {
-	case 3:
-		add_int(fs, pp[0]);
-		add_int(fs, pp[1]);
-		add_int(fs, pp[2]);
-		break;
-	case 4:
-		add_int(fs, pp[0]);
-		add_int(fs, pp[1]);
-		add_int(fs, pp[2]);
-		add_int(fs, pp[0]);
-		add_int(fs, pp[2]);
-		add_int(fs, pp[3]);
-		break;
-	case 6:
-		add_int(fs, pp[0]);	// v
-		add_int(fs, pp[1]);	// n
-		add_int(fs, pp[2]);	// v
-		add_int(fs, pp[3]);	// n
-		add_int(fs, pp[4]);	// v
-		add_int(fs, pp[5]);	// n
-		break;
-	case 8:
-		add_int(fs, pp[0]);
-		add_int(fs, pp[2]);
-		add_int(fs, pp[4]);
-		add_int(fs, pp[0]);
-		add_int(fs, pp[4]);
-		add_int(fs, pp[6]);
-		break;
-	case 9:
-		add_int(fs, pp[0]);	// v1
-		add_int(fs, pp[1]);	// t1
-		add_int(fs, pp[2]);	// n1
-		add_int(fs, pp[3]);	// v2
-		add_int(fs, pp[4]);	// t2
-		add_int(fs, pp[5]);	// n2
-		add_int(fs, pp[6]);	// v3
-		add_int(fs, pp[7]);	// t3
-		add_int(fs, pp[8]);	// n3
-		break;
+	if (count>=9) {
+		for (i=0; i<count/3; i++) {
+			add_int(fs, pp[i*3]);
+//			add_int(fs, pp[i*3+1]);
+			add_int(fs, pp[i*3+2]);
+		}
+		return;
 	}
 }
 
@@ -371,8 +348,8 @@ int caLoadObj(CATGL_MODEL *m, char *file_name)
 {
 	FILE *fp;
 	char line[1024];
-	float_buffer *vs, *vns, *vts;
-	int_buffer *fs;
+	float_buffer *v[3];
+	int_buffer *f[3];
 
 	fp = fopen(CATGL_ASSETS(file_name), "r");
 	if (!fp) {
@@ -380,34 +357,38 @@ int caLoadObj(CATGL_MODEL *m, char *file_name)
 		return 0;
 	}
 
-	vs = alloc_float_buffer();		// x,y,z
-	vns = alloc_float_buffer();	// nx,ny,nz
-	vts = alloc_float_buffer();	// ux,uy
-	fs = alloc_int_buffer();		// index
+	v[0] = alloc_float_buffer();	// x,y,z
+	v[1] = alloc_float_buffer();	// nx,ny,nz
+	v[2] = alloc_float_buffer();	// ux,uy
+	f[0] = alloc_int_buffer();		// index
+	f[1] = alloc_int_buffer();		// index for n
+	f[2] = alloc_int_buffer();		// index for t
 
 	while (!feof(fp)) {
 		fgets(line, sizeof(line), fp);
 		if (line[0]=='v' && (line[1]==' ' || line[1]=='\t')) {
-			read_vertices(line, vs);
+			read_vertices(line, v[0]);
 		} else if (line[0]=='v' && line[1]=='n' && (line[2]==' ' || line[2]=='\t')) {
-			read_vertices(line, vns);
+			read_vertices(line, v[1]);
 		} else if (line[0]=='v' && line[1]=='t' && (line[2]==' ' || line[2]=='\t')) {
-			read_uvs(line, vts);
+			read_uvs(line, v[2]);
 		} else if (line[0]=='f' && (line[1]==' ' || line[1]=='\t')) {
-			read_indices(line, fs);
+			read_indices(line, f[0]);
 		}
 	}
 
-	centre_and_rescale(vs->buf, vs->current_index/3);
-	printf("vertices:%d\n", vs->current_index/3);
-	create_model(m, vs, vns, fs);
+	centre_and_rescale(v[0]->buf, v[0]->current_index/3);
+	printf("vertices:%d\n", v[0]->current_index/3);
+	create_model(m, v[0], v[1], f[0]);
 	//centre_and_rescale(m->vertices, m->num_vertices/3);
 	printf("vertices:%d\n", m->num_vertices);
 
-	free_float_buffer(vs);
-	free_float_buffer(vns);
-	free_float_buffer(vts);
-	free_int_buffer(fs);
+	free_float_buffer(v[0]);
+	free_float_buffer(v[1]);
+	free_float_buffer(v[2]);
+	free_int_buffer(f[0]);
+	free_int_buffer(f[1]);
+	free_int_buffer(f[2]);
 
 	fclose(fp);
 

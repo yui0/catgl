@@ -51,7 +51,7 @@ char vsrc[] =
 	"  vec4 n = normalize(modelviewMatrix * viewMatrix * vec4(normal, 1));"	// 法線
 	"  vec4 light = normalize(viewMatrix * vec4(4.0, 4.0, 4.0, 1.0));"		// 光
 	"  vec4 pos = viewMatrix * modelviewMatrix * vec4(position, 1.0);"		// ワールド座標位置
-	"  vec4 eye = normalize(vec4(0, 0, 0, 0) - pos);"				// 目ベクトル
+	"  vec4 eye = normalize(vec4(0, 0, 0, 0) - pos);"				// 視線ベクトル
 	"  float cosa = clamp(dot(eye, reflect(-light, n)), 0, 1);"			// 反射ベクトル
 	"  color = vec3(0.1,0.1,0.1)"							// 環境光
 	"    + vec3(1.0, 1.0, 1.0) * clamp(dot(n, light), 0, 1)"			// 拡散光
@@ -69,6 +69,9 @@ char fsrc[] =
 GLuint program;
 GLuint vbo[2];
 CATGL_MODEL m;
+
+float aspect;
+float x_angle, y_angle, z_angle;
 
 void load_obj(GLuint vbo[], CATGL_MODEL *m, char *file)
 {
@@ -158,10 +161,22 @@ void keyEvent(int key, int action)
 }
 void mouseEvent(int button, int action, int x, int y)
 {
-	keyEvent(CATGL_KEY_RIGHT, action);
+	static int lx, ly;
+
+	//keyEvent(CATGL_KEY_RIGHT, action);
+	//LOGD("(%d,%d)\n", x, y);
+	if (action == CATGL_ACTION_DOWN) {
+		lx = x;
+		ly = y;
+	} else if (action == CATGL_ACTION_MOVE && lx>0) {
+		x_angle += (y-ly)/8;
+		y_angle += (x-lx)/8;
+		//LOGD("%f (%d)\n", x_angle, (x-lx));
+	} else {
+		lx = 0;
+	}
 }
 
-float aspect;
 void caInit(int width, int height)
 {
 	program = caCreateProgram(vsrc, "position", fsrc, "gl_FragColor");
@@ -182,12 +197,6 @@ void caInit(int width, int height)
 
 void caRender()
 {
-	static float angle;
-	angle += 2;
-	if (angle > 360) {
-		angle = 0;
-	}
-
 	float mat[16], r[4][16];
 	// 透視投影変換行列
 	caMakeProjectionMatrix(mat, 1, 1000, 53, aspect);
@@ -196,12 +205,11 @@ void caRender()
 	caSetPosition(mat, 0, 0, -2);
 	glUniformMatrix4fv(glGetUniformLocation(program, "viewMatrix"), 1, GL_FALSE, mat);
 	caMakeUnit(r[0]);
-	caRotationX(r[0], angle);
+	caRotationX(r[0], x_angle);
 	caMakeUnit(r[1]);
-	caRotationY(r[1], angle);
+	caRotationY(r[1], y_angle);
 	caMakeUnit(r[2]);
-	caRotationZ(r[2], angle);
-	//caRotationX(mat, angle);
+	caRotationZ(r[2], z_angle);
 	caMultMatrix(r[0], r[1], r[3]);
 	caMultMatrix(r[3], r[2], mat);
 	glUniformMatrix4fv(glGetUniformLocation(program, "modelviewMatrix"), 1, GL_FALSE, mat);
