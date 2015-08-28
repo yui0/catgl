@@ -198,7 +198,7 @@ void (*caKeyEvent)(int key, int action);
 #endif
 
 // ファイルの内容をメモリに割り当て
-char *caGetFileContents(const char *file_name)
+/*char *caGetFileContents(const char *file_name)
 {
 	char *buf;
 	FILE *fp;
@@ -233,8 +233,9 @@ char *caGetFileContents(const char *file_name)
 	*(buf + read_size) = '\0';
 
 	return buf;
-}
+}*/
 
+// 行列4x4
 void caMultMatrix(float *a, float *b, float *r)
 {
 	r[ 0] = a[0] * b[0] + a[4] * b[1] +  a[8] * b[2] + a[12] * b[3];
@@ -263,22 +264,6 @@ void caMultMatrix(float *a, float *b, float *r)
 			r[y*4+x] = s2[y*4]*s1[x] + s2[y*4+1]*s1[x+4] + s2[y*4+2]*s1[x+8] + s2[y*4+3]*s1[x+12];
 		}
 	}
-}
-// 正規化
-void caNormalize(float* v)
-{
-	float m=sqrt(v[0]*v[0]+v[1]*v[1]+v[2]*v[2]);
-	if (m > 0.0f) { m = 1.0f / m; } else { m = 0.0f; }
-	v[0]*=m;
-	v[1]*=m;
-	v[2]*=m;
-}
-// 外積
-void caCross(float *s1, float *s2, float *d)
-{
-	d[0] = s1[1]*s2[2] - s1[2]*s2[1];
-	d[1] = s1[2]*s2[0] - s1[0]*s2[2];
-	d[2] = s1[0]*s2[1] - s1[1]*s2[0];
 }
 
 // gluLookAt
@@ -486,6 +471,7 @@ GLuint caCreateObject_(void *obj, int size, GLuint num, GLuint d[], int len)
 	glGenBuffers(1, &vbo);
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
 	glBufferData(GL_ARRAY_BUFFER, size * num, obj, GL_STATIC_DRAW);
+//	LOGD("size:%d, num:%d, len:%d\n", size, num, len);
 
 	int i, offset = 0;
 	for (i=0; i<len; i++) {
@@ -519,20 +505,20 @@ GLuint caCreateTexture(unsigned char *tex, int w, int h)
 }
 //GLuint caLoadTexture(char *name)
 
-// model for .obj
+// draw model for .obj
 void caDrawObject(GLuint *vbo, CATGL_MODEL *m)
 {
-	glEnableClientState(GL_VERTEX_ARRAY);
+//	glEnableClientState(GL_VERTEX_ARRAY);
 	glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
 //	glVertexPointer(3, GL_FLOAT, 0, 0);
-	glDrawArrays(caMode, 0, m->num_vertices / 3);
-	glDisableClientState(GL_VERTEX_ARRAY);
+	glDrawArrays(caMode, 0, m->num_vertices);
+//	glDisableClientState(GL_VERTEX_ARRAY);
 }
 void caCreateObject_GL1(GLuint *vbo, CATGL_MODEL *m)
 {
 	glGenBuffers(2, vbo);
 	glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * m->num_vertices, m->vertices, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * m->num_vertices *3, m->vertices, GL_STATIC_DRAW);
 }
 void caDeleteObject_GL1(GLuint *vbo)
 {

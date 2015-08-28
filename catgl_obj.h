@@ -4,8 +4,8 @@
 // モデルデータ
 typedef struct {
 	float *vertices;
-	int num_vertices;
-	int normal;
+	int num_vertices;//, num;
+	unsigned char flag;
 //	int *index;
 //	int num_indexes;
 } CATGL_MODEL;
@@ -179,7 +179,7 @@ void read_uvs(const char *line, float_buffer *vts)
 /*------------------------------*
 ** インデックスの読み込み
 **------------------------------*/
-void read_indices(const char *line, int_buffer *fs)
+void read_indices(const char *line, int_buffer *f[3])
 {
 	int i, count;
 	unsigned short pp[54+1];
@@ -187,7 +187,11 @@ void read_indices(const char *line, int_buffer *fs)
 	// f v1 v2 v3 ...
 	count = sscanf(line, "%*s%hu%hu%hu%hu%hu%hu%hu%hu%hu%hu%hu%hu%hu%hu%hu%hu%hu%hu", pp+ 0, pp+ 1, pp+ 2, pp+ 3, pp+ 4, pp+ 5, pp+ 6, pp+ 7, pp+ 8, pp+ 9, pp+10, pp+11, pp+12, pp+13, pp+14, pp+15, pp+16, pp+17);
 	if (count>=3) {
-		for (i=0; i<count; i++) add_int(fs, pp[i]);
+		if (count>3) count = (count-3)*3 +3;
+		for (i=0; i<count; i++) {
+			if (i%3) add_int(f[0], pp[i]);
+			else add_int(f[0], pp[0]);
+		}
 		return;
 	}
 
@@ -200,8 +204,10 @@ void read_indices(const char *line, int_buffer *fs)
 		pp+12, pp+13, pp+14, pp+15, pp+16, pp+17, pp+18, pp+19, pp+20, pp+21, pp+22, pp+23,
 		pp+24, pp+25, pp+26, pp+27, pp+28, pp+29, pp+30, pp+32, pp+32, pp+33, pp+34, pp+35, pp+36);
 	if (count>=6) {
-		for (i=0; i<count; i++) {
-			add_int(fs, pp[i]);
+		if (count>6) count = ((count/2-3)*3 +3)*2;
+		for (i=0; i<count/2; i++) {
+			add_int(f[0], pp[i*2]);
+			add_int(f[1], pp[i*2+1]);
 		}
 		return;
 	}
@@ -214,8 +220,10 @@ void read_indices(const char *line, int_buffer *fs)
 		pp+12, pp+13, pp+14, pp+15, pp+16, pp+17, pp+18, pp+19, pp+20, pp+21, pp+22, pp+23,
 		pp+24, pp+25, pp+26, pp+27, pp+28, pp+29, pp+30, pp+32, pp+32, pp+33, pp+34, pp+35, pp+36);
 	if (count>=6) {
+		if (count>6) count = ((count/2-3)*3 +3)*2;
 		for (i=0; i<count/2; i++) {
-			add_int(fs, pp[i*2]);
+			add_int(f[0], pp[i*2]);
+			add_int(f[2], pp[i*2+1]);
 		}
 		return;
 	}
@@ -229,10 +237,11 @@ void read_indices(const char *line, int_buffer *fs)
 			pp+18, pp+19, pp+20, pp+21, pp+22, pp+23, pp+24, pp+25, pp+26, pp+27, pp+28, pp+29, pp+30, pp+32, pp+32, pp+33, pp+34, pp+35,
 			pp+36, pp+37, pp+38, pp+39, pp+40, pp+41, pp+42, pp+43, pp+44, pp+45, pp+46, pp+47, pp+48, pp+49, pp+50, pp+51, pp+52, pp+53, pp+54);
 	if (count>=9) {
+		if (count>9) count = ((count/3-3)*3 +3)*3;
 		for (i=0; i<count/3; i++) {
-			add_int(fs, pp[i*3]);
-//			add_int(fs, pp[i*3+1]);
-			add_int(fs, pp[i*3+2]);
+			add_int(f[0], pp[i*3]);
+			add_int(f[2], pp[i*3+1]);
+			add_int(f[1], pp[i*3+2]);
 		}
 		return;
 	}
@@ -241,36 +250,113 @@ void read_indices(const char *line, int_buffer *fs)
 /*------------------------------*
 ** モデルの作成
 **------------------------------*/
-void create_model(CATGL_MODEL *m, float_buffer *vs, float_buffer *vns, int_buffer *fs)
+void create_model(CATGL_MODEL *m, float_buffer *v[3], int_buffer *f[3])
 {
-	int i, j;
+	int len[] = { 3, 3, 2 };
+	int i, j, n;
 
-	m->num_vertices = fs->current_index * 3;
-	m->vertices = malloc(sizeof(float) * m->num_vertices);
+	m->num_vertices = f[0]->current_index;
+//	m->num = f[0]->current_index *3 + f[1]->current_index *3 + f[2]->current_index *2;
+//	m->vertices = malloc(sizeof(float) * m->num);
+	int size = sizeof(float) * m->num_vertices * (3+3+2);
+	m->vertices = malloc(size);
+//	memset(m->vertices, 0, size);
 
 	if (!m->vertices) {
 		LOGE("Memory allocation error.\n");
 		exit(EXIT_FAILURE);
 	}
 
-	m->normal = 0;
-	if (vns->current_index) {
-		m->num_vertices /= 2;
-		m->normal = 1;
+	m->flag = 0;
+	if (v[1]->current_index) m->flag = 1;	// normal
+	if (v[2]->current_index) m->flag |= 2;	// texture
+
+	float *a = m->vertices;
+	for (i=0; i < f[0]->current_index; i++) {
+		for (n=0; n<3; n++) {
+			if (!v[n]->current_index) continue;
+
+			int idx = f[n]->buf[i] - 1;
+			for (j=0; j<len[n]; j++) {
+				*a++ = v[n]->buf[idx*3+j];
+			}
+		}
+	}
+}
+
+inline void caVec3Sub(float a[3], float p1[3], float p2[3])
+{
+	a[0] = p1[0] - p2[0];
+	a[1] = p1[1] - p2[1];
+	a[2] = p1[2] - p2[2];
+}
+// 外積
+inline void caVec3Cross(float *a, float *s1, float *s2)
+{
+	a[0] = s1[1]*s2[2] - s1[2]*s2[1];
+	a[1] = s1[2]*s2[0] - s1[0]*s2[2];
+	a[2] = s1[0]*s2[1] - s1[1]*s2[0];
+}
+// 正規化
+inline void caVec3Normalize(float *v)
+{
+	float m=sqrt(v[0]*v[0]+v[1]*v[1]+v[2]*v[2]);
+	if (m > 0.0f) { m = 1.0f / m; } else { m = 0.0f; }
+	v[0]*=m;
+	v[1]*=m;
+	v[2]*=m;
+}
+int caVec3CalculateNormal(float n[3], float p1[3], float p2[3], float p3[3])
+{
+	float v1[3], v2[3];
+
+	caVec3Sub(v1, p1, p2);		// v1 = p1-p2
+	caVec3Sub(v2, p3, p2);		// v2 = p3-p2
+	caVec3Cross(n, v2, v1);		// n = v2×v1 (外積)
+	caVec3Normalize(n);
+
+	return 1;
+}
+void create_model_ex(CATGL_MODEL *m, float_buffer *v[3], int_buffer *f[3])
+{
+	int len[] = { 3, 3, 2 };
+	int i, j, n;
+
+	m->num_vertices = f[0]->current_index;
+	int size = sizeof(float) * m->num_vertices * (3+3+2);
+	m->vertices = malloc(size);
+
+	if (!m->vertices) {
+		LOGE("Memory allocation error.\n");
+		exit(EXIT_FAILURE);
 	}
 
-	for (i=0; i < fs->current_index; i++) {
-		int idx = fs->buf[i] - 1;
-		if (!m->normal || (i % 2 == 0)) {
-			// vertex
-			for (j=0; j<3; j++) {
-				m->vertices[i * 3 + j] = vs->buf[idx * 3 + j];
+	m->flag = 1;	// normal
+	if (v[2]->current_index) m->flag |= 2;	// texture
+
+	float *a = m->vertices;
+	for (i=0; i < f[0]->current_index; i++) {
+		for (n=0; n<3; n++) {
+			if (!v[n]->current_index) {
+				if (n==1) a += 3;
+				continue;
 			}
-		} else {
-			// normal
-			for (j=0; j<3; j++) {
-				m->vertices[i * 3 + j] = vns->buf[idx * 3 + j];
+
+			int idx = f[n]->buf[i] - 1;
+			for (j=0; j<len[n]; j++) {
+				*a++ = v[n]->buf[idx*3+j];
 			}
+		}
+		if ((i%3)==2 && !v[1]->current_index) {
+			int stripe = 6;
+			if (m->flag & 2) stripe += 2;
+			float *aa = a - stripe*3;
+			caVec3CalculateNormal(aa+3,          aa, aa+stripe, aa+stripe*2);
+			caVec3CalculateNormal(aa+3+stripe,   aa, aa+stripe, aa+stripe*2);
+			caVec3CalculateNormal(aa+3+stripe*2, aa, aa+stripe, aa+stripe*2);
+			//LOGD("v: (%2.2f, %2.2f, %2.2f)\n", *aa, *(aa+1), *(aa+2));
+			//LOGD("v: (%2.2f, %2.2f, %2.2f)\n", *(aa+stripe), *(aa+1+stripe), *(aa+2+stripe));
+			//LOGD("Normal: (%2.2f, %2.2f, %2.2f)\n", *(aa+3), *(aa+3+stripe), *(aa+3+stripe*2));
 		}
 	}
 }
@@ -373,15 +459,18 @@ int caLoadObj(CATGL_MODEL *m, char *file_name)
 		} else if (line[0]=='v' && line[1]=='t' && (line[2]==' ' || line[2]=='\t')) {
 			read_uvs(line, v[2]);
 		} else if (line[0]=='f' && (line[1]==' ' || line[1]=='\t')) {
-			read_indices(line, f[0]);
+			read_indices(line, f);
 		}
 	}
 
 	centre_and_rescale(v[0]->buf, v[0]->current_index/3);
-	printf("vertices:%d\n", v[0]->current_index/3);
-	create_model(m, v[0], v[1], f[0]);
-	//centre_and_rescale(m->vertices, m->num_vertices/3);
-	printf("vertices:%d\n", m->num_vertices);
+	LOGD("vertices:%d/%d\n", v[0]->current_index/3, f[0]->current_index);
+	LOGD("normals:%d/%d\n", v[1]->current_index/3, f[1]->current_index);
+	LOGD("uvs:%d/%d\n", v[2]->current_index/3, f[2]->current_index);
+//	create_model(m, v, f);
+	create_model_ex(m, v, f);
+	LOGD("vertices:%d\n", m->num_vertices);
+	//LOGD("(%f,%f,%f)-(%f,%f,%f)-(%f,%f)", m->vertices[0], m->vertices[1], m->vertices[2], m->vertices[3], m->vertices[4], m->vertices[5], m->vertices[6], m->vertices[7]);
 
 	free_float_buffer(v[0]);
 	free_float_buffer(v[1]);
@@ -399,7 +488,9 @@ void caUnloadObj(CATGL_MODEL *m)
 {
 	if (m->vertices) {
 		free(m->vertices);
+		m->vertices = 0;
 	}
+	m->num_vertices = /*m->num =*/ 0;
 }
 
 #undef DEF_BUF_SIZE

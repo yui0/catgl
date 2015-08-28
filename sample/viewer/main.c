@@ -78,16 +78,22 @@ void load_obj(GLuint vbo[], CATGL_MODEL *m, char *file)
 	caLoadObj(m, file);
 
 	int len = 1, size = 3;
-	GLuint d[4];
+	GLuint d[6];
 	d[0] = glGetAttribLocation(program, "position");
 	d[1] = 3;
-	if (m->normal) {
+	if (m->flag & 1) {
 		d[2] = glGetAttribLocation(program, "normal");
 		d[3] = 3;
 		len++;
 		size += 3;
 	}
-	vbo[0] = caCreateObject_(m->vertices, sizeof(float)*size, m->num_vertices/3, d, len);
+	if (m->flag & 2) {
+		//d[4] = glGetAttribLocation(program, "tex");
+		d[5] = 2;
+		len++;
+		size += 2;
+	}
+	vbo[0] = caCreateObject_(m->vertices, sizeof(float)*size, m->num_vertices*3, d, len);
 }
 
 #include <dirent.h>
@@ -198,12 +204,15 @@ void caInit(int width, int height)
 void caRender()
 {
 	float mat[16], r[4][16];
+
 	// 透視投影変換行列
 	caMakeProjectionMatrix(mat, 1, 1000, 53, aspect);
 	glUniformMatrix4fv(glGetUniformLocation(program, "projectionMatrix"), 1, GL_FALSE, mat);
+
 	caMakeUnit(mat);
 	caSetPosition(mat, 0, 0, -2);
 	glUniformMatrix4fv(glGetUniformLocation(program, "viewMatrix"), 1, GL_FALSE, mat);
+
 	caMakeUnit(r[0]);
 	caRotationX(r[0], x_angle);
 	caMakeUnit(r[1]);
