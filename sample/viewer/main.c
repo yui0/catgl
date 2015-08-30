@@ -37,7 +37,7 @@ char fsrc[] =
 	"  gl_Position = projectionMatrix * modelviewMatrix * vec4(position, 1.0);"
 	"}";*/
 // Lighting 2
-char vsrc[] =
+/*char vsrc[] =
 	"#version 120\n"
 	"uniform mat4 projectionMatrix;"	// param
 	"uniform mat4 viewMatrix;"		// param
@@ -45,10 +45,8 @@ char vsrc[] =
 	"attribute vec3 position;"		// in
 	"attribute vec3 normal;"		// in
 	"varying vec3 color;"		// out
-//	"attribute vec2 texcoord;"		// in
-//	"varying vec2 texcoordVarying;"	// out
 	"void main() {"
-	"  vec4 n = normalize(modelviewMatrix * viewMatrix * vec4(normal, 1));"	// 法線
+	"  vec4 n = normalize(modelviewMatrix * viewMatrix * vec4(normal, 1));"	// 法線 (!!本当は1ではなく0)
 	"  vec4 light = normalize(viewMatrix * vec4(4.0, 4.0, 4.0, 1.0));"		// 光
 	"  vec4 pos = viewMatrix * modelviewMatrix * vec4(position, 1.0);"		// ワールド座標位置
 	"  vec4 eye = normalize(vec4(0, 0, 0, 0) - pos);"				// 視線ベクトル
@@ -57,7 +55,64 @@ char vsrc[] =
 	"    + vec3(1.0, 1.0, 1.0) * clamp(dot(n, light), 0, 1)"			// 拡散光
 	"    + vec3(1.0, 1.0, 1.0) * pow(cosa, 5);"					// 反射光
 	"  gl_Position = projectionMatrix * pos;"
+	"}";*/
+// Lighting 3 (環境光+拡散光)
+/*char vsrc[] =
+	"#version 120\n"
+	"uniform mat4 projectionMatrix;"	// 錐台(frustum)変換行列
+	"uniform mat4 viewMatrix;"		// param
+	"uniform mat4 modelviewMatrix;"	// 平行回転行列
+	"attribute vec3 position;"		// 頂点座標
+	"attribute vec3 normal;"		// 頂点の法線ベクトル
+	"varying vec3 color;"		// out
+	"void main() {"
+	"  vec4 n = normalize(modelviewMatrix * viewMatrix * vec4(normal, 0));"	// 法線
+	"  vec4 light = normalize(viewMatrix * vec4(4.0, 4.0, 4.0, 1.0));"		// 光
+	"  vec4 pos = viewMatrix * modelviewMatrix * vec4(position, 1.0);"		// ワールド座標位置
+	"  vec4 eye = normalize(vec4(0, 0, 0, 0) - pos);"				// 視線ベクトル
+	"  float cosa = clamp(dot(eye, reflect(-light, n)), 0, 1);"			// 反射ベクトル
+	"  color = vec3(0.1, 0.1, 0.1)"							// 環境光
+	"    + vec3(1.0, 1.0, 1.0) * clamp(dot(n, light), 0, 1);"			// 拡散光
+	"  gl_Position = projectionMatrix * pos;"
+	"}";*/
+// Lighting 4 (環境光+拡散光+反射光)
+/*char vsrc[] =
+	"#version 120\n"
+	"uniform mat4 projectionMatrix;"	// 錐台(frustum)変換行列
+	"uniform mat4 viewMatrix;"		// param
+	"uniform mat4 modelviewMatrix;"	// 平行回転行列
+	"attribute vec3 position;"		// 頂点座標
+	"attribute vec3 normal;"		// 頂点の法線ベクトル
+	"varying vec3 color;"		// out
+//	"attribute vec2 texcoord;"		// in
+//	"varying vec2 texcoordVarying;"	// out
+	"void main() {"
+	"  vec4 n = normalize(modelviewMatrix * viewMatrix * vec4(normal, 0));"	// 法線
+	"  vec4 light = normalize(viewMatrix * vec4(4.0, 4.0, 4.0, 1.0));"		// 光
+	"  vec4 pos = viewMatrix * modelviewMatrix * vec4(position, 1.0);"		// ワールド座標位置
+	"  vec4 eye = normalize(vec4(0, 0, 0, 0) - pos);"				// 視線ベクトル
+	"  float cosa = clamp(dot(eye, reflect(-light, n)), 0, 1);"			// 反射ベクトル
+	"  color = vec3(0.1, 0.1, 0.1)"							// 環境光
+	"    + vec3(1.0, 1.0, 1.0) * clamp(dot(n, light), 0, 1)"			// 拡散光
+	"    + vec3(1.0, 1.0, 1.0) * pow(cosa, 5);"					// 反射光
+	"  gl_Position = projectionMatrix * pos;"
 //	"  texcoordVarying = texcoord;"
+	"}";*/
+// Lighting 5
+char vsrc[] =
+	"#version 120\n"
+	"uniform mat4 projectionMatrix;"	// 錐台(frustum)変換行列
+	"uniform mat4 viewMatrix;"		// param
+	"uniform mat4 modelviewMatrix;"	// 平行回転行列
+	"attribute vec3 position;"		// 頂点座標
+	"attribute vec3 normal;"		// 頂点の法線ベクトル
+	"varying vec3 color;"		// out
+	"void main() {"
+	"  vec4 pos = viewMatrix * modelviewMatrix * vec4(position, 1.0);"		// ワールド座標位置
+	"  gl_Position = projectionMatrix * pos;"
+	"  vec4 n = normalize(modelviewMatrix * viewMatrix * vec4(normal, 0));"	// 法線ベクトルを正規化(＝長さを1にする)
+	"  float l = abs(dot(n, normalize(vec4(-1, 1, 1, 0))));"			// 法線ベクトルと光ベクトル-1, 1, 1)との内積で光量を決定
+	"  color = vec3(l, l, l);"
 	"}";
 char fsrc[] =
 	"#version 120\n"
@@ -158,7 +213,7 @@ void keyEvent(int key, int action)
 	}
 
 	if (s) {
-		printf("%s\n", s);
+		printf("-- %s\n", s);
 		glDeleteBuffers(1, vbo);
 		caUnloadObj(&m);
 

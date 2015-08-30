@@ -284,6 +284,12 @@ void create_model(CATGL_MODEL *m, float_buffer *v[3], int_buffer *f[3])
 	}
 }
 
+inline void caVec3Add(float a[3], float p1[3], float p2[3])
+{
+	a[0] = p1[0] + p2[0];
+	a[1] = p1[1] + p2[1];
+	a[2] = p1[2] + p2[2];
+}
 inline void caVec3Sub(float a[3], float p1[3], float p2[3])
 {
 	a[0] = p1[0] - p2[0];
@@ -358,6 +364,46 @@ void create_model_ex(CATGL_MODEL *m, float_buffer *v[3], int_buffer *f[3])
 			//LOGD("v: (%2.2f, %2.2f, %2.2f)\n", *(aa+stripe), *(aa+1+stripe), *(aa+2+stripe));
 			//LOGD("Normal: (%2.2f, %2.2f, %2.2f)\n", *(aa+3), *(aa+3+stripe), *(aa+3+stripe*2));
 		}
+	}
+}
+void calculate_normal(float_buffer *v[3], int_buffer *f[3])
+{
+	if (v[1]->current_index) return;
+
+	int i;
+	for (i=0; i < f[0]->current_index; i++) {
+		add_int(f[1], f[0]->buf[i]);
+	}
+	for (i=0; i < v[0]->current_index; i++) {
+		add_float(v[1], 0);
+	}
+	LOGD("created normals:%d/%d\n", v[1]->current_index/3, f[1]->current_index);
+
+	for (i=0; i < f[0]->current_index; i+=3) {
+		float *p[3], *n[3], normal[3];
+		p[0] = &v[0]->buf[(f[0]->buf[i  ]-1)*3];
+		p[1] = &v[0]->buf[(f[0]->buf[i+1]-1)*3];
+		p[2] = &v[0]->buf[(f[0]->buf[i+2]-1)*3];
+		//LOGD("v: (%2.2f, %2.2f, %2.2f)\n", p[0][0], p[0][1], p[0][2]);
+
+		n[0] = &v[1]->buf[(f[1]->buf[i  ]-1)*3];
+		n[1] = &v[1]->buf[(f[1]->buf[i+1]-1)*3];
+		n[2] = &v[1]->buf[(f[1]->buf[i+2]-1)*3];
+		//LOGD("v: (%2.2f, %2.2f, %2.2f)\n", n[0][0], n[0][1], n[0][2]);
+
+		caVec3CalculateNormal(normal, p[0], p[1], p[2]);
+#if 0
+		memcpy(n[0], normal, sizeof(float)*3);
+		memcpy(n[1], normal, sizeof(float)*3);
+		memcpy(n[2], normal, sizeof(float)*3);
+#else
+		caVec3Add(n[0], n[0], normal);
+		caVec3Add(n[1], n[1], normal);
+		caVec3Add(n[2], n[2], normal);
+#endif
+	}
+	for (i=0; i < v[1]->current_index/3; i++) {
+		caVec3Normalize(&v[1]->buf[i*3]);
 	}
 }
 
@@ -466,9 +512,10 @@ int caLoadObj(CATGL_MODEL *m, char *file_name)
 	centre_and_rescale(v[0]->buf, v[0]->current_index/3);
 	LOGD("vertices:%d/%d\n", v[0]->current_index/3, f[0]->current_index);
 	LOGD("normals:%d/%d\n", v[1]->current_index/3, f[1]->current_index);
-	LOGD("uvs:%d/%d\n", v[2]->current_index/3, f[2]->current_index);
-//	create_model(m, v, f);
-	create_model_ex(m, v, f);
+	LOGD("uvs:%d/%d\n", v[2]->current_index/2, f[2]->current_index);
+	calculate_normal(v, f);
+	create_model(m, v, f);
+	//create_model_ex(m, v, f);
 	LOGD("vertices:%d\n", m->num_vertices);
 	//LOGD("(%f,%f,%f)-(%f,%f,%f)-(%f,%f)", m->vertices[0], m->vertices[1], m->vertices[2], m->vertices[3], m->vertices[4], m->vertices[5], m->vertices[6], m->vertices[7]);
 
