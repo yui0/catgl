@@ -105,11 +105,15 @@ void (*caKeyEvent)(int key, int action);
 
 	#define CATGL_KEY_ESCAPE		AKEYCODE_ESCAPE
 	#define CATGL_KEY_A			AKEYCODE_A
+	#define CATGL_KEY_B			AKEYCODE_B
+	#define CATGL_KEY_C			AKEYCODE_C
 	#define CATGL_KEY_P			AKEYCODE_P
 	#define CATGL_KEY_T			AKEYCODE_T
 	#define CATGL_KEY_W			AKEYCODE_W
 	#define CATGL_KEY_RIGHT		AKEYCODE_B
 	#define CATGL_KEY_LEFT		AKEYCODE_C
+	#define CATGL_KEY_PLUS		AKEYCODE_PLUS
+	#define CATGL_KEY_MINUS		AKEYCODE_MINUS
 
 #elif __linux
 
@@ -153,11 +157,15 @@ void (*caKeyEvent)(int key, int action);
 
 	#define CATGL_KEY_ESCAPE		GLFW_KEY_ESCAPE
 	#define CATGL_KEY_A			GLFW_KEY_A
+	#define CATGL_KEY_B			GLFW_KEY_B
+	#define CATGL_KEY_C			GLFW_KEY_C
 	#define CATGL_KEY_P			GLFW_KEY_P
 	#define CATGL_KEY_T			GLFW_KEY_T
 	#define CATGL_KEY_W			GLFW_KEY_W
 	#define CATGL_KEY_RIGHT		GLFW_KEY_RIGHT
 	#define CATGL_KEY_LEFT		GLFW_KEY_LEFT
+	#define CATGL_KEY_PLUS		GLFW_KEY_KP_ADD
+	#define CATGL_KEY_MINUS		GLFW_KEY_KP_SUBTRACT
 
 #elif __unix // all unices not caught above
 	// Unix

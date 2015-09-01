@@ -143,7 +143,8 @@ void load_obj(GLuint vbo[], CATGL_MODEL *m, char *file)
 		size += 3;
 	}
 	if (m->flag & 2) {
-		//d[4] = glGetAttribLocation(program, "tex");
+		d[4] = glGetAttribLocation(program, "tex");
+		//d[4] = -1;
 		d[5] = 2;
 		len++;
 		size += 2;
@@ -209,6 +210,68 @@ void keyEvent(int key, int action)
 			if (obj<0) obj = 0;
 			s = getObjFile(obj);
 			break;
+		case CATGL_KEY_C:
+		{
+			// Toggle front, back, and no culling
+			int cullMode;
+			glGetIntegerv(GL_CULL_FACE_MODE, &cullMode);
+			if (glIsEnabled(GL_CULL_FACE)) {
+				if (cullMode == GL_FRONT) {
+					glCullFace(GL_BACK);
+					LOGD("Culling: Culling back faces; drawing front faces\n");
+				} else {
+					glDisable(GL_CULL_FACE);
+					LOGD("Culling: No culling; drawing all faces.\n");
+				}
+			} else {
+				glEnable(GL_CULL_FACE);
+				glCullFace(GL_FRONT);
+				LOGD("Culling: Culling front faces; drawing back faces\n");
+			}
+			break;
+		}
+		case CATGL_KEY_PLUS: // increase size of points and width of lines
+		{
+			GLfloat currentPtSize;
+			GLfloat sizeRange[2];
+			glGetFloatv(GL_POINT_SIZE, &currentPtSize);
+			glGetFloatv(GL_SMOOTH_POINT_SIZE_RANGE, sizeRange);
+			GLfloat temp = currentPtSize+1;
+			if (temp > sizeRange[1]) temp = sizeRange[1];
+			glPointSize(temp);
+			LOGD("Point size is %f (can be between %f and %f)\n", temp, sizeRange[0], sizeRange[1]);
+
+			GLfloat currentLineWidth;
+			GLfloat widthRange[2];
+			glGetFloatv(GL_LINE_WIDTH, &currentLineWidth);
+			glGetFloatv(GL_SMOOTH_LINE_WIDTH_RANGE, widthRange);
+			temp = currentLineWidth+1;
+			if (temp > widthRange[1]) temp = widthRange[1];
+			glLineWidth(temp);
+			LOGD("Line width is %f (can be between %f and %f)\n", temp, widthRange[0], widthRange[1]);
+			break;
+		}
+		case CATGL_KEY_MINUS: // decrease size of points and width of lines
+		{
+			GLfloat currentPtSize;
+			GLfloat sizeRange[2];
+			glGetFloatv(GL_POINT_SIZE, &currentPtSize);
+			glGetFloatv(GL_SMOOTH_POINT_SIZE_RANGE, sizeRange);
+			GLfloat temp = currentPtSize-1;
+			if (temp < sizeRange[0]) temp = sizeRange[0];
+			glPointSize(temp);
+			LOGD("Point size is %f (can be between %f and %f)\n", temp, sizeRange[0], sizeRange[1]);
+
+			GLfloat currentLineWidth;
+			GLfloat widthRange[2];
+			glGetFloatv(GL_LINE_WIDTH, &currentLineWidth);
+			glGetFloatv(GL_SMOOTH_LINE_WIDTH_RANGE, widthRange);
+			temp = currentLineWidth-1;
+			if (temp < widthRange[0]) temp = widthRange[0];
+			glLineWidth(temp);
+			LOGD("Line width is %f (can be between %f and %f)\n", temp, widthRange[0], widthRange[1]);
+			break;
+		}
 		}
 	}
 
@@ -242,6 +305,7 @@ void caInit(int width, int height)
 {
 	program = caCreateProgram(vsrc, "position", fsrc, "gl_FragColor");
 	load_obj(vbo, &m, "teapot.obj");
+//	load_obj(vbo, &m, "elephal.obj");
 
 	aspect = (float)width / (float)height;
 	glViewport(0, 0, width, height);

@@ -19,7 +19,7 @@ void caUnloadObj(CATGL_MODEL *m);
 #include <stdlib.h>
 
 // 初期バッファサイズ
-#define DEF_BUF_SIZE 20
+#define DEF_BUF_SIZE 200
 
 // 浮動小数点数バッファ
 typedef struct {
@@ -397,6 +397,7 @@ void calculate_normal(float_buffer *v[3], int_buffer *f[3])
 		memcpy(n[1], normal, sizeof(float)*3);
 		memcpy(n[2], normal, sizeof(float)*3);
 #else
+		// smoothing
 		caVec3Add(n[0], n[0], normal);
 		caVec3Add(n[1], n[1], normal);
 		caVec3Add(n[2], n[2], normal);
@@ -498,6 +499,7 @@ int caLoadObj(CATGL_MODEL *m, char *file_name)
 
 	while (!feof(fp)) {
 		fgets(line, sizeof(line), fp);
+
 		if (line[0]=='v' && (line[1]==' ' || line[1]=='\t')) {
 			read_vertices(line, v[0]);
 		} else if (line[0]=='v' && line[1]=='n' && (line[2]==' ' || line[2]=='\t')) {
@@ -506,6 +508,14 @@ int caLoadObj(CATGL_MODEL *m, char *file_name)
 			read_uvs(line, v[2]);
 		} else if (line[0]=='f' && (line[1]==' ' || line[1]=='\t')) {
 			read_indices(line, f);
+		} else if (!strncmp(line, "mtllib", 6)) {
+			char name[1024];
+			sscanf(&line[7], "%s", name);
+			LOGD("[%s]\n", name);
+		} else if (!strncmp(line, "usemtl", 6)) {
+			char name[1024];
+			sscanf(&line[7], "%s", name);
+			LOGD("[%s]\n", name);
 		}
 	}
 
@@ -537,7 +547,7 @@ void caUnloadObj(CATGL_MODEL *m)
 		free(m->vertices);
 		m->vertices = 0;
 	}
-	m->num_vertices = /*m->num =*/ 0;
+	m->num_vertices = /*m->num =*/ m->flag = 0;
 }
 
 #undef DEF_BUF_SIZE
