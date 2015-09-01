@@ -121,6 +121,10 @@ char fsrc[] =
 	"  gl_FragColor = vec4(color, 1.0);"
 	"}";
 
+/*"#ifdef GL_ES\n"
+"precision mediump float;\n"
+"#endif\n"*/
+
 GLuint program;
 GLuint vbo[2];
 CATGL_MODEL m;
