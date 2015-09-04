@@ -110,6 +110,8 @@ void (*caKeyEvent)(int key, int action);
 	#define CATGL_KEY_P			AKEYCODE_P
 	#define CATGL_KEY_T			AKEYCODE_T
 	#define CATGL_KEY_W			AKEYCODE_W
+	#define CATGL_KEY_UP		AKEYCODE_F
+	#define CATGL_KEY_DOWN		AKEYCODE_V
 	#define CATGL_KEY_RIGHT		AKEYCODE_B
 	#define CATGL_KEY_LEFT		AKEYCODE_C
 	#define CATGL_KEY_PLUS		AKEYCODE_PLUS
@@ -162,6 +164,8 @@ void (*caKeyEvent)(int key, int action);
 	#define CATGL_KEY_P			GLFW_KEY_P
 	#define CATGL_KEY_T			GLFW_KEY_T
 	#define CATGL_KEY_W			GLFW_KEY_W
+	#define CATGL_KEY_UP		GLFW_KEY_UP
+	#define CATGL_KEY_DOWN		GLFW_KEY_DOWN
 	#define CATGL_KEY_RIGHT		GLFW_KEY_RIGHT
 	#define CATGL_KEY_LEFT		GLFW_KEY_LEFT
 	#define CATGL_KEY_PLUS		GLFW_KEY_KP_ADD
@@ -206,7 +210,7 @@ void (*caKeyEvent)(int key, int action);
 #endif
 
 // ファイルの内容をメモリに割り当て
-/*char *caGetFileContents(const char *file_name)
+char *caGetFileContents(const char *file_name)
 {
 	char *buf;
 	FILE *fp;
@@ -241,7 +245,7 @@ void (*caKeyEvent)(int key, int action);
 	*(buf + read_size) = '\0';
 
 	return buf;
-}*/
+}
 
 // 行列4x4
 void caMultMatrix(float *a, float *b, float *r)

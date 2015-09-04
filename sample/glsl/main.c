@@ -165,7 +165,7 @@ char vsrc[] =
 	"  }"
 	"}";*/
 // 回る円(残像)
-char fsrc[] =
+/*char fsrc[] =
 	"#version 120\n"
 	"uniform vec2 resolution;"
 	"uniform float time;"
@@ -180,7 +180,138 @@ char fsrc[] =
 	"  } else {"
 	"    gl_FragColor = texture2D(backbuffer, texPos)*0.95;"
 	"  }"
+	"}";*/
+// 複数個の円
+/*char fsrc[] =
+	"#version 120\n"
+	"uniform float time;"
+	"uniform vec2 mouse;"
+	"uniform vec2 resolution;"
+	"uniform sampler2D backbuffer;"
+	"void main() {"
+	"  vec2 p = gl_FragCoord.xy / resolution.xy;"
+	"  const int nr_light = 36;"
+	"  float b = 0.0;"
+	"  for (int i=0; i<nr_light; ++i) {"
+	"    float t = time;"
+	"    float r = t+ 3.14159265358979*2.0* float(i) /float(nr_light);"
+	"    vec2 lp = mouse + 0.5*cos(t)*(abs(cos(t+float(i)))*0.3+0.7)*vec2(cos(r), sin(r));"
+	"    float d = pow(1.0 / (distance(p, lp)+1.0), 60.0);"
+	"    b += d;"
+	"  }"
+	"  gl_FragColor = vec4(vec3(clamp(b,0.0,1.0)), 1);"
+	"}";*/
+// 複数個の円
+char fsrc[] =
+	"#version 120\n"
+	"uniform float time;"
+	"uniform vec2 mouse;"
+	"uniform vec2 resolution;"
+	"uniform sampler2D backbuffer;"
+	"void main() {"
+	"  vec2 p = gl_FragCoord.xy / resolution.xy;"
+	"  p = mod(p*5.0, 1.0);"
+	"  const int nr_light = 36;"
+	"  float b = 0.0;"
+	"  for (int i=0; i<nr_light; ++i) {"
+	"    float t = time;"
+	"    float r = t+ 3.14159265358979*2.0* float(i) /float(nr_light);"
+	"    vec2 lp = mouse + 0.5*cos(t)*(abs(cos(t+float(i)))*0.3+0.7)*vec2(cos(r), sin(r));"
+	"    float d = pow(1.0 / (distance(p, lp)+1.0), 60.0);"
+	"    b += d;"
+	"  }"
+	"  gl_FragColor = vec4(vec3(clamp(b,0.0,1.0)), 1);"
 	"}";
+
+#include <dirent.h>
+char *getFile(char *ext, int *c)
+{
+	char *path = "./";
+
+	static char s[BUFSIZ];
+	int n = -1, e = strlen(ext);
+
+	//printf("+%s\n", path);
+	DIR *dir = opendir(CATGL_ASSETS(path));
+	if (!dir) return 0;
+	struct dirent *d, *ld = 0, *fd = 0;
+	while ((d = readdir(dir)) != NULL) {
+		char *p = strchr(d->d_name, 0);
+		//printf("-%s,%s\n", d->d_name, p-e);
+		if (strstr(p-e, ext)) {
+			n++;
+			if (n==*c) {
+				strncpy(s, d->d_name, BUFSIZ);
+				break;
+			}
+			ld = d;
+			if (!n) fd = d;
+		}
+	}
+	closedir(dir);
+
+	if (n!=*c) {
+//		printf("%d %d %x\n", *c, n, ld);
+		if (!ld) return 0;
+		if (*c<0) {
+			*c = n;
+			strncpy(s, ld->d_name, BUFSIZ);
+		} else {
+			*c = 0;
+			strncpy(s, fd->d_name, BUFSIZ);
+		}
+	}
+	return s;
+}
+
+void keyEvent(int key, int action)
+{
+	static int glsl;
+	char *s = 0;
+
+	if (action == CATGL_ACTION_DOWN) {
+		switch (key) {
+		case CATGL_KEY_UP:
+			glsl++;
+			s = getFile(".glsl", &glsl);
+			break;
+		case CATGL_KEY_DOWN:
+			glsl--;
+			s = getFile(".glsl", &glsl);
+			break;
+		}
+	}
+
+	if (s) {
+		LOGD("-- %s\n", s);
+		glUseProgram(0);
+		glDeleteProgram(program);
+
+		char *fsrc = caGetFileContents(CATGL_ASSETS(s));
+		program = caCreateProgram(vsrc, "position", fsrc, "gl_FragColor");
+		glUseProgram(program);
+		free(fsrc);
+	}
+}
+
+float x_angle, y_angle, z_angle;
+void mouseEvent(int button, int action, int x, int y)
+{
+	static int lx, ly;
+
+	keyEvent(CATGL_KEY_UP, action);
+	//LOGD("(%d,%d)\n", x, y);
+	if (action == CATGL_ACTION_DOWN) {
+		lx = x;
+		ly = y;
+	} else if (action == CATGL_ACTION_MOVE && lx>0) {
+		x_angle += (y-ly)/8;
+		y_angle += (x-lx)/8;
+		//LOGD("%f (%d)\n", x_angle, (x-lx));
+	} else {
+		lx = 0;
+	}
+}
 
 static const GLfloat position[][2] =
 {
@@ -214,33 +345,34 @@ GLuint _caCreateObject(const GLfloat *position, int size, GLuint num)
 	return vao;
 }
 
-// 表示の初期化
+float resolution[2];
 void caInit(int width, int height)
 {
 	vertices = sizeof position / sizeof position[0];
 
 	program = caCreateProgram(vsrc, "position", fsrc, "gl_FragColor");
+	glUseProgram(program);
+
 	vao = _caCreateObject(position, 2, vertices);
 
-	glUseProgram(program);
-	
-	float resolution[2];
 	resolution[0] = width;
 	resolution[1] = height;
-	glUniform2fv(glGetUniformLocation(program, "resolution"), 1, resolution);
+
+	caKeyEvent = keyEvent;
+	caMouseEvent = mouseEvent;
 }
 
-// 描画
 void caRender()
 {
 	glClearColor(1.0f, 1.0f, 1.0f, 0.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
+	
+	glUniform2fv(glGetUniformLocation(program, "resolution"), 1, resolution);
 
 	static float time;
-	glUniform1f(glGetUniformLocation(program, "time"), time++);
+	glUniform1f(glGetUniformLocation(program, "time"), (time++)/4);
 
 	glBindVertexArray(vao);
-	//glDrawArrays(GL_QUADS, 0, vertices);
 	glDrawArrays(GL_TRIANGLES, 0, vertices);
 	glBindVertexArray(0);
 }
