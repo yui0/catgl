@@ -4,8 +4,11 @@
 //		©2015 Yuichiro Nakada
 //---------------------------------------------------------
 
+//#define CATGL_NANOVG
 #define CATGL_IMPLEMENTATION
 #include "catgl.h"
+
+//struct NVGcontext* vg;
 
 GLuint program;
 GLuint vao;
@@ -17,14 +20,14 @@ char vsrc[] =
 	"   gl_Position = vec4(position, 0.0, 1.0);"
 	"}";
 // グラディーション
-/*char fsrc[] =
+char fsrc[] =
 	"#version 120\n"
 	"uniform vec2 resolution;"
 	"uniform float time;"
 	"void main() {"
 	"  vec2 pos = (gl_FragCoord.xy*2.0 -resolution) / resolution.y;"
 	"  gl_FragColor = vec4(pos, 0.0, 1.0);"
-	"}";*/
+	"}";
 // プラズマ
 /*char fsrc[] =
 	"#version 120\n"
@@ -202,7 +205,7 @@ char vsrc[] =
 	"  gl_FragColor = vec4(vec3(clamp(b,0.0,1.0)), 1);"
 	"}";*/
 // 複数個の円
-char fsrc[] =
+/*char fsrc[] =
 	"#version 120\n"
 	"uniform float time;"
 	"uniform vec2 mouse;"
@@ -221,7 +224,7 @@ char fsrc[] =
 	"    b += d;"
 	"  }"
 	"  gl_FragColor = vec4(vec3(clamp(b,0.0,1.0)), 1);"
-	"}";
+	"}";*/
 
 #include <dirent.h>
 char *getFile(char *ext, int *c)
@@ -294,10 +297,14 @@ void keyEvent(int key, int action)
 	}
 }
 
+float mx, my, width, height, pixelRatio;
 float x_angle, y_angle, z_angle;
 void mouseEvent(int button, int action, int x, int y)
 {
 	static int lx, ly;
+
+	mx = x / width;
+	my = 1.0 - y / height;
 
 	keyEvent(CATGL_KEY_UP, action);
 	//LOGD("(%d,%d)\n", x, y);
@@ -315,12 +322,12 @@ void mouseEvent(int button, int action, int x, int y)
 
 static const GLfloat position[][2] =
 {
-	{ -0.9f, -0.9f },	// 0
-	{  0.9f, -0.9f },	// 1
-	{  0.9f,  0.9f },	// 2
-	{ -0.9f, -0.9f },	// 0
-	{  0.9f,  0.9f },	// 2
-	{ -0.9f,  0.9f },	// 3
+	{ -1.0f, -1.0f },	// 0
+	{  1.0f, -1.0f },	// 1
+	{  1.0f,  1.0f },	// 2
+	{ -1.0f, -1.0f },	// 0
+	{  1.0f,  1.0f },	// 2
+	{ -1.0f,  1.0f },	// 3
 };
 
 int vertices;
@@ -345,8 +352,7 @@ GLuint _caCreateObject(const GLfloat *position, int size, GLuint num)
 	return vao;
 }
 
-float resolution[2];
-void caInit(int width, int height)
+void caInit(int w, int h)
 {
 	vertices = sizeof position / sizeof position[0];
 
@@ -355,19 +361,35 @@ void caInit(int width, int height)
 
 	vao = _caCreateObject(position, 2, vertices);
 
-	resolution[0] = width;
-	resolution[1] = height;
+	width = w;
+	height = h;
+	pixelRatio = (float)width / (float)height;
 
 	caKeyEvent = keyEvent;
 	caMouseEvent = mouseEvent;
+
+	//nvgCreateEx(vg, NVG_ANTIALIAS);
 }
 
 void caRender()
 {
 	glClearColor(1.0f, 1.0f, 1.0f, 0.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
+
+	/*glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT|GL_STENCIL_BUFFER_BIT);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glEnable(GL_CULL_FACE);
+	glDisable(GL_DEPTH_TEST);
+	nvgBeginFrame(vg, width, height, pixelRatio);
+	nvgBeginPath(vg);
+	nvgText(vg, 100, 100, "Hello! こんにちは！", NULL);
+	nvgFill(vg);
+	nvgEndFrame(vg);*/
 	
-	glUniform2fv(glGetUniformLocation(program, "resolution"), 1, resolution);
+	//glUniform2fv(glGetUniformLocation(program, "resolution"), 1, resolution);	// float resolution[2];
+	glUniform2f(glGetUniformLocation(program, "resolution"), width, height);
+	glUniform2f(glGetUniformLocation(program, "mouse"), mx, my);
 
 	static float time;
 	glUniform1f(glGetUniformLocation(program, "time"), (time++)/4);
@@ -379,6 +401,8 @@ void caRender()
 
 void caEnd()
 {
+	//nvgDelete(vg);
+
 	glUseProgram(0);
 	glDeleteProgram(program);
 }
