@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8" />
+	<title>GLSL - WebGL</title>
+	<meta name="Description" content="" />
+	<meta name="Keywords"  content="" />
+
+	<link rel="stylesheet" type="text/css" media="screen,print" href="style.css" />
+</head>
+
+<body>
+<script id="vs" type="x-shader/x-vertex">
+attribute vec3 position;
+
+void main()
+{
+    gl_Position = vec4(position, 1.0);
+}
+</script>
+
+<script id="fs" type="x-shader/x-fragment">
+#ifdef GL_ES
+precision mediump float;
+#endif
+
+@@GLSL@@
+</script>
+
+<canvas id="c" width="320" height="240"></canvas>
+
+<script type="text/javascript" src="index.js"></script>
+</body>
+</html>
