@@ -35,12 +35,11 @@ precision mediump float;
 @@GLSL@@
 </script>
 
-<canvas id="c" width="320" height="240"></canvas>
+<canvas id="c" width="480" height="320"></canvas>
 
 <script type="text/javascript" src="index.js"></script>
 
 <ul data-role="pagination">
-@@PREV@@
 @@NEXT@@
 </ul>
 </body>
