@@ -6,6 +6,7 @@ This application is designed for Android, iOS, Linux, Windows.
 ## Technologies
 
 - OpenGL / OpenGLES
+- GLSL (OpenGL Shading Language)
 - NanoVG (https://github.com/memononen/nanovg)
 - stb single-file public domain libraries (https://github.com/nothings/stb)
 - GLFW (for Linux)
@@ -41,3 +42,7 @@ make android
 
 ![Screenshot](sample/eyes/eyes.png)
 ![Screenshot](sample/box_GL1/box.png)
+![Screenshot](sample/viewer/viewer.png)
+![Screenshot](sample/glsl/glsl00.png)
+![Screenshot](sample/glsl/glsl01.png)
+![Screenshot](sample/glsl/glsl02.png)
