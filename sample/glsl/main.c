@@ -4,6 +4,9 @@
 //		©2015 Yuichiro Nakada
 //---------------------------------------------------------
 
+#define SCREEN_WIDTH	640
+#define SCREEN_HEIGHT	480
+
 //#define CATGL_NANOVG
 #define CATGL_IMPLEMENTATION
 #include "catgl.h"
@@ -20,14 +23,14 @@ char vsrc[] =
 	"   gl_Position = vec4(position, 0.0, 1.0);"
 	"}";
 // グラディーション
-char fsrc[] =
+/*char fsrc[] =
 	"#version 120\n"
 	"uniform vec2 resolution;"
 	"uniform float time;"
 	"void main() {"
 	"  vec2 pos = (gl_FragCoord.xy*2.0 -resolution) / resolution.y;"
 	"  gl_FragColor = vec4(pos, 0.0, 1.0);"
-	"}";
+	"}";*/
 // プラズマ
 /*char fsrc[] =
 	"#version 120\n"
@@ -152,7 +155,7 @@ char fsrc[] =
 	"  gl_FragColor = vec4(color);"
 	"}";*/
 // 回る円
-/*char fsrc[] =
+char fsrc[] =
 	"#version 120\n"
 	"uniform vec2 resolution;"
 	"uniform float time;"
@@ -166,7 +169,7 @@ char fsrc[] =
 	"  } else {"
 	"    gl_FragColor = vec4(0.0);"
 	"  }"
-	"}";*/
+	"}";
 // 回る円(残像)
 /*char fsrc[] =
 	"#version 120\n"
@@ -306,7 +309,7 @@ void mouseEvent(int button, int action, int x, int y)
 	mx = x / width;
 	my = 1.0 - y / height;
 
-	keyEvent(CATGL_KEY_UP, action);
+	keyEvent(CATGL_KEY_DOWN, action);
 	//LOGD("(%d,%d)\n", x, y);
 	if (action == CATGL_ACTION_DOWN) {
 		lx = x;

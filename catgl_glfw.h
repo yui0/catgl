@@ -7,8 +7,10 @@
 #define GLFW_INCLUDE_GLU
 #include <GLFW/glfw3.h>
 
+#ifndef SCREEN_WIDTH
 #define SCREEN_WIDTH	1280
 #define SCREEN_HEIGHT	720
+#endif
 
 extern void caInit(int width, int height);
 extern void caRender();

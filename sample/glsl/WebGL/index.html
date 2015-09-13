@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8" />
+	<title>GLSL - WebGL</title>
+	<meta name="Description" content="" />
+	<meta name="Keywords"  content="" />
+
+	<link rel="stylesheet" type="text/css" media="screen,print" href="style.css" />
+</head>
+
+<body>
+<script id="vs" type="x-shader/x-vertex">
+attribute vec3 position;
+attribute vec4 color;
+varying   vec4 vColor;
+
+void main()
+{
+    vColor = color;
+    gl_Position = vec4(position, 1.0);
+    gl_PointSize = 13.0;
+}
+</script>
+
+<script id="fs" type="x-shader/x-fragment">
+/*precision mediump float;
+varying   vec4 vColor;
+vec3 cLight = normalize(vec3(0.5, 0.5, 1.0));
+
+void main()
+{
+    float radius = 0.5;
+    vec2 center = vec2(0.5, 0.5);
+    vec2 position = gl_PointCoord.xy - center;
+    float dist = distance(gl_PointCoord.xy, center);
+    float z = sqrt(radius * radius - position.x * position.x - position.y * position.y);
+    vec3 normal = normalize(vec3(position.x, position.y, z));
+    vec3 c = (normal + 1.0) / 2.0;
+
+    float diffuse = max(0.0, dot(normal, cLight));
+
+    if (dist < 0.5) {
+        gl_FragColor = vColor * vec4(vec3(diffuse), 1.0);
+    } else {
+        discard;
+    }
+}*/
+
+#ifdef GL_ES
+precision mediump float;
+#endif
+
+/*uniform float time;
+uniform vec2 mouse;
+uniform vec2 resolution;
+uniform sampler2D iChannel0;
+
+void main()
+{
+	gl_FragColor = vec4(0.8, 0.9, 1.0, 1.0);
+}*/
+uniform float time;
+uniform vec2 mouse;
+uniform vec2 resolution;
+uniform sampler2D iChannel0;
+
+float iGlobalTime = time;
+vec4 iMouse = vec4(mouse*resolution.xy, 0.0, 0.0);
+vec2 iResolution = resolution;
+
+void main()
+{
+	vec2  px = 4.0*(-iResolution.xy + 2.0*gl_FragCoord.xy) / iResolution.y;
+
+	float id = 0.5 + 0.5*cos(iGlobalTime + sin(dot(floor(px+0.5),vec2(113.1,17.81)))*43758.545);
+
+	vec3  co = 0.5 + 0.5*cos(iGlobalTime + 3.5*id + vec3(0.0,1.57,3.14) );
+
+	vec2  pa = smoothstep( 0.0, 0.2, id*(0.5 + 0.5*cos(6.2831*px)) );
+
+	gl_FragColor = vec4( co*pa.x*pa.y, 1.0 );
+}
+</script>
+
+<center>
+<canvas id="c" width="320" height="240"></canvas>
+</center>
+
+<script type="text/javascript" src="index.js"></script>
+</body>
+</html>
