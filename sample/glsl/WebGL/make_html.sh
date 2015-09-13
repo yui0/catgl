@@ -27,7 +27,7 @@ make_html() {
 	done < ${TEMPLATE_FILE}
 }
 
-count=1
+count=0
 for name in *.glsl
 do
 	make_html

@@ -1,222 +1,439 @@
-//---------------------------------------------------------
-//	Ray marching engine
 //
-//		©2015 Yuichiro Nakada
-//---------------------------------------------------------
+#ifdef GL_ES
+precision highp float;
+#endif
+
+//credits: mad thanks to iq for lots of stuff, and also the glsl sandbox editor
+//(I just dont get math unless I can see the pictures nice and big)
+//Also thanks for the optimized tree fold/mirror/rotate whatevs code - not sure where it came from =(
+
+#define phi .003
+#define farplane 4.
+//#define modulus //increase the farplane for this
+#define pi 4.*atan(1.)
+#define sin45deg sqrt(2.)/2.
 
 uniform float time;
 uniform vec2 mouse;
 uniform vec2 resolution;
 
-float iGlobalTime = time;
-vec4 iMouse = vec4(mouse*resolution.xy, 0.0, 0.0);
-vec2 iResolution = resolution;
+struct ray {
+	vec3 o, p, d, c;
+	float l;
+};
 
-const vec3 fog_color = vec3(0.7,0.85,1.0);
-const float fog_density = 0.02;
+struct light {
+	vec3 p, d, c;
+};
 
-float sdCone(vec3 p, vec2 c)
+struct mat {
+	vec3  dc, sc;
+	float r, i;
+};
+
+struct env {
+	vec3  l;
+	float f;
+};
+
+float 	sphere(vec3 rp, vec3 sp, float r);
+float   capsule( vec3 p, vec3 a, vec3 b, float r );
+
+float 	map(vec3 p);
+vec3 	derivate(vec3 p);
+ray 	trace(ray r);
+
+vec3    shade(ray r, light l, mat m, env e, vec3 n);
+float   fresnel(float i, float ndv);
+float   geometry(float r, float ndl, float ndv, float hdn, float hdv, float hdl);
+float   distribution(float r, float ndh);
+float   shadow(vec3 p, vec3 d, float ndl);
+float   occlusion(vec3 p, vec3 n);
+
+vec3    harmonic(in vec4 n);
+
+int material = 1;
+
+void main( void )
 {
-	float q = length(p.xz);
-	return max(dot(c, vec2(q, p.y)), p.y);
-}
+	vec2 uv = gl_FragCoord.xy/resolution.xy;
+	uv      = uv * 2. - 1.;
+	uv.x 	*= resolution.x/resolution.y;
 
-//-------------------------------------------------------------------------
-// MAP
-//
-// The cave structure is represented algorithmically as a signed
-// distance field:
-//      - positive numbers mean empty space
-//      - negative numbers are solid space
-//
-// This distance is returned as the .x component of a 2D vector, and
-// the .y component represents an optional texture "number".
-//-------------------------------------------------------------------------
-vec2 map(in vec3 pos)
-{
-	// ---- CEILING ----
-	/*	float ceiling_y =
-		        // global offset upwards of ceeling
-		        0.1
-		        // curve minimum around origin and slopes down
-		        +1.0 - 0.25 * sqrt(pos.x*pos.x + pos.z*pos.z)
-		        ;*/
-	float ceiling_y = sdCone(pos, vec2(0.9397,0.342));
+	ray r;
+	r.d = normalize(vec3(uv, 1.5));
+	r.d.y+=.15;
+	r.o = vec3(-.65, 1.1, -2.65);
+	r.p = vec3(0.);
+	r.c = vec3(0.0);
 
-	// ---- FLOOR ----
-	float floor_y =
-	        // global offset downwards of floor
-	        0.6
-	        // curve minimum around origin and slopes upward
-	        +1.0 - 0.25 * sqrt(pos.x*pos.x + pos.z*pos.z)
-	        ;
 
-	// The cave is made up of two planes with variable offsets.
-	return vec2( min(pos.y + floor_y, -pos.y + ceiling_y), 0.0 );
-}
+	float m = (mouse.x-.5)*6.28;
+	mat2 rot = mat2(cos(m), sin(m), -sin(m), cos(m));
+#ifdef modulus
+	r.d.xz *= rot;
+#endif
 
-//----------------------------------------------------------------------
-// TEXTURE
-//
-// The texture of the cave is computed based on a 3D position, usually
-// around the contour where the signed distance field is zero.  This
-// function also takes the material returned from the map() function,
-// and then computes a color as a 3D vector.
-//----------------------------------------------------------------------
-vec3 texture( in vec3 pos, in float mat )
-{
-	// Default texture for the cave. This is currently a checkerboard.
-	float f = mod( floor(5.0*pos.z) + floor(5.0*pos.x), 2.0);
-	return 0.2 + 0.1*f*vec3(1.0);
-}
+	r = trace(r);
 
-//----------------------------------------------------------------------
-// RENDERING
-//
-// A form of ray marching is used to trace through the signed distance
-// field, then perform simple physically-based lighting.
-//
-// NOTE: You shouldn't need to change this unless you need more advanced
-// customizations of the rendering process (e.g. reflections).
-//----------------------------------------------------------------------
-vec3 calcNormal(in vec3 pos)
-{
-	vec3 eps = vec3(0.001, 0.0, 0.0);
-	vec3 nor = vec3(
-	                   map(pos+eps.xyy).x - map(pos-eps.xyy).x,
-	                   map(pos+eps.yxy).x - map(pos-eps.yxy).x,
-	                   map(pos+eps.yyx).x - map(pos-eps.yyx).x);
-	return normalize(nor);
-}
+	vec3 n = derivate(r.p);
 
-float calcAO( in vec3 pos, in vec3 nor )
-{
-	float occ = 0.0;
-	float sca = 1.0;
-	for ( int i=0; i<5; i++ ) {
-		float hr = 0.01 + 0.12*float(i)/4.0;
-		vec3 aopos =  nor * hr + pos;
-		float dd = map( aopos ).x;
-		occ += -(dd-hr)*sca;
-		sca *= 0.95;
-	}
-	return clamp( 1.0 - 3.0*occ, 0.0, 1.0 );
-}
+	env e;
+	e.f = length(r.c);
 
-// ray marching
-vec2 castRay(in vec3 ro, in vec3 rd)
-{
-	float tmin = 0.1;
-	float tmax = 12.0;
-	float scale = 0.1;
-	float precis = 0.0001;
-	float t = tmin;
-	float m = -1.0;
-	vec2 last = vec2(0.0, 0.0);
-	for (int i=0; i<500; i++) {
-		vec2 res = map(ro+rd*t);
-		if (abs(res.x)<precis || t>tmax) {
-			break;
+	if (r.l < farplane) {
+		light l;
+		l.p = vec3(16., 13., -3.);
+#ifndef modulus
+		l.p.xz*=rot;
+#endif
+
+		l.c = vec3(.8, .8, .75);
+		l.d	= normalize(l.p-r.p);
+
+		e.l = harmonic(vec4(n, 1.))+e.f;
+		r.c = e.f+e.l*.005;
+
+		mat m;
+		if (material == 0) {
+			vec3 c0 = vec3(.85, .5, .4);
+			vec3 c1 = vec3(.45, .5, .1);
+			float b = clamp(.25+r.p.y*.125, 0., 1.);
+			m.dc = mix(c0, c1, b);
+			m.sc = vec3(.75);
+			m.r = .65;
+			m.i = 12.32;
+
+		} else if (material == 1) {
+			vec3 c0 = vec3(.4, .76, .51);
+			vec3 c1 = vec3(.6, .8, .3);
+			float b = clamp(1.-length(r.p)*.25, 0., 1.);
+			m.dc = mix(c0, c1, b);
+			m.sc = vec3(.75, .75, .85);
+			m.r = .9132;
+			m.i = 8.32;
+		} else if (material == 2) {
+			vec3 c0 = vec3(.24, .6, .2);
+			vec3 c1 = vec3(.6, .8, .3);
+			float b = clamp(1.-length(r.p)*.25, 0., 1.);
+			m.dc = mix(c0, c1, b);
+			m.sc = vec3(.75, .75, .85);
+			m.r = .7132;
+			m.i = 15.32;
 		}
-		if (res.x * last.x < 0.0) {
-			scale *= 0.5;
-		} else if (res.x > last.x) {
-			scale = min(0.1, scale * 2.0);
+
+		r.c = shade(r, l, m, e, n);
+		r.c += e.f * .95 * r.c;
+	} else {
+		r.p.xz *= rot; //h4x
+		e.l = harmonic(vec4(normalize(r.p), 1.));
+		r.c += e.l;
+	}
+
+	gl_FragColor = vec4(r.c, 1.);
+}//sphinx
+
+float sphere(vec3 rp, vec3 sp, float r)
+{
+	return length(rp - sp)-r;
+}
+
+float capsule( vec3 p, vec3 a, vec3 b, float r )
+{
+	vec3 pa = p - a;
+	vec3 ba = b - a;
+	float h = clamp( dot(pa,ba)/dot(ba,ba), 0.0, 1.0 );
+
+	return length( pa - ba*h ) - r;
+}
+
+vec3 foldY(vec3 P, float n)
+{
+	float r = length(P.xz);
+	float a = atan(P.z, P.x);
+	float c = 3.14159265358979 / n;
+
+	a = mod(a, 2.0 * c) - c;
+
+	P.x = r * cos(a);
+	P.z = r * sin(a);
+
+	return P;
+}
+
+// Optimized case for 4 repetitions
+vec3 foldY4(vec3 p)
+{
+	p.xz = vec2(p.x + p.z, p.z - p.x) * sin45deg;
+	p.xz = abs(p.x) > abs(p.z) ? p.xz * sign(p.x) : vec2(p.z,-p.x) * sign(p.z);
+	return p;
+}
+
+vec3 rotateZ(vec3 p, float a)
+{
+	float c = cos(a);
+	float s = sin(a);
+
+	return vec3(c * p.x - s * p.y, s * p.x + c * p.y, p.z);
+}
+
+float tree(float a, float p, vec2 uv)
+{
+	float t;
+	t = fract(uv.y*p) + .5;
+	t *= a;
+	return t;
+}
+
+float cylinder(vec3 p, vec3 c, float h, float r)
+{
+	p -= c;
+
+	return max(abs(p.y) - 0.5 * h, length(p.xz) - r);
+}
+
+float map(vec3 p)
+{
+	vec3  o = p; //origin
+	vec3 np = p;
+
+#ifdef modulus
+	o.xz    = mod(o.xz, 7.)-3.5;
+#endif
+
+	np = vec3(p.x-p.z-.4, p.y, p.z-p.x+.015);
+	float lp = length(16.*(p+p.x+p.z)-vec3(0., 13., 0.));
+
+	vec4 n = vec4(1.); //removed noise
+
+	o +=  .05 * n.xyz * (2. - max(1., 5.-p.y));
+
+//  vec2 m = mouse;
+	vec2 m = vec2(.95, .65);
+
+	float r = m.y;                                 //rotation
+//  float r = sin45deg;
+
+	float w = m.x*.2/length(o+vec3(0., .3+r, 0.)); //branch width
+
+	float f = 1.;
+	float a = (cos(2.*time+p.z+p.y-sin(p.x+time*.15)*.13*n.x)-.5)*.0051;
+	float t = 999.;                                //tree
+	for (int i = 0; i < 7; i++) {
+		t = min(t, cylinder(o, vec3(0.0), r+1., w)/f);
+		o = 1.5 * o + a;                            //length change across iterations
+		f = 1.4 * f;                                //thickness change across iterations
+		o = foldY4(o);                              //branching
+		//o = foldY(o, abs(r/2.));
+		o = rotateZ(o,r+a*.25);
+
+		o.x -= -r;                                  //rotate
+		o.y -= .5+r;                                //translate and rotate
+	}
+
+	t += .005;                                      //additioal thickness adjustment
+
+	float l = length(o*vec3(4., 1., 9.)+a);         //leaves
+	l *= .00785;
+
+	material = t < l ? 0 : 1;
+
+	t = min(t, l);
+	float g = p.y+(n.w+n.z)*.05;
+	p.xz = mod(o.xz*.025-p.xz+a*2.+p.y*.05, .05)-.025;
+	g = min(g, cylinder(p, vec3(0.0), n.x*.325+n.w, .01-.01*n.x));
+
+	t = min(t, g);
+
+	material = t < g ? material : 2;
+
+	return min(t,g);
+}
+
+//precision adj via hoskins (you rock dude)
+ray trace(ray r)
+{
+	float precis = phi;
+	float h		 = precis*.2;
+	float t		 = .01;
+	float res	 = 32.;
+	bool hit	 = false;
+	float f      = .0;
+
+	for ( int i = 0; i < 128; i++ ) {
+		if (!hit && t < farplane) {
+			r.p = r.o + r.d * t;
+			h = map(r.p);
+			if (h < precis) {
+				res = t;
+				hit = true;
+			}
+			t += h * .8;
+			precis *= 1.03;
+			f += .01/abs(t-h);
 		}
-		t += res.x * scale;
-		m = res.y;
-		last = res;
 	}
+	r.c += f;
+	r.l = res;
+	return r;
+}
 
-	if (t>tmax) {
-		m = -1.0;
+vec3 derivate(vec3 p)
+{
+	vec3 n;
+	vec2 d = vec2(0., .01);
+	n.x = map(p+d.yxx)-map(p-d.yxx);
+	n.y = map(p+d.xyx)-map(p-d.xyx);
+	n.z = map(p+d.xxy)-map(p-d.xxy);
+	return normalize(n);
+}
+
+//via florian hoenig
+float smoothmin(float a, float b, float k)
+{
+	return -(log(exp(k*-a)+exp(k*-b))/k);
+}
+
+//physically based lighting model largely from Simon Brown - http://www.sjbrown.co.uk/
+vec3 shade(ray r, light l, mat m, env e, vec3 n)
+{
+	float ll    = distance(r.p, l.p);
+
+	m.r 		= clamp(m.r, 0.02,  1.);
+	m.i 		= clamp(m.i, 1., 20.);
+
+	vec3 v    =  normalize(r.o-r.p);
+	vec3 h	  =  normalize(v + l.d);
+
+	float ndl = dot(n, l.d);
+	float ndv = dot(n, v);
+
+	float hdn = dot(h, n);
+	float hdv = dot(h, v);
+	float hdl = dot(h, l.d);
+
+	float fr = fresnel(m.i, ndl);
+	float g  = geometry(m.r, ndl, ndv, hdn, hdv, hdl);
+	float ds = distribution(m.r, hdn);
+	float nf = 1.-fr;
+
+	ndl = max(ndl, 0.0);
+	ndv = max(ndv, 0.0);
+	float brdf =  fr * g * ds / (4. * ndl * ndv);
+
+	float ss  	= shadow(r.p, l.d, ndl);
+	float oc  	= occlusion(r.p, n);
+
+	vec3 c;
+	c  = m.dc * e.l + ndl * nf * m.dc * l.c * oc;
+	c += brdf * m.sc;
+	c *= ss * l.c * oc;
+
+	return c;
+}
+
+float fresnel(float i, float ndv)
+{
+	i = (1.33 - i)/(1.33 + i);
+	i *= i;
+	return i + (1.-i) * pow(1.-max(ndv, 0.), 5.);
+}
+
+float geometry(float r, float ndl, float ndv, float hdn, float hdv, float hdl)
+{
+	//cook torrence
+	//return min(min(2. * hdn * max(ndv, 0.) / hdv, 2. * hdn * max(ndl, 0.) / hdv), 1.);
+
+	//schlick
+	ndl = max(ndl, 0.);
+	ndv = max(ndv, 0.);
+	float k= r * sqrt(2./pi);
+	float one_minus_k= 1. -k;
+	return ( ndl / (ndl * one_minus_k + k) ) * ( ndv / (ndv * one_minus_k + k) );
+}
+
+float distribution(float r, float ndh)
+{
+	//blinn phong
+	//	float m= 2./(r*r) - 2.;
+	//	return (m+2.) * pow(max(ndh, 0.0), m) / tau;
+
+	//beckman
+	float m_Sq= r * r;
+	float NdotH_Sq= max(ndh, 0.0);
+	NdotH_Sq= NdotH_Sq * NdotH_Sq;
+	return exp( (NdotH_Sq - 1.0)/(m_Sq*NdotH_Sq) )/ (3.14159265 * m_Sq * NdotH_Sq * NdotH_Sq);
+}
+
+//via peter pike sloan
+vec3 harmonic(in vec4 n)
+{
+
+	vec3 l1, l2, l3;
+
+	vec4 c[7];
+	c[0] = vec4(0.2, .47, .2, 0.25);
+	c[1] = vec4(0.2, .33, .2, 0.25);
+	c[2] = vec4(0.0,-.13, -.1,0.15);
+	c[3] = vec4(0.1, -.1, 0.1, 0.0);
+	c[4] = vec4(0.1,-0.1, 0.1, 0.0);
+	c[5] = vec4(0.2, 0.2, 0.2, 0.0);
+	c[6] = vec4(0.0, 0.0, 0.0, 0.0);
+
+	l1.r = dot(c[0], n);
+	l1.g = dot(c[1], n);
+	l1.b = dot(c[2], n);
+
+	vec4 m2 = n.xyzz * n.yzzx;
+	l2.r = dot(c[3], m2);
+	l2.g = dot(c[4], m2);
+	l2.b = dot(c[5], m2);
+
+	float m3 = n.x*n.x - n.y*n.y;
+	l3 = c[6].xyz * m3;
+
+	vec3 sh = vec3(l1 + l2 + l3);
+
+	return clamp(sh, 0., 1.);
+}
+
+#define odist 	.5
+#define obias 	.05
+#define omin 	.2
+#define oiter    5
+
+float occlusion(vec3 p, vec3 n)
+{
+	float d = odist;
+	float oc = 0.0;
+	for ( int i=0; i<oiter; i++ ) {
+		float hr  = .01 + obias*float(i);
+		vec3  op  = n * hr + p;
+		float l   = map(op);
+		oc 		 += -(l-hr)*d;
+		d	   	 *= 0.75;
 	}
-	return vec2(t, m);
+	return clamp( 1. - 4.*oc, omin, 1. );
 }
 
-vec3 render(in vec3 ro, in vec3 rd)
+#define sblend	 5.
+#define sproj	.25
+#define smax	.8
+#define smin	.25
+#define siter    16
+
+float shadow(vec3 p, vec3 d, float ndl)
 {
-	vec3 col = vec3(0.8, 0.9, 1.0);
-	vec2 res = castRay(ro, rd);
-	float t = res.x;
-	float m = res.y;
-
-	if (m>-0.5) {
-		vec3 pos = ro + t*rd;
-		vec3 nor = calcNormal( pos );
-		vec3 ref = reflect( rd, nor );
-
-		col = texture(pos, m);
-
-		// Lighting calculations.
-		float occ = calcAO( pos, nor );
-		vec3  lig = normalize( vec3(0.0, 1.0, 0.0) - pos );
-		float amb = clamp( 0.5+0.5*nor.y, 0.0, 1.0 );
-		float dif = clamp( dot( nor, lig ), 0.0, 1.0 );
-		float bac = clamp( dot( nor, normalize(vec3(-lig.x,0.0,-lig.z))), 0.0, 1.0 )*clamp( 1.0-pos.y,0.0,1.0);
-		float dom = smoothstep( -0.1, 0.1, ref.y );
-		float fre = pow( clamp(1.0+dot(nor,rd),0.0,1.0), 2.0 );
-		float spe = pow(clamp( dot( ref, lig ), 0.0, 1.0 ),16.0);
-
-		// You can customize the weights and colors
-		// for each of these lighting components.
-		vec3 brdf = vec3(0.0);
-		brdf += 1.20*dif;
-		brdf += 1.20*spe*dif;
-		brdf += 0.30*amb*occ;
-		brdf += 0.40*dom*occ;
-		brdf += 0.30*bac*occ;
-		brdf += 0.40*fre*occ;
-		brdf += 0.02;
-		col = col*brdf;
-
-		// Fog calculation.
-		col = mix( col, fog_color, 1.0-exp( -fog_density*t*t ) );
+	float t = .15;
+	float k = 32.;
+	float s = .5+ndl;
+	for ( int i=0; i < siter; i++ ) {
+		float u = map(p + d * t);
+		s = smoothmin(s, k * u / t, sblend);
+		k -= .5;
+		t += max(0.1, sproj);
 	}
-
-	return vec3(clamp(col, 0.0, 1.0));
+	return clamp(s,smin,1.0);
 }
 
-//----------------------------------------------------------------------
-// MAIN
-//----------------------------------------------------------------------
-mat3 setCamera(in vec3 ro, in vec3 ta, float cr)
-{
-	vec3 cw = normalize(ta-ro);
-	vec3 cp = vec3(sin(cr), cos(cr), 0.0);
-	vec3 cu = normalize(cross(cw, cp));
-	vec3 cv = normalize(cross(cu, cw));
-	return mat3(cu, cv, cw);
-}
 
-//const float PI = 3.14159265;
-//const float angle = 60.0;
-//const float fov = angle * 0.5 * PI / 180.0;
-void mainImage(out vec4 fragColor, in vec2 fragCoord)
-{
-	vec2 p = (-iResolution.xy+2.0*fragCoord.xy)/iResolution.y;
-	vec2 mo = iMouse.xy/iResolution.xy;
-
-	// Camera origin and target.
-//	float time = 15.0 + iGlobalTime;
-	vec3 ro = vec3( -0.5+3.2*cos(0.1*time + 6.0*mo.x), mo.y-0.5, 0.5 + 3.2*sin(0.1*time + 6.0*mo.x) );
-	vec3 ta = vec3( -0.5, -0.4, 0.5 );
-	mat3 ca = setCamera( ro, ta, 0.0 );
-
-	// Ray direction.
-	vec3 rd = ca * normalize( vec3(p.xy,2.5) );
-//	vec3 ro = vec3( -0.5+3.2*cos(0.1*time + 6.0*mo.x), mo.y-0.5, 0.5 + 3.2*sin(0.1*time + 6.0*mo.x) );
-//	vec3 rd = normalize(vec3(sin(fov) * p.x, sin(fov) * p.y, -cos(fov)));
-
-	// Render this pixel.
-	vec3 col = render(ro, rd);
-//	col = pow(col, vec3(0.4545));
-	fragColor = vec4(col, 1.0);
-}
-
-void main()
-{
-	vec4 color;
-	mainImage(color, gl_FragCoord.xy);
-	gl_FragColor = color;
-}
