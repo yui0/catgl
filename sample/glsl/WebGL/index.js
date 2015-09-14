@@ -33,7 +33,8 @@ function render() {
 	parameters.time = Date.now() - parameters.startTime;
 
 	gl.useProgram( currentProgram );
-	gl.uniform1f( gl.getUniformLocation(currentProgram, 'time'), parameters.time );
+	gl.uniform1f( gl.getUniformLocation(currentProgram, 'time'), parameters.time / 1000 );
+	gl.uniform2f( gl.getUniformLocation(currentProgram, 'mouse'), parameters.mouseX, parameters.mouseY );
 	gl.uniform2f( gl.getUniformLocation(currentProgram, 'resolution'), parameters.screenWidth, parameters.screenHeight );
 
 	// Create vertex buffer (2 triangles)
@@ -55,6 +56,14 @@ parameters.screenHeight = canvas.height;
 initWebGL();
 initShaders();
 //render();
+
+document.addEventListener( 'mousemove', function ( event ) {
+	var clientX = event.clientX;
+	var clientY = event.clientY;
+
+	parameters.mouseX = clientX / window.innerWidth;
+	parameters.mouseY = 1 - clientY / window.innerHeight;
+}, false );
 
 if ( !window.requestAnimationFrame ) {
 	window.requestAnimationFrame = ( function() {

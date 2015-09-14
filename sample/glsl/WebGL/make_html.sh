@@ -18,9 +18,9 @@ make_html() {
 				echo -e "$include_line" >> ${out}
 			done < ${name}
 		elif [[ "${line}" =~ "@@PREV@@" ]]; then
-			echo '<li class="ui-pagination-prev"><a href="'${prev}'">Prev</a></li>' >> ${out}
+			echo '<br><a href="'${prev}'">Prev</a>' >> ${out}
 		elif [[ "${line}" =~ "@@NEXT@@" ]]; then
-			echo '<li class="ui-pagination-next"><a href="'${next}'">Next</a></li>' >> ${out}
+			echo '/<a href="'${next}'">Next</a>' >> ${out}
 		else
 			echo ${line} >> ${out}
 		fi
