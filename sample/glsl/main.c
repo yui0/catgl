@@ -355,6 +355,8 @@ GLuint _caCreateObject(const GLfloat *position, int size, GLuint num)
 	return vao;
 }
 
+#include <time.h>
+clock_t start;
 void caInit(int w, int h)
 {
 	vertices = sizeof position / sizeof position[0];
@@ -367,6 +369,7 @@ void caInit(int w, int h)
 	width = w;
 	height = h;
 	pixelRatio = (float)width / (float)height;
+	start = clock();
 
 	caKeyEvent = keyEvent;
 	caMouseEvent = mouseEvent;
@@ -394,8 +397,8 @@ void caRender()
 	glUniform2f(glGetUniformLocation(program, "resolution"), width, height);
 	glUniform2f(glGetUniformLocation(program, "mouse"), mx, my);
 
-	static float time;
-	glUniform1f(glGetUniformLocation(program, "time"), (time++)/4);
+//	static float time;
+	glUniform1f(glGetUniformLocation(program, "time"), /*(time++)/4*/((double)clock() - start)/10000.0);
 
 	glBindVertexArray(vao);
 	glDrawArrays(GL_TRIANGLES, 0, vertices);
