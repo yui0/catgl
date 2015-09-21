@@ -1,6 +1,6 @@
 // Created by sebastien durand - 2015 - License Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported License
 
-precision mediump float;
+//precision mediump float;
 
 
                 ////                     ////         
@@ -19,6 +19,4 @@ precision mediump float;
         (k*(    atan                    (d.x    ,d.y
 	            )+v),13.    )-6.))))
                     ,2. ));}     ////////   
-
-
 

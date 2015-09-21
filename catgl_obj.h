@@ -306,7 +306,7 @@ inline void caVec3Cross(float *a, float *s1, float *s2)
 // 正規化
 inline void caVec3Normalize(float *v)
 {
-	float m=sqrt(v[0]*v[0]+v[1]*v[1]+v[2]*v[2]);
+	float m = sqrt(v[0]*v[0]+v[1]*v[1]+v[2]*v[2]);
 	if (m > 0.0f) { m = 1.0f / m; } else { m = 0.0f; }
 	v[0]*=m;
 	v[1]*=m;

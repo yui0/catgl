@@ -11,10 +11,20 @@
 #define CATGL_IMPLEMENTATION
 #include "catgl.h"
 
-//struct NVGcontext* vg;
+#include <time.h>
+//clock_t start;
+long long start;
+
+float mx, my, width, height, pixelRatio;
+float x_angle, y_angle, z_angle;
 
 GLuint program;
 GLuint vao;
+
+char *name = "Hello! こんにちは！";
+#ifdef CATGL_NANOVG
+struct NVGcontext* vg;
+#endif
 
 char vsrc[] =
 	"#version 120\n"
@@ -229,6 +239,22 @@ char fsrc[] =
 	"  gl_FragColor = vec4(vec3(clamp(b,0.0,1.0)), 1);"
 	"}";*/
 
+// from android samples
+// return current time in milliseconds
+/*inline double now_ms()
+{
+    struct timespec res;
+    clock_gettime(CLOCK_REALTIME, &res);
+    return 1000.0 * res.tv_sec + (double) res.tv_nsec / 1e6;
+}*/
+#include <sys/time.h>
+inline long long now_ms()
+{
+	struct timeval tv;
+	gettimeofday(&tv, NULL);
+	return ((tv.tv_sec * 1000) + (tv.tv_usec / 1000));
+}
+
 #include <dirent.h>
 char *getFile(char *ext, int *c)
 {
@@ -297,11 +323,11 @@ void keyEvent(int key, int action)
 		program = caCreateProgram(vsrc, "position", fsrc, "gl_FragColor");
 		glUseProgram(program);
 		free(fsrc);
+
+		name = s;
 	}
 }
 
-float mx, my, width, height, pixelRatio;
-float x_angle, y_angle, z_angle;
 void mouseEvent(int button, int action, int x, int y)
 {
 	static int lx, ly;
@@ -355,8 +381,6 @@ GLuint _caCreateObject(const GLfloat *position, int size, GLuint num)
 	return vao;
 }
 
-#include <time.h>
-clock_t start;
 void caInit(int w, int h)
 {
 	vertices = sizeof position / sizeof position[0];
@@ -369,36 +393,42 @@ void caInit(int w, int h)
 	width = w;
 	height = h;
 	pixelRatio = (float)width / (float)height;
-	start = clock();
+//	start = clock();
+	start = now_ms();
 
 	caKeyEvent = keyEvent;
 	caMouseEvent = mouseEvent;
 
-	//nvgCreateEx(vg, NVG_ANTIALIAS);
+#ifdef CATGL_NANOVG
+	nvgCreateEx(vg, NVG_ANTIALIAS);
+#endif
 }
 
 void caRender()
 {
-	glClearColor(1.0f, 1.0f, 1.0f, 0.0f);
-	glClear(GL_COLOR_BUFFER_BIT);
-
-	/*glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT|GL_STENCIL_BUFFER_BIT);
-	glEnable(GL_BLEND);
+#ifdef CATGL_NANOVG
+	glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT|GL_STENCIL_BUFFER_BIT);
+	/*glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glEnable(GL_CULL_FACE);
-	glDisable(GL_DEPTH_TEST);
+	glDisable(GL_DEPTH_TEST);*/
 	nvgBeginFrame(vg, width, height, pixelRatio);
 	nvgBeginPath(vg);
-	nvgText(vg, 100, 100, "Hello! こんにちは！", NULL);
+	//nvgText(vg, 0, 10, "Hello! こんにちは！", NULL);
+	nvgText(vg, 0, 10, name, NULL);
 	nvgFill(vg);
-	nvgEndFrame(vg);*/
-	
-	//glUniform2fv(glGetUniformLocation(program, "resolution"), 1, resolution);	// float resolution[2];
+	nvgEndFrame(vg);
+#endif
+
+	//glClearColor(1.0f, 1.0f, 1.0f, 0.0f);
+	//glClear(GL_COLOR_BUFFER_BIT);
+	glUseProgram(program);
+
 	glUniform2f(glGetUniformLocation(program, "resolution"), width, height);
 	glUniform2f(glGetUniformLocation(program, "mouse"), mx, my);
 
-//	static float time;
-	glUniform1f(glGetUniformLocation(program, "time"), /*(time++)/4*/((double)clock() - start)/10000.0);
+//	glUniform1f(glGetUniformLocation(program, "time"), ((double)clock() - start)/10000.0);
+	glUniform1f(glGetUniformLocation(program, "time"), (now_ms() - start)/1000.0);
 
 	glBindVertexArray(vao);
 	glDrawArrays(GL_TRIANGLES, 0, vertices);
@@ -407,7 +437,9 @@ void caRender()
 
 void caEnd()
 {
-	//nvgDelete(vg);
+#ifdef CATGL_NANOVG
+	nvgDelete(vg);
+#endif
 
 	glUseProgram(0);
 	glDeleteProgram(program);

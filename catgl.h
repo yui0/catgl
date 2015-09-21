@@ -11,6 +11,9 @@
 extern "C" {
 #endif
 
+#include <stdio.h>
+#include <math.h>
+#include <memory.h>
 
 #ifdef CATGL_GLES_IMPLEMENTATION
 #define CATGL_GLES
@@ -131,7 +134,6 @@ void (*caKeyEvent)(int key, int action);
 	// for debug
 	#define LOGE(...) (fprintf(stderr, __VA_ARGS__))
 //	#ifdef DEBUG
-	#include <stdio.h>
 	#define LOGD(...) (fprintf(stderr, __VA_ARGS__))
 //	#else
 //	#define LOGD(...)
@@ -346,8 +348,6 @@ void makeOrthoMatrix(float left, float right, float bottom, float top, float *re
 	ret[10] = -2.0f / dz;	ret[11] = tz;
 	ret[15] = 1;
 }*/
-#include <math.h>
-#include <memory.h>
 void caPrintMatrix(float *m)
 {
 	LOGD("m[0]:% 7.5f m[4]:% 7.5f m[8] :% 7.5f m[12]:% 7.5f\n", m[0], m[4], m[8],  m[12]);
