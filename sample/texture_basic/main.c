@@ -8,7 +8,7 @@
 #include "catgl.h"
 
 // Shader sources
-const GLchar* vertexSource =
+const GLchar* vsrc =
 	"#version 120\n"
 	"attribute vec4 position;"
 	"attribute vec2 texcoord;"
@@ -17,7 +17,7 @@ const GLchar* vertexSource =
 	"   gl_Position = position;"
 	"   texcoordVarying = texcoord;"
 	"}";
-const GLchar* fragmentSource =
+const GLchar* fsrc =
 	"#version 120\n"
 	"varying vec2 texcoordVarying;"
 	"uniform sampler2D texture;"
@@ -35,22 +35,22 @@ static unsigned char tex[] = {
 int t1;
 
 GLfloat vertexs[] = {
-	-0.5f, -0.5f, 0.0f,  //left top
-	-0.5f,  0.5f, 0.0f,   //left bottom
-	 0.5f, -0.5f, 0.0f,   //right top
-	 0.5f,  0.5f, 0.0f,   //right bottom
+	-0.5f, -0.5f, 0.0f,	// left top
+	-0.5f,  0.5f, 0.0f,	// left bottom
+	 0.5f, -0.5f, 0.0f,	// right top
+	 0.5f,  0.5f, 0.0f,	// right bottom
 };
 GLfloat texcoords[] = {
-	0.0f, 0.0f,	//left top
-	0.0f, 1.0f,	//left bottom
-	1.0f, 0.0f,	//right top
-	1.0f, 1.0f,	//right bottom
+	0.0f, 0.0f,	// left top
+	0.0f, 1.0f,	// left bottom
+	1.0f, 0.0f,	// right top
+	1.0f, 1.0f,	// right bottom
 };
 
+GLuint vbo;
 GLuint program, position, texcoord;
 GLuint textures[1];
 
-// 表示の初期化
 void caInit(int width, int height)
 {
 	glEnable(GL_TEXTURE_2D);
@@ -59,19 +59,13 @@ void caInit(int width, int height)
 
 	glViewport(0, 0, width, height);
 
-	// Create Vertex Array Object
-	GLuint vao;
-	glGenVertexArrays(1, &vao);
-	glBindVertexArray(vao);
-
 	// Create a Vertex Buffer Object and copy the vertex data to it
-	GLuint vbo;
 	glGenBuffers(1, &vbo);
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertexs), vertexs, GL_STATIC_DRAW);
 	glBufferSubData(GL_ARRAY_BUFFER, sizeof(vertexs), sizeof(texcoord), (const void*)texcoord);
 
-	program = caCreateProgram(vertexSource, fragmentSource);
+	program = caCreateProgram(vsrc, "position", fsrc, "gl_FragColor");
 	glUseProgram(program);
 
 	// Specify the layout of the vertex data
@@ -101,11 +95,9 @@ void caInit(int width, int height)
 //	t1 = caCreateTexture(tex, 4, 4);
 }
 
-// 描画
 void caRender()
 {
-//	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-	glClearColor(0.3f, 0.3f, 0.3f, 1.0f);
+	glClearColor(0.0f, 0.3f, 0.3f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
 
 //	glEnableClientState(GL_VERTEX_ARRAY);
@@ -120,8 +112,6 @@ void caRender()
 
 void caEnd()
 {
-/*	glDeleteProgram(program);
-
+	glDeleteProgram(program);
 	glDeleteBuffers(1, &vbo);
-	glDeleteVertexArrays(1, &vao);*/
 }
