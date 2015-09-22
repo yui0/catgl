@@ -12,7 +12,6 @@
 #include "catgl.h"
 
 #include <time.h>
-//clock_t start;
 long long start;
 
 float mx, my, width, height, pixelRatio;
@@ -239,14 +238,6 @@ char fsrc[] =
 	"  gl_FragColor = vec4(vec3(clamp(b,0.0,1.0)), 1);"
 	"}";*/
 
-// from android samples
-// return current time in milliseconds
-/*inline double now_ms()
-{
-    struct timespec res;
-    clock_gettime(CLOCK_REALTIME, &res);
-    return 1000.0 * res.tv_sec + (double) res.tv_nsec / 1e6;
-}*/
 #include <sys/time.h>
 inline long long now_ms()
 {
@@ -359,9 +350,7 @@ static const GLfloat position[][2] =
 	{ -1.0f,  1.0f },	// 3
 };
 
-int vertices;
-
-GLuint _caCreateObject(const GLfloat *position, int size, GLuint num)
+/*GLuint _caCreateObject(const GLfloat *position, int size, GLuint num)
 {
 	GLuint vao;
 	glGenVertexArrays(1, &vao);
@@ -379,8 +368,10 @@ GLuint _caCreateObject(const GLfloat *position, int size, GLuint num)
 	glBindVertexArray(0);
 
 	return vao;
-}
+}*/
 
+int vertices;
+GLuint framebuffer, renderbuffer, ftex;
 void caInit(int w, int h)
 {
 	vertices = sizeof position / sizeof position[0];
@@ -388,12 +379,43 @@ void caInit(int w, int h)
 	program = caCreateProgram(vsrc, "position", fsrc, "gl_FragColor");
 	glUseProgram(program);
 
-	vao = _caCreateObject(position, 2, vertices);
+	//vao = _caCreateObject(position, 2, vertices);
+	glGenVertexArrays(1, &vao);
+	glBindVertexArray(vao);
+	GLuint d[6];
+	d[0] = glGetAttribLocation(program, "position");
+	d[1] = 2;
+	GLuint vbo = caCreateObject_(position, sizeof(float)*2, vertices, d, 1);
+	glBindVertexArray(0);
+
+	{
+		glGenFramebuffers(1, &framebuffer);
+		glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+
+		glGenTextures(1, &ftex);
+		glBindTexture(GL_TEXTURE_2D, ftex);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, ftex, 0);
+
+		glGenRenderbuffers(1, &renderbuffer);
+		glBindRenderbuffer(GL_RENDERBUFFER, renderbuffer);
+		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, w, h);
+
+		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, renderbuffer);
+
+		glBindTexture(GL_TEXTURE_2D, 0);
+		glBindRenderbuffer(GL_RENDERBUFFER, 0);
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	}
 
 	width = w;
 	height = h;
 	pixelRatio = (float)width / (float)height;
-//	start = clock();
 	start = now_ms();
 
 	caKeyEvent = keyEvent;
@@ -424,15 +446,19 @@ void caRender()
 	//glClear(GL_COLOR_BUFFER_BIT);
 	glUseProgram(program);
 
-	glUniform2f(glGetUniformLocation(program, "resolution"), width, height);
-	glUniform2f(glGetUniformLocation(program, "mouse"), mx, my);
-
-//	glUniform1f(glGetUniformLocation(program, "time"), ((double)clock() - start)/10000.0);
 	glUniform1f(glGetUniformLocation(program, "time"), (now_ms() - start)/1000.0);
+	glUniform2f(glGetUniformLocation(program, "mouse"), mx, my);
+	glUniform2f(glGetUniformLocation(program, "resolution"), width, height);
+	//glUniform2f(glGetUniformLocation(program, "surfaceSize"), width, height);
+
+//	glBindTexture(GL_TEXTURE_2D, ftex);
+//	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
 
 	glBindVertexArray(vao);
 	glDrawArrays(GL_TRIANGLES, 0, vertices);
 	glBindVertexArray(0);
+
+//	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void caEnd()

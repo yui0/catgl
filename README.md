@@ -40,7 +40,7 @@ make android
 
 ## Screenshot
 
-![Screenshot](sample/eyes/eyes.png)
+![Screenshot](sample/nanovg_eyes/eyes.png)
 ![Screenshot](sample/box_GL1/box.png)
 ![Screenshot](sample/viewer/viewer.png)
 [![Screenshot](sample/glsl/glsl00.png)](http://yui0.github.io/catgl/sample/glsl/WebGL/000.html)
