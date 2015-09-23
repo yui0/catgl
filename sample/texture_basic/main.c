@@ -32,19 +32,18 @@ static unsigned char tex[] = {
 	128,   0,   0, 255,     0, 128,   0, 255,     0,   0, 128 ,255,   128, 128, 128, 255,
 	255, 255,   0, 255,   255,   0, 255, 255,     0, 255, 255 ,255,   255, 255, 255, 255,
 };
-int t1;
 
-GLfloat vertexs[] = {
-	-0.5f, -0.5f, 0.0f,	// left top
-	-0.5f,  0.5f, 0.0f,	// left bottom
-	 0.5f, -0.5f, 0.0f,	// right top
-	 0.5f,  0.5f, 0.0f,	// right bottom
+GLfloat vertexs[] = {	// 数学の座標
+	-0.8f,  0.8f,	// left top
+	-0.8f, -0.8f,	// left bottom
+	 0.8f,  0.8f,	// right top
+	 0.8f, -0.8f,	// right bottom
 };
-GLfloat texcoords[] = {
-	0.0f, 0.0f,	// left top
-	0.0f, 1.0f,	// left bottom
-	1.0f, 0.0f,	// right top
-	1.0f, 1.0f,	// right bottom
+GLfloat texcoords[] = {	// 数学の座標
+	 0.0f,  0.0f,	// left top
+	 0.0f,  1.0f,	// left bottom
+	 1.0f,  0.0f,	// right top
+	 1.0f,  1.0f,	// right bottom
 };
 
 GLuint vbo;
@@ -53,17 +52,13 @@ GLuint textures[1];
 
 void caInit(int width, int height)
 {
-	glEnable(GL_TEXTURE_2D);
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
 	glViewport(0, 0, width, height);
 
 	// Create a Vertex Buffer Object and copy the vertex data to it
 	glGenBuffers(1, &vbo);
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertexs), vertexs, GL_STATIC_DRAW);
-	glBufferSubData(GL_ARRAY_BUFFER, sizeof(vertexs), sizeof(texcoord), (const void*)texcoord);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertexs)+sizeof(texcoords), vertexs, GL_STATIC_DRAW);
+	glBufferSubData(GL_ARRAY_BUFFER, sizeof(vertexs), sizeof(texcoords), (const void*)texcoords);
 
 	program = caCreateProgram(vsrc, "position", fsrc, "gl_FragColor");
 	glUseProgram(program);
@@ -71,28 +66,14 @@ void caInit(int width, int height)
 	// Specify the layout of the vertex data
 	position = glGetAttribLocation(program, "position");
 	glEnableVertexAttribArray(position);
-	glVertexAttribPointer(position, 3, GL_FLOAT, GL_FALSE, 0, 0);
-
-//	glBindBuffer(GL_ARRAY_BUFFER, 0);// 0 を入れておかないといけない
-//	glVertexAttribPointer(posAttrib, 3, GL_FLOAT, GL_FALSE, 0, vertices);
+	glVertexAttribPointer(position, 2, GL_FLOAT, GL_FALSE, 0, 0);
 
 	texcoord = glGetAttribLocation(program, "texcoord");
 	glEnableVertexAttribArray(texcoord);
-	glVertexAttribPointer(texcoord, 2, GL_FLOAT, GL_FALSE, 0, 0);
-//	glVertexAttribPointer(texcoord, 2, GL_FLOAT, GL_FALSE, 0, texcoords);
+	glVertexAttribPointer(texcoord, 2, GL_FLOAT, GL_FALSE, 0, (const void *)sizeof(vertexs));
 
-	textures[0] = glGetUniformLocation(program, "texture");
-	glGenTextures(1, textures);
-	glBindTexture(GL_TEXTURE_2D, textures[0]);
-
-	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 4, 4, 0, GL_RGBA, GL_UNSIGNED_BYTE, tex);
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-//	glEnableVertexAttribArray(textures[0]);
-//	glUniform1i(textures[0], 0);
-
-//	t1 = caCreateTexture(tex, 4, 4);
+	textures[0] = caCreateTexture(tex, 4, 4);
+	glEnable(GL_TEXTURE_2D);
 }
 
 void caRender()
@@ -112,6 +93,8 @@ void caRender()
 
 void caEnd()
 {
+	glDisable(GL_TEXTURE_2D);
+	glDeleteTextures(1, textures);
 	glDeleteProgram(program);
 	glDeleteBuffers(1, &vbo);
 }

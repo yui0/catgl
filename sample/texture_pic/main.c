@@ -33,18 +33,6 @@ const GLchar* fsrc =
 	255, 255,   0, 255,   255,   0, 255, 255,     0, 255, 255 ,255,   255, 255, 255, 255,
 };*/
 
-/*GLfloat vertexs[] = {
-	-0.8f, -0.8f,	// left top
-	-0.8f,  0.8f,	// left bottom
-	 0.8f, -0.8f,	// right top
-	 0.8f,  0.8f,	// right bottom
-};*/
-/*GLfloat texcoords[] = {
-	-1.0f, -1.0f,	// left top
-	-1.0f,  1.0f,	// left bottom
-	 1.0f, -1.0f,	// right top
-	 1.0f,  1.0f,	// right bottom
-};*/
 GLfloat vertexs[] = {	// 数学の座標
 	-0.8f,  0.8f,	// left top
 	-0.8f, -0.8f,	// left bottom
@@ -64,10 +52,6 @@ GLuint textures[1];
 
 void caInit(int width, int height)
 {
-	glEnable(GL_TEXTURE_2D);
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
 	glViewport(0, 0, width, height);
 
 	// Create a Vertex Buffer Object and copy the vertex data to it
@@ -90,6 +74,7 @@ void caInit(int width, int height)
 	glVertexAttribPointer(texcoord, 2, GL_FLOAT, GL_FALSE, 0, (const void *)sizeof(vertexs));
 
 	textures[0] = caLoadTexture("cat.jpg");
+	glEnable(GL_TEXTURE_2D);
 }
 
 void caRender()
@@ -109,6 +94,7 @@ void caRender()
 
 void caEnd()
 {
+	glDisable(GL_TEXTURE_2D);
 	glDeleteTextures(1, textures);
 	glDeleteProgram(program);
 	glDeleteBuffers(1, &vbo);

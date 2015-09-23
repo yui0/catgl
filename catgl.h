@@ -508,16 +508,13 @@ GLuint caCreateTexture(unsigned char *tex, int w, int h)
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	//glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 
-	// テクスチャの設定を行う
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glEnable(GL_TEXTURE_2D);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glEnable(GL_BLEND);
 
 	return id;
 }
 #define STB_IMAGE_IMPLEMENTATION
-#include "nanovg/stb_image.h"
+#include "stb_image.h"
 GLuint caLoadTexture(char *name)
 {
 	unsigned char *pixels;
