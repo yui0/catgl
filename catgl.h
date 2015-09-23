@@ -502,9 +502,10 @@ GLuint caCreateTexture(unsigned char *tex, int w, int h)
 
 	glGenTextures(1, &id);
 	glBindTexture(GL_TEXTURE_2D, id);
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, tex);
-//	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-//	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);	// GL_LINEAR
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	//glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 
 	// テクスチャの設定を行う
@@ -515,7 +516,18 @@ GLuint caCreateTexture(unsigned char *tex, int w, int h)
 
 	return id;
 }
-//GLuint caLoadTexture(char *name)
+#define STB_IMAGE_IMPLEMENTATION
+#include "nanovg/stb_image.h"
+GLuint caLoadTexture(char *name)
+{
+	unsigned char *pixels;
+	int width, height, bpp;
+	pixels = stbi_load(CATGL_ASSETS(name), &width, &height, &bpp, 4/*RGBA*/);
+	//LOGD("%dx%d\n", width, height);
+	GLuint id = caCreateTexture(pixels, width, height);
+	stbi_image_free(pixels);
+	return id;
+}
 
 // draw model for .obj
 void caDrawObject(GLuint *vbo, CATGL_MODEL *m)
