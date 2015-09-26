@@ -32,6 +32,9 @@
 
 
 // for OpenGL ES
+//#define glEnable(GL_TEXTURE_2D)	// for Android
+//#define glDisable(GL_TEXTURE_2D)
+
 #define glFrustum glFrustumf
 #define glGenVertexArrays
 #define glBindVertexArray
@@ -44,7 +47,6 @@ struct saved_state {
 	int32_t y;
 };
 
-
 extern void caInit(int width, int height);
 extern void caRender();
 extern void caEnd();
@@ -52,14 +54,12 @@ extern void caEnd();
 // アプリケーション内で共通して利用する情報
 struct engine {
 	struct android_app* app;
+	struct saved_state state;			// 保存データ
 
 	// センサー関連
 	ASensorManager* sensorManager;
-	const ASensor* accelerometerSensor;  // 加速度センサー
-	ASensorEventQueue* sensorEventQueue; // センサーイベントキュー
-
-	// アニメーションフラグ
-	int animating;
+	const ASensor* accelerometerSensor;	// 加速度センサー
+	ASensorEventQueue* sensorEventQueue;	// センサーイベントキュー
 
 	// EGL
 	EGLDisplay display;
@@ -70,8 +70,11 @@ struct engine {
 	int32_t width;
 	int32_t height;
 
-	// 保存データ
-	struct saved_state state;
+	// assets
+	//char *appDir;
+
+	// アニメーションフラグ
+	int animating;
 };
 
 /*#include "miniz.h"
@@ -277,10 +280,8 @@ static void engine_handle_cmd(struct android_app* app, int32_t cmd)
 	}
 }
 
-//#include <stdio.h>
 #include <android/asset_manager.h>
-const char *apkPath;
-const char *appDir;
+char appDir[BUFSIZ];
 void extract_assets(struct android_app* app, struct engine *e)
 {
 	/* Get usable JNI context */
@@ -299,10 +300,12 @@ void extract_assets(struct android_app* app, struct engine *e)
 	jstring jpath = (jstring)(*env)->CallObjectMethod(env, file, getAbsolutePath);
 
 	/* chdir in the application cache directory */
-	appDir = (*env)->GetStringUTFChars(env, jpath, NULL);
+	const char *str = (*env)->GetStringUTFChars(env, jpath, NULL);
+	strncpy(appDir, str, BUFSIZ);
+	strcat(appDir, "/");
 	LOGD("Cache dir: %s", appDir);
 	chdir(appDir);
-	(*env)->ReleaseStringUTFChars(env, jpath, appDir);
+	(*env)->ReleaseStringUTFChars(env, jpath, str);
 
 	// APK path
 	/*jmethodID methodID = (*env)->GetMethodID(env, activityClass, "getPackageCodePath", "()Ljava/lang/String;");

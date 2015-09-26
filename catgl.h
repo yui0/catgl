@@ -496,6 +496,27 @@ GLuint caCreateObject_(void *obj, int size, GLuint num, GLuint d[], int len)
 	return vbo;
 }
 
+/*int caErrorHandle(char *name)
+{
+	GLenum error_code= glGetError();
+	if (error_code == GL_NO_ERROR) return 1;
+
+	do {
+		const char* msg= "";
+		switch (error_code) {
+		case GL_INVALID_ENUM:      msg = "INVALID_ENUM";      break;
+		case GL_INVALID_VALUE:     msg = "INVALID_VALUE";     break;
+		case GL_INVALID_OPERATION: msg = "INVALID_OPERATION"; break;
+		case GL_OUT_OF_MEMORY:     msg = "OUT_OF_MEMORY";     break;
+		case GL_INVALID_FRAMEBUFFER_OPERATION:  msg = "INVALID_FRAMEBUFFER_OPERATION"; break;
+		default:  msg = "Unknown"; break;
+		}
+		LOGE("ERROR: %04x'%s' %s\n", error_code, msg, name);
+		error_code= glGetError();
+	} while (error_code != GL_NO_ERROR);
+
+	return 0;
+}*/
 GLuint caCreateTexture(unsigned char *tex, int w, int h)
 {
 	GLuint id;
@@ -504,23 +525,31 @@ GLuint caCreateTexture(unsigned char *tex, int w, int h)
 	glBindTexture(GL_TEXTURE_2D, id);
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, tex);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);	// GL_LINEAR
+	//caErrorHandle("glTexImage2D");
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	//glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+	//glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glEnable(GL_BLEND);
 
 	return id;
 }
+#ifndef CATGL_NANOVG
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
+#endif
 GLuint caLoadTexture(char *name)
 {
 	unsigned char *pixels;
 	int width, height, bpp;
 	pixels = stbi_load(CATGL_ASSETS(name), &width, &height, &bpp, 4/*RGBA*/);
-	//LOGD("%dx%d\n", width, height);
+/*	if (!pixels)*/ LOGE("name:%s pixels:%x %dx%d\n", CATGL_ASSETS(name), (unsigned int)pixels, width, height);
 	GLuint id = caCreateTexture(pixels, width, height);
 	stbi_image_free(pixels);
 	return id;
