@@ -17,8 +17,9 @@ long long start;
 float mx, my, width, height, pixelRatio;
 float x_angle, y_angle, z_angle;
 
+GLuint vbo;
 GLuint program;
-GLuint vao;
+GLuint textures[1];
 
 char *name = "Hello! こんにちは！";
 #ifdef CATGL_NANOVG
@@ -287,6 +288,7 @@ char *getFile(char *ext, int *c)
 	return s;
 }
 
+#include <sys/stat.h>
 void keyEvent(int key, int action)
 {
 	static int glsl;
@@ -316,6 +318,19 @@ void keyEvent(int key, int action)
 		free(fsrc);
 
 		name = s;
+
+		// texture
+		glBindTexture(GL_TEXTURE_2D, 0);
+		char fname[BUFSIZ];
+		strcpy(fname, s);
+		fname[strlen(s)-4] = 0;
+		strcat(fname, "jpg");
+		struct stat st;
+		if (!stat(CATGL_ASSETS(fname), &st)) {
+			LOGD("---- %s\n", fname);
+			textures[0] = caLoadTexture(fname);
+			glBindTexture(GL_TEXTURE_2D, textures[0]);
+		}
 	}
 }
 
@@ -340,29 +355,25 @@ void mouseEvent(int button, int action, int x, int y)
 	}
 }
 
-static const GLfloat position[][2] =
-{
-	{ -1.0f, -1.0f },	// 0
-	{  1.0f, -1.0f },	// 1
-	{  1.0f,  1.0f },	// 2
-	{ -1.0f, -1.0f },	// 0
-	{  1.0f,  1.0f },	// 2
-	{ -1.0f,  1.0f },	// 3
+const float vertices[] = {
+	-1.0f,  1.0f, 0.0f,  0.0f, 0.0f,
+	-1.0f, -1.0f, 0.0f,  0.0f, 1.0f,
+	 1.0f,  1.0f, 0.0f,  1.0f, 0.0f,
+	 1.0f, -1.0f, 0.0f,  1.0f, 1.0f
 };
 
-int vertices;
 GLuint framebuffer, renderbuffer, ftex;
 void caInit(int w, int h)
 {
-	vertices = sizeof position / sizeof position[0];
-
 	program = caCreateProgram(vsrc, "position", fsrc, "gl_FragColor");
 	glUseProgram(program);
 
 	GLuint d[6];
-	d[0] = glGetAttribLocation(program, "position");
-	d[1] = 2;
-	GLuint vbo = caCreateObject_(position, sizeof(float)*2, vertices, d, 1);
+	d[0] = CATGL_ATT_VERTEX;
+	d[1] = 3;
+	d[2] = CATGL_ATT_TEXTURE;
+	d[3] = 2;
+	vbo = caCreateObject_(vertices, sizeof(float)*5, 4, d, 2);
 
 	{
 		glGenFramebuffers(1, &framebuffer);
@@ -426,9 +437,8 @@ void caRender()
 //	glBindTexture(GL_TEXTURE_2D, ftex);
 //	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
 
-	glBindVertexArray(vao);
-	glDrawArrays(GL_TRIANGLES, 0, vertices);
-	glBindVertexArray(0);
+//	glDrawArrays(GL_TRIANGLES, 0, vertices);
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
 //	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
