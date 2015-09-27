@@ -1,4 +1,4 @@
-SRC =
+#SRC = ../glfw/glfw.c
 INCLUDE = -I../../ -I../../nanovg
 LIBS = -lglfw -lGL -lGLU -lm
 

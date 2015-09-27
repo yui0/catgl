@@ -431,6 +431,8 @@ GLuint caLoadShader(GLenum shaderType, const char* pSource)
 	return shader;
 }
 
+#define CATGL_ATT_VERTEX	0
+#define CATGL_ATT_TEXTURE	1
 GLuint caCreateProgram(const char* pVertexSource, const char *pv, const char* pFragmentSource, const char *fc)
 {
 	GLuint vertexShader = caLoadShader(GL_VERTEX_SHADER, pVertexSource);
@@ -440,6 +442,7 @@ GLuint caCreateProgram(const char* pVertexSource, const char *pv, const char* pF
 	glDeleteShader(vertexShader);
 	glAttachShader(program, pixelShader);
 	glDeleteShader(pixelShader);
+	glBindAttribLocation(program, CATGL_ATT_TEXTURE, "texcoord");
 	glBindAttribLocation(program, 0, pv);
 	glBindFragDataLocation(program, 0, fc);
 	glLinkProgram(program);
@@ -471,7 +474,6 @@ GLuint caCreateObject(void *obj, GLuint num, GLuint att[3])
 		glEnableVertexAttribArray(att[2]);
 		glVertexAttribPointer(att[2], 2, GL_FLOAT, GL_FALSE, sizeof(CATGL_VERTEX), (const void*)offset);
 	}
-//	offset += sizeof(float) * 2;
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
@@ -525,7 +527,6 @@ GLuint caCreateTexture(unsigned char *tex, int w, int h)
 	glBindTexture(GL_TEXTURE_2D, id);
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, tex);
-	//caErrorHandle("glTexImage2D");
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -540,10 +541,10 @@ GLuint caCreateTexture(unsigned char *tex, int w, int h)
 
 	return id;
 }
-#ifndef CATGL_NANOVG
+/*#ifndef CATGL_NANOVG
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
-#endif
+#endif*/
 GLuint caLoadTexture(char *name)
 {
 	unsigned char *pixels;

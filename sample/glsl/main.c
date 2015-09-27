@@ -350,26 +350,6 @@ static const GLfloat position[][2] =
 	{ -1.0f,  1.0f },	// 3
 };
 
-/*GLuint _caCreateObject(const GLfloat *position, int size, GLuint num)
-{
-	GLuint vao;
-	glGenVertexArrays(1, &vao);
-	glBindVertexArray(vao);
-
-	GLuint vbo;
-	glGenBuffers(1, &vbo);
-	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * size * num, position, GL_STATIC_DRAW);
-
-	glVertexAttribPointer(0, size, GL_FLOAT, GL_FALSE, 0, 0);
-	glEnableVertexAttribArray(0);
-
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindVertexArray(0);
-
-	return vao;
-}*/
-
 int vertices;
 GLuint framebuffer, renderbuffer, ftex;
 void caInit(int w, int h)
@@ -379,14 +359,10 @@ void caInit(int w, int h)
 	program = caCreateProgram(vsrc, "position", fsrc, "gl_FragColor");
 	glUseProgram(program);
 
-	//vao = _caCreateObject(position, 2, vertices);
-	glGenVertexArrays(1, &vao);
-	glBindVertexArray(vao);
 	GLuint d[6];
 	d[0] = glGetAttribLocation(program, "position");
 	d[1] = 2;
 	GLuint vbo = caCreateObject_(position, sizeof(float)*2, vertices, d, 1);
-	glBindVertexArray(0);
 
 	{
 		glGenFramebuffers(1, &framebuffer);
@@ -430,10 +406,6 @@ void caRender()
 {
 #ifdef CATGL_NANOVG
 	glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT|GL_STENCIL_BUFFER_BIT);
-	/*glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glEnable(GL_CULL_FACE);
-	glDisable(GL_DEPTH_TEST);*/
 	nvgBeginFrame(vg, width, height, pixelRatio);
 	nvgBeginPath(vg);
 	//nvgText(vg, 0, 10, "Hello! こんにちは！", NULL);

@@ -34,7 +34,6 @@
 // for OpenGL ES
 //#define glEnable(GL_TEXTURE_2D)	// for Android
 //#define glDisable(GL_TEXTURE_2D)
-
 #define glFrustum glFrustumf
 #define glGenVertexArrays
 #define glBindVertexArray

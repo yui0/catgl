@@ -27,8 +27,8 @@ const char* fragment_shader =
 const float vertices[] = {
 	-1.0f,  1.0f, 0.0f,
 	-1.0f, -1.0f, 0.0f,
-	1.0f,  1.0f, 0.0f,
-	1.0f, -1.0f, 0.0f
+	 1.0f,  1.0f, 0.0f,
+	 1.0f, -1.0f, 0.0f
 };
 
 const float texcoords[] = {
@@ -38,8 +38,17 @@ const float texcoords[] = {
 	1.0f, 1.0f
 };
 
+GLuint vbo[2];
 GLuint program, position, texcoord;
 GLuint textures[1];
+
+// ダミーテクスチャ
+/*static unsigned char tex[] = {
+	255, 255, 255, 255,     0,   0,   0, 255,   255, 255, 255 ,255,     0,   0,   0, 255,
+	255,   0,   0, 255,     0, 255,   0, 255,     0,   0, 255 ,255,   255, 255, 255, 255,
+	128,   0,   0, 255,     0, 128,   0, 255,     0,   0, 128 ,255,   128, 128, 128, 255,
+	255, 255,   0, 255,   255,   0, 255, 255,     0, 255, 255 ,255,   255, 255, 255, 255,
+};*/
 
 void caInit(int width, int height)
 {
@@ -51,12 +60,23 @@ void caInit(int width, int height)
 	}
 	glUseProgram(program);
 
+	glGenBuffers(2, vbo);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(texcoords), texcoords, GL_STATIC_DRAW);
+
 	position = glGetAttribLocation(program, "position");
 	glEnableVertexAttribArray(position);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
+	glVertexAttribPointer(position, 3, GL_FLOAT, GL_FALSE, 0, 0);
 
 	texcoord = glGetAttribLocation(program, "texcoord");
 	glEnableVertexAttribArray(texcoord);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
+	glVertexAttribPointer(texcoord, 2, GL_FLOAT, GL_FALSE, 0, 0);
 
+	//textures[0] = caCreateTexture(tex, 4, 4);
 	textures[0] = caLoadTexture("cat.jpg");
 }
 
@@ -66,8 +86,8 @@ void caRender()
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	glBindTexture(GL_TEXTURE_2D, textures[0]);
-	glVertexAttribPointer(texcoord, 2, GL_FLOAT, GL_FALSE, 0, texcoords);
-	glVertexAttribPointer(position, 3, GL_FLOAT, GL_FALSE, 0, vertices);
+//	glVertexAttribPointer(texcoord, 2, GL_FLOAT, GL_FALSE, 0, texcoords);
+//	glVertexAttribPointer(position, 3, GL_FLOAT, GL_FALSE, 0, vertices);
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 }
 
