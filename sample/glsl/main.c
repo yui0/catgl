@@ -14,8 +14,9 @@
 #include <time.h>
 long long start;
 
-float mx, my, width, height, pixelRatio;
+float width, height, pixelRatio;
 float x_angle, y_angle, z_angle;
+float mx, my, mz;
 
 GLuint vbo;
 GLuint program;
@@ -294,7 +295,7 @@ void keyEvent(int key, int action)
 	static int glsl;
 	char *s = 0;
 
-	if (action == CATGL_ACTION_DOWN) {
+	if (action == CATGL_ACTION_UP) {
 		switch (key) {
 		case CATGL_KEY_UP:
 			glsl++;
@@ -308,14 +309,15 @@ void keyEvent(int key, int action)
 	}
 
 	if (s) {
-		LOGD("-- %s\n", s);
 		glUseProgram(0);
 		glDeleteProgram(program);
 
+		LOGD("-- %s", s);
 		char *fsrc = caGetFileContents(CATGL_ASSETS(s));
 		program = caCreateProgram(vsrc, "position", fsrc, "gl_FragColor");
 		glUseProgram(program);
 		free(fsrc);
+		LOGD(" ..\n");
 
 		name = s;
 
@@ -338,10 +340,16 @@ void mouseEvent(int button, int action, int x, int y)
 {
 	static int lx, ly;
 
-	mx = x / width;
-	my = 1.0 - y / height;
+	mx = x;
+	my = height-y;
 
-	keyEvent(CATGL_KEY_DOWN, action);
+	if (action==CATGL_ACTION_DOWN) mz = 1.0;
+	else if (action==CATGL_ACTION_UP) mz = 0.0;
+
+	//keyEvent(CATGL_KEY_DOWN, action);
+	if (x < 70) keyEvent(CATGL_KEY_UP, action);
+	else if (x > width-70) keyEvent(CATGL_KEY_DOWN, action);
+
 	//LOGD("(%d,%d)\n", x, y);
 	if (action == CATGL_ACTION_DOWN) {
 		lx = x;
@@ -373,7 +381,7 @@ void caInit(int w, int h)
 	d[1] = 3;
 	d[2] = CATGL_ATT_TEXTURE;
 	d[3] = 2;
-	vbo = caCreateObject_(vertices, sizeof(float)*5, 4, d, 2);
+	vbo = caCreateObject_((void*)vertices, sizeof(float)*5, 4, d, 2);
 
 	{
 		glGenFramebuffers(1, &framebuffer);
@@ -430,8 +438,9 @@ void caRender()
 	glUseProgram(program);
 
 	glUniform1f(glGetUniformLocation(program, "time"), (now_ms() - start)/1000.0);
-	glUniform2f(glGetUniformLocation(program, "mouse"), mx, my);
+	glUniform2f(glGetUniformLocation(program, "mouse"), mx/width, my/height);
 	glUniform2f(glGetUniformLocation(program, "resolution"), width, height);
+	glUniform4f(glGetUniformLocation(program, "iMouse"), mx, my, mz, 0.0);
 	//glUniform2f(glGetUniformLocation(program, "surfaceSize"), width, height);
 
 //	glBindTexture(GL_TEXTURE_2D, ftex);

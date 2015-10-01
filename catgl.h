@@ -416,7 +416,8 @@ void caPrintShaderInfo(GLuint shader, const char *str)
 	if (logSize > 1) {
 		GLchar infoLog[logSize];
 		glGetShaderInfoLog(shader, logSize, &length, infoLog);
-		LOGD("Compile Error in %s\n%s\n", str, infoLog);
+		//LOGD("Compile Error in %s\n%s\n", str, infoLog);
+		LOGD("Compile Error\n%s\n", infoLog);
 	}
 }
 
@@ -531,8 +532,8 @@ GLuint caCreateTexture(unsigned char *tex, int w, int h)
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, /*GL_CLAMP_TO_EDGE*/GL_MIRRORED_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, /*GL_CLAMP_TO_EDGE*/GL_MIRRORED_REPEAT);
 	//glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 	//glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 
@@ -541,10 +542,10 @@ GLuint caCreateTexture(unsigned char *tex, int w, int h)
 
 	return id;
 }
-/*#ifndef CATGL_NANOVG
-#define STB_IMAGE_IMPLEMENTATION
+#ifndef CATGL_NANOVG
+//#define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
-#endif*/
+#endif
 GLuint caLoadTexture(char *name)
 {
 	unsigned char *pixels;
