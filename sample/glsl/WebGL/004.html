@@ -13,11 +13,13 @@
 
 <body>
 <script id="vs" type="x-shader/x-vertex">
-attribute vec3 position;
+//attribute vec3 position;
+attribute vec2 position;
 
 void main()
 {
-gl_Position = vec4(position, 1.0);
+// gl_Position = vec4(position, 1.0);
+gl_Position = vec4(position, 0., 1.);
 }
 </script>
 
@@ -94,6 +96,8 @@ if (dist>maxDist || RGBA.a<ADC) {
 // Sky
 //			RGBA = vec4(vec3(1., 1., 1.), 1.);
 //			RGBA.a *= 1.00001 - alpha;
+
+RGBA.rgb += bg * RGBA.a;
 break;
 }
 if (dist < 0.0001) {
@@ -109,8 +113,7 @@ break;
 t += dist;
 }
 
-RGBA.rgb += bg * RGBA.a;
-
+//	RGBA.rgb += bg * RGBA.a;
 fragColor = vec4(RGBA.rgb, 1.);
 }
 

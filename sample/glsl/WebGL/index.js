@@ -30,13 +30,28 @@ function initShaders() {
 	currentProgram = p;
 }
 
+function checkSize(img) {
+	var w = img.naturalWidth, h = img.naturalHeight;
+	var size = Math.pow(2, Math.log(Math.min(w, h)) / Math.LN2 | 0); // largest 2^n integer that does not exceed s
+	if (w !== h || w !== size) {
+		var canv = document.createElement('canvas');
+		canv.height = canv.width = size;
+		canv.getContext('2d').drawImage(img, 0, 0, w, h, 0, 0, size, size);
+		img = canv;
+	}
+	return img;
+}
 function create_texture(n, source) {
 	var img = new Image();
 
 	img.onload = function() {
 		var tex = gl.createTexture();
 		gl.bindTexture(gl.TEXTURE_2D, tex);
-		gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
+		//gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+//		gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
+		gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, checkSize(img));
+		//gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+		//gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
 		gl.generateMipmap(gl.TEXTURE_2D);
 		gl.bindTexture(gl.TEXTURE_2D, null);
 		texture[n] = tex;
@@ -75,7 +90,8 @@ function render() {
 //	gl.flush();
 }
 
-var canvas = document.createElement( 'canvas' );
+//var canvas = document.createElement('canvas');
+var canvas = $('c');
 var parameters = { startTime: Date.now(), time: 0, mouseX: 0.5, mouseY: 0.5, screenWidth: 0, screenHeight: 0 };
 parameters.screenWidth = canvas.width;
 parameters.screenHeight = canvas.height;

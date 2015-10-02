@@ -66,6 +66,8 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord)
 			// Sky
 //			RGBA = vec4(vec3(1., 1., 1.), 1.);
 //			RGBA.a *= 1.00001 - alpha;
+
+			RGBA.rgb += bg * RGBA.a;
 			break;
 		}
 		if (dist < 0.0001) {
@@ -81,8 +83,7 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord)
 		t += dist;
 	}
 
-	RGBA.rgb += bg * RGBA.a;
-
+//	RGBA.rgb += bg * RGBA.a;
 	fragColor = vec4(RGBA.rgb, 1.);
 }
 
