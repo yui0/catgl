@@ -31,7 +31,7 @@ precision mediump float;
 
 <canvas id="c" width="480" height="320"></canvas>
 
-<script type="text/javascript" src="index.js"></script>
+<script type="text/javascript" src="index.js" id="webgljs" @@ARGS@@></script>
 
 @@PREV@@
 @@NEXT@@

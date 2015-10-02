@@ -20,7 +20,7 @@ float mx, my, mz;
 
 GLuint vbo;
 GLuint program;
-GLuint textures[1];
+GLuint textures[2];
 
 char *name = "Hello! こんにちは！";
 #ifdef CATGL_NANOVG
@@ -322,16 +322,21 @@ void keyEvent(int key, int action)
 		name = s;
 
 		// texture
-		glBindTexture(GL_TEXTURE_2D, 0);
-		char fname[BUFSIZ];
-		strcpy(fname, s);
-		fname[strlen(s)-4] = 0;
-		strcat(fname, "jpg");
+		char fname[BUFSIZ], name[BUFSIZ];
+		strcpy(name, s);
+		name[strlen(s)-5] = 0;
+		sprintf(fname, "%s.jpg", name);
 		struct stat st;
 		if (!stat(CATGL_ASSETS(fname), &st)) {
-			LOGD("---- %s\n", fname);
+			glDeleteTextures(1, &textures[0]);
 			textures[0] = caLoadTexture(fname);
-			glBindTexture(GL_TEXTURE_2D, textures[0]);
+			LOGD("---- %s[%d]\n", fname, textures[0]);
+		}
+		sprintf(fname, "%s+.jpg", name);
+		if (!stat(CATGL_ASSETS(fname), &st)) {
+			glDeleteTextures(1, &textures[1]);
+			textures[1] = caLoadTexture(fname);
+			LOGD("---- %s[%d]\n", fname, textures[1]);
 		}
 	}
 }
@@ -347,8 +352,8 @@ void mouseEvent(int button, int action, int x, int y)
 	else if (action==CATGL_ACTION_UP) mz = 0.0;
 
 	//keyEvent(CATGL_KEY_DOWN, action);
-	if (x < 70) keyEvent(CATGL_KEY_UP, action);
-	else if (x > width-70) keyEvent(CATGL_KEY_DOWN, action);
+	if (x < 100) keyEvent(CATGL_KEY_UP, action);
+	else if (x > width-100) keyEvent(CATGL_KEY_DOWN, action);
 
 	//LOGD("(%d,%d)\n", x, y);
 	if (action == CATGL_ACTION_DOWN) {
@@ -373,14 +378,14 @@ const float vertices[] = {
 GLuint framebuffer, renderbuffer, ftex;
 void caInit(int w, int h)
 {
+	//glClearColor(1.0f, 1.0f, 1.0f, 0.0f);
+
 	program = caCreateProgram(vsrc, "position", fsrc, "gl_FragColor");
 	glUseProgram(program);
 
 	GLuint d[6];
-	d[0] = CATGL_ATT_VERTEX;
-	d[1] = 3;
-	d[2] = CATGL_ATT_TEXTURE;
-	d[3] = 2;
+	d[0] = CATGL_ATT_VERTEX;	d[1] = 3;
+	d[2] = CATGL_ATT_TEXTURE;	d[3] = 2;
 	vbo = caCreateObject_((void*)vertices, sizeof(float)*5, 4, d, 2);
 
 	{
@@ -423,6 +428,7 @@ void caInit(int w, int h)
 
 void caRender()
 {
+	glClear(GL_COLOR_BUFFER_BIT);
 #ifdef CATGL_NANOVG
 	glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT|GL_STENCIL_BUFFER_BIT);
 	nvgBeginFrame(vg, width, height, pixelRatio);
@@ -433,8 +439,6 @@ void caRender()
 	nvgEndFrame(vg);
 #endif
 
-	//glClearColor(1.0f, 1.0f, 1.0f, 0.0f);
-	//glClear(GL_COLOR_BUFFER_BIT);
 	glUseProgram(program);
 
 	glUniform1f(glGetUniformLocation(program, "time"), (now_ms() - start)/1000.0);
@@ -443,10 +447,16 @@ void caRender()
 	glUniform4f(glGetUniformLocation(program, "iMouse"), mx, my, mz, 0.0);
 	//glUniform2f(glGetUniformLocation(program, "surfaceSize"), width, height);
 
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, textures[0]);
+	glUniform1i(glGetUniformLocation(program, "iChannel0"), 0);	// GL_TEXTURE0
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, textures[1]);
+	glUniform1i(glGetUniformLocation(program, "iChannel1"), 1);	// GL_TEXTURE1
+
 //	glBindTexture(GL_TEXTURE_2D, ftex);
 //	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
 
-//	glDrawArrays(GL_TRIANGLES, 0, vertices);
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
 //	glBindFramebuffer(GL_FRAMEBUFFER, 0);

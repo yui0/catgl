@@ -551,7 +551,7 @@ GLuint caLoadTexture(char *name)
 	unsigned char *pixels;
 	int width, height, bpp;
 	pixels = stbi_load(CATGL_ASSETS(name), &width, &height, &bpp, 4/*RGBA*/);
-/*	if (!pixels)*/ LOGE("name:%s pixels:%x %dx%d\n", CATGL_ASSETS(name), (unsigned int)pixels, width, height);
+/*	if (!pixels)*/ LOGE("load:%s pixels:%x %dx%d\n", CATGL_ASSETS(name), (unsigned int)pixels, width, height);
 	GLuint id = caCreateTexture(pixels, width, height);
 	stbi_image_free(pixels);
 	return id;

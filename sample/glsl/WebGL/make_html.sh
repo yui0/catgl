@@ -25,6 +25,16 @@ make_html() {
 			echo ${line} >> ${out}
 		fi
 	done < ${TEMPLATE_FILE}
+
+	basename=${name##*/}
+	filename=${basename%.*}
+	args=
+#	tex=`printf "%03d.jpg" ${count}`
+	tex=${filename}".jpg"
+	[ -r ${tex} ] && args='data-texture0="'${tex}'"'
+	tex=${filename}"+.jpg"
+	[ -r ${tex} ] && args=${args}' data-texture1="'${tex}'"'
+	sed -e "s/@@ARGS@@/${args}/" -i ${out}
 }
 
 count=0

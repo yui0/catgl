@@ -2,6 +2,7 @@ var currentProgram;
 var c, gl;
 var aLoc = [];
 var uLoc = [];
+var texture = [];
 
 function initWebGL() {
 	c = document.getElementById("c");
@@ -29,6 +30,21 @@ function initShaders() {
 	currentProgram = p;
 }
 
+function create_texture(n, source) {
+	var img = new Image();
+
+	img.onload = function() {
+		var tex = gl.createTexture();
+		gl.bindTexture(gl.TEXTURE_2D, tex);
+		gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
+		gl.generateMipmap(gl.TEXTURE_2D);
+		gl.bindTexture(gl.TEXTURE_2D, null);
+		texture[n] = tex;
+	};
+
+	img.src = source;
+}
+
 function render() {
 	parameters.time = Date.now() - parameters.startTime;
 
@@ -36,6 +52,17 @@ function render() {
 	gl.uniform1f( gl.getUniformLocation(currentProgram, 'time'), parameters.time / 1000 );
 	gl.uniform2f( gl.getUniformLocation(currentProgram, 'mouse'), parameters.mouseX, parameters.mouseY );
 	gl.uniform2f( gl.getUniformLocation(currentProgram, 'resolution'), parameters.screenWidth, parameters.screenHeight );
+
+	if (texture[0]!=null) {
+		gl.activeTexture(gl.TEXTURE0);
+		gl.bindTexture(gl.TEXTURE_2D, texture[0]);
+		gl.uniform1i(gl.getUniformLocation(currentProgram, 'iChannel0'), 0);
+	}
+	if (texture[1]!=null) {
+		gl.activeTexture(gl.TEXTURE1);
+		gl.bindTexture(gl.TEXTURE_2D, texture[1]);
+		gl.uniform1i(gl.getUniformLocation(currentProgram, 'iChannel1'), 1);
+	}
 
 	// Create vertex buffer (2 triangles)
 	buffer = gl.createBuffer();
@@ -55,7 +82,16 @@ parameters.screenHeight = canvas.height;
 
 initWebGL();
 initShaders();
-//render();
+
+function $(e) { return document.getElementById(e); }
+if ($('webgljs').getAttribute('data-texture0')) {
+	gl.activeTexture(gl.TEXTURE0);
+	create_texture(0, $('webgljs').getAttribute('data-texture0'));
+}
+if ($('webgljs').getAttribute('data-texture1')) {
+	gl.activeTexture(gl.TEXTURE1);
+	create_texture(1, $('webgljs').getAttribute('data-texture1'));
+}
 
 document.addEventListener( 'mousemove', function ( event ) {
 	var clientX = event.clientX;
