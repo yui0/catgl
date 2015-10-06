@@ -338,6 +338,19 @@ void keyEvent(int key, int action)
 			textures[1] = caLoadTexture(fname);
 			LOGD("---- %s[%d]\n", fname, textures[1]);
 		}
+
+		sprintf(fname, "%s.png", name);
+		if (!stat(CATGL_ASSETS(fname), &st)) {
+			glDeleteTextures(1, &textures[0]);
+			textures[0] = caLoadTexture(fname);
+			LOGD("---- %s[%d]\n", fname, textures[0]);
+		}
+		sprintf(fname, "%s+.png", name);
+		if (!stat(CATGL_ASSETS(fname), &st)) {
+			glDeleteTextures(1, &textures[1]);
+			textures[1] = caLoadTexture(fname);
+			LOGD("---- %s[%d]\n", fname, textures[1]);
+		}
 	}
 }
 

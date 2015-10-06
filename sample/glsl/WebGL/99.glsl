@@ -72,7 +72,6 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord)
 		}
 		if (dist < 0.0001) {
 			// Objects
-//			RGBA = vec4(vec3(1., 1., 1.), 1.);
 			//RGBA = vec4(vec3(mod(pos.x, 1.), 1., 1.), 1.);
 
 			//RGBA = depth;

@@ -86,7 +86,6 @@ function render() {
 	gl.vertexAttribPointer( aLoc[0], 3, gl.FLOAT, false, 0, 0 );
 	gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT );
 	gl.drawArrays( gl.TRIANGLES, 0, 6 );
-
 //	gl.flush();
 }
 
