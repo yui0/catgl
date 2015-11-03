@@ -110,6 +110,9 @@ void (*caKeyEvent)(int key, int action);
 	#define CATGL_KEY_A			AKEYCODE_A
 	#define CATGL_KEY_B			AKEYCODE_B
 	#define CATGL_KEY_C			AKEYCODE_C
+	#define CATGL_KEY_D			AKEYCODE_D
+	#define CATGL_KEY_E			AKEYCODE_E
+	#define CATGL_KEY_F			AKEYCODE_F
 	#define CATGL_KEY_P			AKEYCODE_P
 	#define CATGL_KEY_T			AKEYCODE_T
 	#define CATGL_KEY_W			AKEYCODE_W
@@ -163,6 +166,9 @@ void (*caKeyEvent)(int key, int action);
 	#define CATGL_KEY_A			GLFW_KEY_A
 	#define CATGL_KEY_B			GLFW_KEY_B
 	#define CATGL_KEY_C			GLFW_KEY_C
+	#define CATGL_KEY_D			GLFW_KEY_D
+	#define CATGL_KEY_E			GLFW_KEY_E
+	#define CATGL_KEY_F			GLFW_KEY_F
 	#define CATGL_KEY_P			GLFW_KEY_P
 	#define CATGL_KEY_T			GLFW_KEY_T
 	#define CATGL_KEY_W			GLFW_KEY_W
@@ -221,14 +227,14 @@ char *caGetFileContents(const char *file_name)
 	fp = fopen(file_name, "r");
 	if (!fp) {
 		LOGE("Cannot open %s.\n", file_name);
-		exit(EXIT_FAILURE);
+		return 0;
 	}
 
 	buf_size = BUFSIZ;
 	buf = malloc(sizeof(char) * buf_size);
 	if (!buf) {
 		LOGE("Memory allocation error.\n");
-		exit(EXIT_FAILURE);
+		return 0;
 	}
 
 	read_size = 0;
@@ -241,7 +247,7 @@ char *caGetFileContents(const char *file_name)
 		buf = realloc(buf, sizeof(char) * buf_size);
 		if (!buf) {
 			LOGE("Memory allocation error.\n");
-			exit(EXIT_FAILURE);
+			return 0;
 		}
 	}
 	*(buf + read_size) = '\0';
@@ -546,7 +552,7 @@ GLuint caCreateTexture(unsigned char *tex, int w, int h)
 //#define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 #endif
-GLuint caLoadTexture(char *name)
+GLuint caLoadTexture(char *name/*, int &width, int &height, int &bpp*/)
 {
 	unsigned char *pixels;
 	int width, height, bpp;
@@ -560,11 +566,8 @@ GLuint caLoadTexture(char *name)
 // draw model for .obj
 void caDrawObject(GLuint *vbo, CATGL_MODEL *m)
 {
-//	glEnableClientState(GL_VERTEX_ARRAY);
 	glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
-//	glVertexPointer(3, GL_FLOAT, 0, 0);
 	glDrawArrays(caMode, 0, m->num_vertices);
-//	glDisableClientState(GL_VERTEX_ARRAY);
 }
 void caCreateObject_GL1(GLuint *vbo, CATGL_MODEL *m)
 {

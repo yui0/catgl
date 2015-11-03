@@ -14,13 +14,19 @@
 #include <time.h>
 long long start;
 
+#define MAX_TEXTURE_STACK	(2+3)
+//int ifb = 2;
+//GLuint renderbuffer;
+GLuint framebuffer[MAX_TEXTURE_STACK];
+GLuint textures[MAX_TEXTURE_STACK];
+
 float width, height, pixelRatio;
 float x_angle, y_angle, z_angle;
 float mx, my, mz;
 
 GLuint vbo;
-GLuint program;
-GLuint textures[2];
+GLuint program[MAX_TEXTURE_STACK];
+//GLuint textures[2];
 
 char *name = "Hello! こんにちは！";
 #ifdef CATGL_NANOVG
@@ -249,14 +255,13 @@ inline long long now_ms()
 }
 
 #include <dirent.h>
-char *getFile(char *ext, int *c)
+char *getFile(char *path, char *ext, int *c)
 {
-	char *path = "./";
-
 	static char s[BUFSIZ];
 	int n = -1, e = strlen(ext);
 
 	//printf("+%s\n", path);
+	strncpy(s, path, BUFSIZ);
 	DIR *dir = opendir(CATGL_ASSETS(path));
 	if (!dir) return 0;
 	struct dirent *d, *ld = 0, *fd = 0;
@@ -266,7 +271,7 @@ char *getFile(char *ext, int *c)
 		if (strstr(p-e, ext)) {
 			n++;
 			if (n==*c) {
-				strncpy(s, d->d_name, BUFSIZ);
+				strncat(s, d->d_name, BUFSIZ);
 				break;
 			}
 			ld = d;
@@ -280,46 +285,96 @@ char *getFile(char *ext, int *c)
 		if (!ld) return 0;
 		if (*c<0) {
 			*c = n;
-			strncpy(s, ld->d_name, BUFSIZ);
+			strncat(s, ld->d_name, BUFSIZ);
 		} else {
 			*c = 0;
-			strncpy(s, fd->d_name, BUFSIZ);
+			strncat(s, fd->d_name, BUFSIZ);
 		}
 	}
 	return s;
 }
+/*char exts[2][4] = {".jpg", ".JPG"};
+char *exts[4];
+int selects(Dirent *dir)
+{
+	int *p;
+	char a;
 
+	a = dir->d_namlen;
+	if (a<4) return 0;
+	a -= 4;
+	p = (int*)&(dir->d_name[a]);
+
+	if ((*p == *(int*)&exts[0])) return 1;
+	return 0;
+}
+char *getFile(char *ext, int *c)
+{
+	char *path = "./";
+	struct dirent **namelist;
+
+	exts[0] = ext;
+	int r = scandir(dirname, &namelist, selects, alphasort);
+	if (r==-1) {
+		LOGD("%s", dirname);
+		return 0;
+	}
+
+	for (int i=0; i<r; i++) {
+		printf("%s\n", namelist[i]->d_name);
+		free(namelist[i]);
+	}
+	free(namelist);
+}*/
+
+GLuint caCreateProgramFromFile(char *s)
+{
+	GLuint program;
+	LOGD("-- %s ", s);
+	char *fsrc = caGetFileContents(CATGL_ASSETS(s));
+	if (fsrc) {
+		program = caCreateProgram(vsrc, "position", fsrc, "gl_FragColor");
+		free(fsrc);
+	} else {
+		program = 0;
+	}
+	LOGD("..\n");
+	return program;
+}
 #include <sys/stat.h>
+int filter;
 void keyEvent(int key, int action)
 {
-	static int glsl;
-	char *s = 0;
+	static int glsl, sscript;
+	char *s = 0, *ss = 0;
 
 	if (action == CATGL_ACTION_UP) {
 		switch (key) {
 		case CATGL_KEY_UP:
 			glsl++;
-			s = getFile(".glsl", &glsl);
-			break;
+			glsl++;
 		case CATGL_KEY_DOWN:
 			glsl--;
-			s = getFile(".glsl", &glsl);
+			s = getFile("./", ".glsl", &glsl);
+			break;
+
+		case CATGL_KEY_RIGHT:
+			sscript++;
+			sscript++;
+		case CATGL_KEY_LEFT:
+			sscript--;
+			ss = getFile("./sscripts/", ".ss", &sscript);
+			break;
+		case CATGL_KEY_F:
+			filter = filter ? 0 : 1;
 			break;
 		}
 	}
 
 	if (s) {
 		glUseProgram(0);
-		glDeleteProgram(program);
-
-		LOGD("-- %s", s);
-		char *fsrc = caGetFileContents(CATGL_ASSETS(s));
-		program = caCreateProgram(vsrc, "position", fsrc, "gl_FragColor");
-		glUseProgram(program);
-		free(fsrc);
-		LOGD(" ..\n");
-
-		name = s;
+		glDeleteProgram(program[0]);
+		program[0] = caCreateProgramFromFile(s);
 
 		// texture
 		char fname[BUFSIZ], name[BUFSIZ];
@@ -351,6 +406,22 @@ void keyEvent(int key, int action)
 			textures[1] = caLoadTexture(fname);
 			LOGD("---- %s[%d]\n", fname, textures[1]);
 		}
+	}
+
+	if (ss) {
+		char *script = caGetFileContents(CATGL_ASSETS(ss));
+		char *p, *q, filter[256];
+		int i = 1;
+		for (p=script; (q=strtok(p, "\n")); p=0) {
+			strcpy(filter, "filters/");
+			sscanf(q, "%s", &filter[8]);
+			strcat(filter, ".glsl");
+			LOGD("%s\n", filter);
+
+			glDeleteProgram(program[i]);
+			program[i++] = caCreateProgramFromFile(filter);
+		}
+		free(script);
 	}
 }
 
@@ -388,43 +459,54 @@ const float vertices[] = {
 	 1.0f, -1.0f, 0.0f,  1.0f, 1.0f
 };
 
-GLuint framebuffer, renderbuffer, ftex;
+/*void caCreateRBO(GLuint *renderbuffer, int w, int h)
+{
+	glGenRenderbuffers(1, renderbuffer);
+	glBindRenderbuffer(GL_RENDERBUFFER, *renderbuffer);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, w, h);
+
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, *renderbuffer);
+	glBindRenderbuffer(GL_RENDERBUFFER, 0);
+}*/
+void caCreateFBO(GLuint *framebuffer, GLuint *texture, int w, int h)
+{
+	glGenFramebuffers(1, framebuffer);
+	glBindFramebuffer(GL_FRAMEBUFFER, *framebuffer);
+
+	glGenTextures(1, texture);
+	glBindTexture(GL_TEXTURE_2D, *texture);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, *texture, 0);
+
+	glBindTexture(GL_TEXTURE_2D, 0);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
 void caInit(int w, int h)
 {
 	//glClearColor(1.0f, 1.0f, 1.0f, 0.0f);
-
-	program = caCreateProgram(vsrc, "position", fsrc, "gl_FragColor");
-	glUseProgram(program);
 
 	GLuint d[6];
 	d[0] = CATGL_ATT_VERTEX;	d[1] = 3;
 	d[2] = CATGL_ATT_TEXTURE;	d[3] = 2;
 	vbo = caCreateObject_((void*)vertices, sizeof(float)*5, 4, d, 2);
 
-	{
-		glGenFramebuffers(1, &framebuffer);
-		glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
-
-		glGenTextures(1, &ftex);
-		glBindTexture(GL_TEXTURE_2D, ftex);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, ftex, 0);
-
-		glGenRenderbuffers(1, &renderbuffer);
-		glBindRenderbuffer(GL_RENDERBUFFER, renderbuffer);
-		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, w, h);
-
-		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, renderbuffer);
-
-		glBindTexture(GL_TEXTURE_2D, 0);
-		glBindRenderbuffer(GL_RENDERBUFFER, 0);
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	}
+	program[0] = caCreateProgram(vsrc, "position", fsrc, "gl_FragColor");
+	program[2] = caCreateProgramFromFile("filters/gaussian5x5.glsl");
+	program[1] = caCreateProgramFromFile("filters/edge.glsl");
+//	program[1] = caCreateProgramFromFile("filters/negative.glsl");
+//	program[1] = caCreateProgramFromFile("filters/sepia.glsl");
+//	program[1] = caCreateProgramFromFile("filters/mono.glsl");
+//	program[1] = caCreateProgramFromFile("filters/random_dither.glsl");
+	caCreateFBO(&framebuffer[2], &textures[2], 640, 480);
+//	caCreateRBO(&renderbuffer, 640, 480);
+	caCreateFBO(&framebuffer[3], &textures[3], 640, 480);
+//	caCreateRBO(&renderbuffer, 640, 480);
 
 	width = w;
 	height = h;
@@ -439,14 +521,13 @@ void caInit(int w, int h)
 #endif
 }
 
-void caRender()
+void render(GLuint program, GLuint texture)
 {
 	glClear(GL_COLOR_BUFFER_BIT);
 #ifdef CATGL_NANOVG
 	glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT|GL_STENCIL_BUFFER_BIT);
 	nvgBeginFrame(vg, width, height, pixelRatio);
 	nvgBeginPath(vg);
-	//nvgText(vg, 0, 10, "Hello! こんにちは！", NULL);
 	nvgText(vg, 0, 10, name, NULL);
 	nvgFill(vg);
 	nvgEndFrame(vg);
@@ -461,18 +542,54 @@ void caRender()
 	//glUniform2f(glGetUniformLocation(program, "surfaceSize"), width, height);
 
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, textures[0]);
+	glBindTexture(GL_TEXTURE_2D, texture);
 	glUniform1i(glGetUniformLocation(program, "iChannel0"), 0);	// GL_TEXTURE0
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, textures[1]);
 	glUniform1i(glGetUniformLocation(program, "iChannel1"), 1);	// GL_TEXTURE1
 
-//	glBindTexture(GL_TEXTURE_2D, ftex);
-//	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
-
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+}
+typedef struct _SScript {
+//	GLuint program;			// proceed
+//	GLuint framebuffer, texture;	// out
+	int sh;
+	int in;
+	//float param[10];
+	int out;
+} SScript;
+/*SScript ss[] = {
+	{ 0, 0, 2 },
+	{ 2, 2, 3 },
+	{ 1, 3, 0 },
+};*/
+SScript ss[] = {
+	{ 0, 0, 2 },
+	{ 1, 2, 0 },
+};
+void caRender()
+{
+	if (filter) {
+/*		glBindFramebuffer(GL_FRAMEBUFFER, framebuffer[2]);
+		render(0, 0);
+//		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+//		render(1, 2);
 
-//	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glBindFramebuffer(GL_FRAMEBUFFER, framebuffer[3]);
+		render(2, 2);
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		render(1, 3);*/
+		SScript *p = ss;
+		for (int i=sizeof(ss)/sizeof(SScript)-1; i>0; i--) {
+			glBindFramebuffer(GL_FRAMEBUFFER, framebuffer[p->out]);
+			render(program[p->sh], textures[p->in]);
+			p++;
+		}
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		render(program[p->sh], textures[p->in]);
+	} else {
+		render(program[0], textures[0]);
+	}
 }
 
 void caEnd()
@@ -482,5 +599,5 @@ void caEnd()
 #endif
 
 	glUseProgram(0);
-	glDeleteProgram(program);
+	glDeleteProgram(program[0]);
 }
