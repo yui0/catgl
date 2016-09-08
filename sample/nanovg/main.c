@@ -25,7 +25,7 @@ void caInit(int w, int h)
 
 	vg = nvgCreate(NVG_ANTIALIAS | NVG_STENCIL_STROKES);
 
-	if (loadDemoData(vg, &data) == -1) return -1;
+	if (loadDemoData(vg, &data) == -1) return;
 }
 
 // 四角形の描画

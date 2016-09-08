@@ -25,7 +25,7 @@ extern "C" {
 #define CATGL_MODE_POINT		GL_POINTS
 #define CATGL_MODE_LINE		GL_LINES
 #define CATGL_MODE_TRIANGLES	GL_TRIANGLES
-int caMode = 4;// = CATGL_MODE_TRIANGLES;
+//int caMode = 4;// = CATGL_MODE_TRIANGLES;
 
 typedef struct _CATGL_VERTEX
 {
@@ -216,6 +216,8 @@ void (*caKeyEvent)(int key, int action);
 //	nvgCreateFontMem(vg, "icons", (unsigned char*)icons, sizeof(icons), 0);
 //	nvgFontFace(vg, "icons");
 #endif
+
+int caMode = 4;// = CATGL_MODE_TRIANGLES;
 
 // ファイルの内容をメモリに割り当て
 char *caGetFileContents(const char *file_name)
@@ -549,7 +551,7 @@ GLuint caCreateTexture(unsigned char *tex, int w, int h)
 	return id;
 }
 #ifndef CATGL_NANOVG
-//#define STB_IMAGE_IMPLEMENTATION
+#define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 #endif
 GLuint caLoadTexture(char *name/*, int &width, int &height, int &bpp*/)

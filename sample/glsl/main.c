@@ -342,6 +342,11 @@ GLuint caCreateProgramFromFile(char *s)
 	return program;
 }
 #include <sys/stat.h>
+/*typedef struct _SScript {
+	GLuint program;
+	GLuint in, out;
+} SScript;
+SScript sscript[20];*/
 int filter;
 void keyEvent(int key, int action)
 {
@@ -409,6 +414,7 @@ void keyEvent(int key, int action)
 	}
 
 	if (ss) {
+		// shader script
 		char *script = caGetFileContents(CATGL_ASSETS(ss));
 		char *p, *q, filter[256];
 		int i = 1;
@@ -417,6 +423,13 @@ void keyEvent(int key, int action)
 			sscanf(q, "%s", &filter[8]);
 			strcat(filter, ".glsl");
 			LOGD("%s\n", filter);
+
+/*			in = textures[0];
+			out = framebuffer[2];
+			glDeleteProgram(sscript[n].program);
+			sscript[n].program = caCreateProgramFromFile(filter);
+			sscript[n].in = in;
+			sscript[n].out = out;*/
 
 			glDeleteProgram(program[i]);
 			program[i++] = caCreateProgramFromFile(filter);
@@ -570,15 +583,6 @@ SScript ss[] = {
 void caRender()
 {
 	if (filter) {
-/*		glBindFramebuffer(GL_FRAMEBUFFER, framebuffer[2]);
-		render(0, 0);
-//		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-//		render(1, 2);
-
-		glBindFramebuffer(GL_FRAMEBUFFER, framebuffer[3]);
-		render(2, 2);
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		render(1, 3);*/
 		SScript *p = ss;
 		for (int i=sizeof(ss)/sizeof(SScript)-1; i>0; i--) {
 			glBindFramebuffer(GL_FRAMEBUFFER, framebuffer[p->out]);

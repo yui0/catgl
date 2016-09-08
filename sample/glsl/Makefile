@@ -1,4 +1,4 @@
-SRC = ../../nanovg/nanovg.c
+SRC =
 INCLUDE = -I../../ -I../../nanovg
 LIBS = -lglfw -lGL -lm
 

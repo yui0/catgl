@@ -16,8 +16,11 @@
 // 3. This notice may not be removed or altered from any source distribution.
 //
 
+#include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
+#include <memory.h>
+
 #include "nanovg.h"
 #define FONTSTASH_IMPLEMENTATION
 #include "fontstash.h"
@@ -63,6 +66,7 @@ enum NVGpointFlags
 };
 
 struct NVGstate {
+	NVGcompositeOperationState compositeOperation;
 	NVGpaint fill;
 	NVGpaint stroke;
 	float strokeWidth;
@@ -200,6 +204,79 @@ static void nvg__setDevicePixelRatio(NVGcontext* ctx, float ratio)
 	ctx->devicePxRatio = ratio;
 }
 
+static NVGcompositeOperationState nvg__compositeOperationState(int op)
+{
+	int sfactor, dfactor;
+
+	if (op == NVG_SOURCE_OVER)
+	{
+		sfactor = NVG_ONE;
+		dfactor = NVG_ONE_MINUS_SRC_ALPHA;
+	}
+	else if (op == NVG_SOURCE_IN)
+	{
+		sfactor = NVG_DST_ALPHA;
+		dfactor = NVG_ZERO;
+	}
+	else if (op == NVG_SOURCE_OUT)
+	{
+		sfactor = NVG_ONE_MINUS_DST_ALPHA;
+		dfactor = NVG_ZERO;
+	}
+	else if (op == NVG_ATOP)
+	{
+		sfactor = NVG_DST_ALPHA;
+		dfactor = NVG_ONE_MINUS_SRC_ALPHA;
+	}
+	else if (op == NVG_DESTINATION_OVER)
+	{
+		sfactor = NVG_ONE_MINUS_DST_ALPHA;
+		dfactor = NVG_ONE;
+	}
+	else if (op == NVG_DESTINATION_IN)
+	{
+		sfactor = NVG_ZERO;
+		dfactor = NVG_SRC_ALPHA;
+	}
+	else if (op == NVG_DESTINATION_OUT)
+	{
+		sfactor = NVG_ZERO;
+		dfactor = NVG_ONE_MINUS_SRC_ALPHA;
+	}
+	else if (op == NVG_DESTINATION_ATOP)
+	{
+		sfactor = NVG_ONE_MINUS_DST_ALPHA;
+		dfactor = NVG_SRC_ALPHA;
+	}
+	else if (op == NVG_LIGHTER)
+	{
+		sfactor = NVG_ONE;
+		dfactor = NVG_ONE;
+	}
+	else if (op == NVG_COPY)
+	{
+		sfactor = NVG_ONE;
+		dfactor = NVG_ZERO;
+	}
+	else if (op == NVG_XOR)
+	{
+		sfactor = NVG_ONE_MINUS_DST_ALPHA;
+		dfactor = NVG_ONE_MINUS_SRC_ALPHA;
+	}
+
+	NVGcompositeOperationState state;
+	state.srcRGB = sfactor;
+	state.dstRGB = dfactor;
+	state.srcAlpha = sfactor;
+	state.dstAlpha = dfactor;
+	return state;
+}
+
+static NVGstate* nvg__getState(NVGcontext* ctx)
+{
+	return &ctx->states[ctx->nstates-1];
+}
+
 NVGcontext* nvgCreateInternal(NVGparams* params)
 {
 	FONSparams fontParams;
@@ -291,8 +368,8 @@ void nvgBeginFrame(NVGcontext* ctx, int windowWidth, int windowHeight, float dev
 	nvgReset(ctx);
 
 	nvg__setDevicePixelRatio(ctx, devicePixelRatio);
-	
-	ctx->params.renderViewport(ctx->params.userPtr, windowWidth, windowHeight);
+
+	ctx->params.renderViewport(ctx->params.userPtr, windowWidth, windowHeight, devicePixelRatio);
 
 	ctx->drawCallCount = 0;
 	ctx->fillTriCount = 0;
@@ -307,7 +384,8 @@ void nvgCancelFrame(NVGcontext* ctx)
 
 void nvgEndFrame(NVGcontext* ctx)
 {
-	ctx->params.renderFlush(ctx->params.userPtr);
+	NVGstate* state = nvg__getState(ctx);
+	ctx->params.renderFlush(ctx->params.userPtr, state->compositeOperation);
 	if (ctx->fontImageIdx != 0) {
 		int fontImage = ctx->fontImages[ctx->fontImageIdx];
 		int i, j, iw, ih;
@@ -383,7 +461,7 @@ NVGcolor nvgLerpRGBA(NVGcolor c0, NVGcolor c1, float u)
 {
 	int i;
 	float oneminu;
-	NVGcolor cint;
+	NVGcolor cint = {0};
 
 	u = nvg__clampf(u, 0.0f, 1.0f);
 	oneminu = 1.0f - u;
@@ -391,7 +469,7 @@ NVGcolor nvgLerpRGBA(NVGcolor c0, NVGcolor c1, float u)
 	{
 		cint.rgba[i] = c0.rgba[i] * oneminu + c1.rgba[i] * u;
 	}
-	 
+
 	return cint;
 }
 
@@ -428,12 +506,6 @@ NVGcolor nvgHSLA(float h, float s, float l, unsigned char a)
 	col.b = nvg__clampf(nvg__hue(h - 1.0f/3.0f, m1, m2), 0.0f, 1.0f);
 	col.a = a/255.0f;
 	return col;
-}
-
-
-static NVGstate* nvg__getState(NVGcontext* ctx)
-{
-	return &ctx->states[ctx->nstates-1];
 }
 
 void nvgTransformIdentity(float* t)
@@ -568,6 +640,7 @@ void nvgReset(NVGcontext* ctx)
 
 	nvg__setPaintColor(&state->fill, nvgRGBA(255,255,255,255));
 	nvg__setPaintColor(&state->stroke, nvgRGBA(0,0,0,255));
+	state->compositeOperation = nvg__compositeOperationState(NVG_SOURCE_OVER);
 	state->strokeWidth = 1.0f;
 	state->miterLimit = 10.0f;
 	state->lineCap = NVG_BUTT;
@@ -913,7 +986,7 @@ void nvgIntersectScissor(NVGcontext* ctx, float x, float y, float w, float h)
 	}
 
 	// Transform the current scissor rect into current transform space.
-	// If there is difference in rotation, this will be approximation. 
+	// If there is difference in rotation, this will be approximation.
 	memcpy(pxform, state->scissor.xform, sizeof(float)*6);
 	ex = state->scissor.extent[0];
 	ey = state->scissor.extent[1];
@@ -934,6 +1007,30 @@ void nvgResetScissor(NVGcontext* ctx)
 	memset(state->scissor.xform, 0, sizeof(state->scissor.xform));
 	state->scissor.extent[0] = -1.0f;
 	state->scissor.extent[1] = -1.0f;
+}
+
+// Global composite operation.
+void nvgGlobalCompositeOperation(NVGcontext* ctx, int op)
+{
+	NVGstate* state = nvg__getState(ctx);
+	state->compositeOperation = nvg__compositeOperationState(op);
+}
+
+void nvgGlobalCompositeBlendFunc(NVGcontext* ctx, int sfactor, int dfactor)
+{
+	nvgGlobalCompositeBlendFuncSeparate(ctx, sfactor, dfactor, sfactor, dfactor);
+}
+
+void nvgGlobalCompositeBlendFuncSeparate(NVGcontext* ctx, int srcRGB, int dstRGB, int srcAlpha, int dstAlpha)
+{
+	NVGcompositeOperationState op;
+	op.srcRGB = srcRGB;
+	op.dstRGB = dstRGB;
+	op.srcAlpha = srcAlpha;
+	op.dstAlpha = dstAlpha;
+
+	NVGstate* state = nvg__getState(ctx);
+	state->compositeOperation = op;
 }
 
 static int nvg__ptEquals(float x1, float y1, float x2, float y2, float tol)
@@ -1173,7 +1270,7 @@ static void nvg__tesselateBezier(NVGcontext* ctx,
 {
 	float x12,y12,x23,y23,x34,y34,x123,y123,x234,y234,x1234,y1234;
 	float dx,dy,d2,d3;
-	
+
 	if (level > 10) return;
 
 	x12 = (x1+x2)*0.5f;
@@ -1205,8 +1302,8 @@ static void nvg__tesselateBezier(NVGcontext* ctx,
 	x1234 = (x123+x234)*0.5f;
 	y1234 = (y123+y234)*0.5f;
 
-	nvg__tesselateBezier(ctx, x1,y1, x12,y12, x123,y123, x1234,y1234, level+1, 0); 
-	nvg__tesselateBezier(ctx, x1234,y1234, x234,y234, x34,y34, x4,y4, level+1, type); 
+	nvg__tesselateBezier(ctx, x1,y1, x12,y12, x123,y123, x1234,y1234, level+1, 0);
+	nvg__tesselateBezier(ctx, x1234,y1234, x234,y234, x34,y34, x4,y4, level+1, type);
 }
 
 static void nvg__flattenPaths(NVGcontext* ctx)
@@ -1604,7 +1701,7 @@ static void nvg__calculateJoins(NVGcontext* ctx, float w, int lineJoin, float mi
 
 
 static int nvg__expandStroke(NVGcontext* ctx, float w, int lineCap, int lineJoin, float miterLimit)
-{	
+{
 	NVGpathCache* cache = ctx->cache;
 	NVGvertex* verts;
 	NVGvertex* dst;
@@ -1868,7 +1965,7 @@ void nvgQuadTo(NVGcontext* ctx, float cx, float cy, float x, float y)
 {
     float x0 = ctx->commandx;
     float y0 = ctx->commandy;
-    float vals[] = { NVG_BEZIERTO, 
+    float vals[] = { NVG_BEZIERTO,
         x0 + 2.0f/3.0f*(cx - x0), y0 + 2.0f/3.0f*(cy - y0),
         x + 2.0f/3.0f*(cx - x), y + 2.0f/3.0f*(cy - y),
         x, y };
@@ -1950,7 +2047,7 @@ void nvgArc(NVGcontext* ctx, float cx, float cy, float r, float a0, float a1, in
 	float px = 0, py = 0, ptanx = 0, ptany = 0;
 	float vals[3 + 5*7 + 100];
 	int i, ndivs, nvals;
-	int move = ctx->ncommands > 0 ? NVG_LINETO : NVG_MOVETO; 
+	int move = ctx->ncommands > 0 ? NVG_LINETO : NVG_MOVETO;
 
 	// Clamp angles
 	da = a1 - a0;
@@ -2170,6 +2267,18 @@ int nvgFindFont(NVGcontext* ctx, const char* name)
 	return fonsGetFontByName(ctx->fs, name);
 }
 
+
+int nvgAddFallbackFontId(NVGcontext* ctx, int baseFont, int fallbackFont)
+{
+	if(baseFont == -1 || fallbackFont == -1) return 0;
+	return fonsAddFallbackFont(ctx->fs, baseFont, fallbackFont);
+}
+
+int nvgAddFallbackFont(NVGcontext* ctx, const char* baseFont, const char* fallbackFont)
+{
+	return nvgAddFallbackFontId(ctx, nvgFindFont(ctx, baseFont), nvgFindFont(ctx, fallbackFont));
+}
+
 // State setting
 void nvgFontSize(NVGcontext* ctx, float size)
 {
@@ -2343,7 +2452,7 @@ float nvgText(NVGcontext* ctx, float x, float y, const char* string, const char*
 		}
 	}
 
-	// TODO: add back-end bit to do this just once per frame. 
+	// TODO: add back-end bit to do this just once per frame.
 	nvg__flushTextTexture(ctx);
 
 	nvg__renderText(ctx, verts, nverts);
