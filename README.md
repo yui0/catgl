@@ -14,15 +14,18 @@ This application is designed for Android, iOS, Linux, Windows.
 
 ## Install
 
-- Download android-sdk-linux and install it.
-    - tools/android update sdk
-        - Android SDK Tools
-        - Android SDK Platform-tools
-        - Android SDK Build-tools
-        - API 10 SDK Platform
-        - Android Support Library
-- Download android-ndk
-- yum install ant
+- for Linux
+    - dnf install glfw-devel
+- for Android
+    - Download android-sdk-linux and install it.
+        - tools/android update sdk
+            - Android SDK Tools
+            - Android SDK Platform-tools
+            - Android SDK Build-tools
+            - API 10 SDK Platform
+            - Android Support Library
+    - Download android-ndk
+    - dnf install ant
 
 ## Examples
 
@@ -37,6 +40,27 @@ make
 cd sample/box
 make android
 ```
+
+## How to use
+
+	#define CATGL_IMPLEMENTATION
+	#include "catgl.h"
+
+	void caInit(int width, int height)
+	{
+	}
+
+	void caRender()
+	{
+	}
+
+	void caEnd()
+	{
+	}
+
+	clang -std=c11 -Os -MMD -MP -Wall -Wextra -Winit-self -Wno-unused-parameter -Wno-float-equal -Wno-missing-braces -I../../ -I../../nanovg -o obj/main.o -c main.c
+	clang++ -o hello obj/main.o /lib/libglfw.so /lib/libGL.so /lib/libm.so 
+
 
 ## Screenshot
 
