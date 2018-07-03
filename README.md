@@ -30,37 +30,42 @@ This application is designed for Android, iOS, Linux, Windows.
 ## Examples
 
 - Linux
-```
-cd sample/box
-make
+
+```bash
+$ cd sample/box
+$ make
 ```
 
 - Android
-```
-cd sample/box
-make android
+
+```bash
+$ cd sample/box
+$ make android
 ```
 
 ## How to use
 
-	#define CATGL_IMPLEMENTATION
-	#include "catgl.h"
+```main.c
+#define CATGL_IMPLEMENTATION
+#include "catgl.h"
 
-	void caInit(int width, int height)
-	{
-	}
+void caInit(int width, int height)
+{
+}
 
-	void caRender()
-	{
-	}
+void caRender()
+{
+}
 
-	void caEnd()
-	{
-	}
+void caEnd()
+{
+}
+```
 
-	clang -std=c11 -Os -MMD -MP -Wall -Wextra -Winit-self -Wno-unused-parameter -Wno-float-equal -Wno-missing-braces -I../../ -I../../nanovg -o obj/main.o -c main.c
-	clang++ -o hello obj/main.o /lib/libglfw.so /lib/libGL.so /lib/libm.so 
-
+```bash
+$ clang -std=c11 -Os -MMD -MP -Wall -Wextra -Winit-self -Wno-unused-parameter -Wno-float-equal -Wno-missing-braces -I../../ -I../../nanovg -o obj/main.o -c main.c
+$ clang++ -o hello obj/main.o /lib/libglfw.so /lib/libGL.so /lib/libm.so 
+```
 
 ## Screenshot
 

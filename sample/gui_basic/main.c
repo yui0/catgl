@@ -1,7 +1,7 @@
 //---------------------------------------------------------
 //	catgl
 //
-//		©2015 Yuichiro Nakada
+//		©2015,2018 Yuichiro Nakada
 //---------------------------------------------------------
 
 #define CATGL_NANOVG
@@ -50,7 +50,7 @@ void caRender()
 	caDrawLabel(vg, "Login", x+10, y+110, 280, 20);
 	caDrawEditBox(vg, "Email",  x+10, y+135, 280, 28);
 	caDrawEditBox(vg, "Password", x+10, y+170, 280, 28);
-	caDrawCheckBox(vg, "Remember me", x+10, y+200, 140, 28);
+	caDrawCheckBox(vg, "Remember me", x+10, y+200, 140, 28, 0);
 	caDrawButton(vg, CATGL_ICON_LOGIN, "Sign in", x+148, y+200, 140, 28, nvgRGBA(0,96,128,255), 0);
 
 	// Slider
