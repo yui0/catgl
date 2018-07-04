@@ -1,7 +1,7 @@
 //---------------------------------------------------------
 //	catgl
 //
-//		©2015 Yuichiro Nakada
+//		©2015-2018 Yuichiro Nakada
 //---------------------------------------------------------
 
 #ifndef CATGL_H_
@@ -468,7 +468,7 @@ GLuint caCreateObject(void *obj, GLuint num, GLuint att[3])
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(CATGL_VERTEX) * num, obj, GL_STATIC_DRAW);
 
-	int offset = 0;
+	size_t offset = 0;
 	glEnableVertexAttribArray(att[0]);
 	glVertexAttribPointer(att[0], 3, GL_FLOAT, GL_FALSE, sizeof(CATGL_VERTEX), (const void*)offset);
 	offset += sizeof(float) * 3;
@@ -496,8 +496,8 @@ GLuint caCreateObject_(void *obj, int size, GLuint num, GLuint d[], int len)
 	glBufferData(GL_ARRAY_BUFFER, size * num, obj, GL_STATIC_DRAW);
 //	LOGD("size:%d, num:%d, len:%d\n", size, num, len);
 
-	int i, offset = 0;
-	for (i=0; i<len; i++) {
+	size_t offset = 0;
+	for (int i=0; i<len; i++) {
 		glEnableVertexAttribArray(d[i*2]);
 		glVertexAttribPointer(d[i*2], d[i*2+1], GL_FLOAT, GL_FALSE, size, (const void*)offset);
 		offset += sizeof(float) * d[i*2+1];
@@ -552,8 +552,8 @@ GLuint caCreateTexture(unsigned char *tex, int w, int h)
 }
 #ifndef CATGL_NANOVG
 #define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
 #endif
+#include "stb_image.h"
 GLuint caLoadTexture(char *name/*, int &width, int &height, int &bpp*/)
 {
 	unsigned char *pixels;
