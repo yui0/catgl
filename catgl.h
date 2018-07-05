@@ -215,6 +215,35 @@ void (*caKeyEvent)(int key, int action);
 	nvgFontFace(vg, "icons");
 //	nvgCreateFontMem(vg, "icons", (unsigned char*)icons, sizeof(icons), 0);
 //	nvgFontFace(vg, "icons");
+
+typedef struct {
+	int handle;
+	int width;
+	int height;
+	NVGcontext *c;
+	NVGpaint pattern;
+} CATGL_SPRITE;
+void caSpriteLoad(CATGL_SPRITE *s, char *name, NVGcontext *vg)
+{
+	s->c = vg;
+	s->handle = nvgCreateImage(s->c, CATGL_ASSETS(name), 0);
+	nvgImageSize(s->c, s->handle, &s->width, &s->height);
+//	s->pattern = nvgImagePattern(s->c, 0, 0, s->width, s->height, 0, s->handle, 1);
+}
+void caSpriteRender(CATGL_SPRITE *s, int x, int y)
+{
+	s->pattern = nvgImagePattern(s->c, x, y, s->width, s->height, 0, s->handle, 1);
+	nvgBeginPath(s->c);
+	nvgRect(s->c, x, y, s->width, s->height);
+	nvgFillPaint(s->c, s->pattern);
+	nvgFill(s->c);
+}
+void caSpriteDelete(CATGL_SPRITE *s)
+{
+	nvgDeleteImage(s->c, s->handle);
+	s->handle = 0;
+	s->c = 0;
+}
 #endif
 
 int caMode = 4;// = CATGL_MODE_TRIANGLES;
