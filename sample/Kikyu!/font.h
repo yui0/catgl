@@ -180,6 +180,7 @@ void caFontInit(NVGcontext *vg)
 	caSpriteLoad(&c_fontset[0], IMAGE_FONT, vg);
 	c_fontset[0].w = c_fontset[0].sw = 16;
 	c_fontset[0].h = c_fontset[0].sh = 16;
+	caSpriteLoad(&c_fontset[1], IMAGE_FONT_P, vg);
 }
 
 // 指定のキャラクターの範囲を返す(Nora Games)
@@ -203,13 +204,13 @@ void getRectWithASCII(char ascii, float *r)
 	} else {
 		c = 0;	// スペースに置き換える
 	}
-	float x = 16*(c%16)/256.0;
-	float y = 16*(c/16)/192.0;
+	float x = 16*(c%16);
+	float y = 16*(c/16);
 	//printf("%d %f,%f\n",c, x, y);
 	r[0] = x;
 	r[1] = y;
-	r[2] = x+16/256.0;
-	r[3] = y+16/192.0;
+//	r[2] = x+16/256.0;
+//	r[3] = y+16/192.0;
 	return;
 }
 
@@ -224,8 +225,8 @@ void drawString(char *s, float x, float y, float sx, float sy)
 			getRectWithASCII(*s, r);
 			f.x = x;
 			f.y = y;
-			f.sx = r[0]*256;
-			f.sy = r[1]*192;
+			f.sx = r[0];
+			f.sy = r[1];
 			caSpriteRender(&f);
 		}
 		s++;
@@ -239,22 +240,56 @@ void drawStringCenter(char *s, float y, float sx, float sy)
 	drawString(s, SCREEN_WIDTH/2 -sx/2.0*strlen(s), y, sx, sy);
 }
 
-#if 0
-void DrawStringCenter(float y, char *s, float sx=16, float sy=16) {
-	//DrawString(sx/2 - strlen(s)*16/2, y, s);
-	DrawString(-sx/2.0*strlen(s), y, s, sx, sy);
+unsigned short *getRectWithString(char *c, char **s)
+{
+	CATGL_FONTRECT *r = rect;
+	(*s)++;
+	while (r->c) {
+		int n = strlen(r->c);
+		if (!strncmp(r->c, c, n)) {
+			(*s) += n-1;
+			return r->rect;
+		}
+		r++;
+	}
+	return 0;
 }
+int drawPString(char *s, float x, float y)
+{
+	CATGL_SPRITE f = c_fontset[1];
+	while (*s) {
+		unsigned short *r = getRectWithString(s, &s);
+		//s++;
+		if (!r) {
+			x += 16;
+		} else {
+			//printf("(%d,%d) +%d +%d %d %d\n", x, y, r[2], r[3], r[0], r[1]);
+			f.x = x;
+			f.y = y;
+			f.sx = r[0];
+			f.sy = r[1];
+			f.w = f.sw = r[2];
+			f.h = f.sh = r[3];
+			caSpriteRender(&f);
+//			sprtP.dataPos(n[1]).set(x, y);
+//			sprtP.setDataSize(n[1], r[2]*2, r[3]*2);
+//			sprtP.setDataUV(n[1], r[0]/128.0, r[1]/128.0, (r[0]+r[2])/128.0, (r[1]+r[3])/128.0);
+//			n[1]++;
+			x += r[2]*2;
+		}
+	}
+	return x;
+}
+void drawPStringCenter(char *s, float y)
+{
+	float x = drawPString(s, -100, -100);
+	drawPString(s, SCREEN_WIDTH/2 -x/2, y);
+}
+
+#if 0
 void DrawStringRight(float x, float y, char *s, float sx=16, float sy=16) {
 	DrawString(x-sx*strlen(s), y, s);
 }
-void clear() {
-	n[0]=0;
-	n[1]=0;
-	n[2]=0;
-	for (int i=0; i<MAX_STRING; i++) sprt.dataPos(i).set(-1000, 0);
-	for (int i=0; i<MAX_STRING; i++) sprtP.dataPos(i).set(-1000, 0);
-}
-
 void DrawEString(float x, float y, char *s, int t=-1) {
 	if (n[2]>=MAX_STRING-10) n[2]=0;
 	while (*s) {
@@ -277,58 +312,6 @@ void effect() {
 		sprtE.dataPos(i).y -= 1;
 		//sprtE.dataCol(i) -= ckCol(1, 0, 0, 0);
 		if (font_time[i]==0) sprtE.dataPos(i).set(-1000, 0);
-	}
-}
-
-unsigned short *getRectWithString(char *c, char **s) {
-	CATGL_FONTRECT *r = rect;
-	(*s)++;
-	while (r->c) {
-		int n = strlen(r->c);
-		if (!strncmp(r->c, c, n)) {
-			(*s)+=n-1;
-			return r->rect;
-		}
-		r++;
-	}
-	return 0;
-}
-void DrawPString(float x, float y, char *s) {
-	while (*s) {
-		unsigned short *r = getRectWithString(s, &s);
-		//s++;
-		if (!r) {
-			x+=16;
-		} else {
-			//printf("(%d,%d) +%d +%d %d %d\n", x, y, r[2], r[3], r[0], r[1]);
-			sprtP.dataPos(n[1]).set(x, y);
-			sprtP.setDataSize(n[1], r[2]*2, r[3]*2);
-			sprtP.setDataUV(n[1], r[0]/128.0, r[1]/128.0, (r[0]+r[2])/128.0, (r[1]+r[3])/128.0);
-			n[1]++;
-			x+=r[2]*2;
-		}
-	}
-}
-void DrawPStringCenter(float y, char *s) {
-	float x = 0;
-	char *p = s;
-	int num = n[1];
-	while (*s) {
-		unsigned short *r = getRectWithString(s, &s);
-		if (!r) {
-			x+=16;
-		} else {
-			sprtP.dataPos(n[1]).set(x, y);
-			sprtP.setDataSize(n[1], r[2]*2, r[3]*2);
-			sprtP.setDataUV(n[1], r[0]/128.0, r[1]/128.0, (r[0]+r[2])/128.0, (r[1]+r[3])/128.0);
-			n[1]++;
-			x+=r[2]*2;
-		}
-	}
-	x /= 2;
-	while (*p) {
-		sprtP.dataPos(num++).x -= x;
-		p++;
 	}
 }
 #endif
