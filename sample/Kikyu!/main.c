@@ -83,6 +83,7 @@ CATGL_SPRITE enemy[ENEMY_MAX];
 int enemy_frame[ENEMY_MAX];	// アニメーション
 int enemy_time[ENEMY_MAX];	// 存在時間
 
+CATGL_SPRITE item[ITEM_MAX];
 int item_frame[ITEM_MAX];		// アニメーション
 
 NVGcontext* vg;
@@ -180,14 +181,16 @@ void SceneGame()
 	caSpriteRender(&s[stage+2]);
 
 	// プレイヤー処理
+	player_frame = game_frame/4 % 24;	// フレームアニメーション
 	player_vy += PLAYER_GRAVIRY;		// 重力
 	player_y += player_vy;
 	s[0].x = 70;
 	s[0].y = player_y;
+//	float w = s[n].frame % (tex->getSize().Width / cx);
+//	float h = s[n].frame / (tex->getSize().Width / cy);
+	s[0].sx = (player_frame % (288/PLAYER_WIDTH)) *PLAYER_WIDTH;
+	s[0].sy = (player_frame % (256/PLAYER_HEIGHT)) *PLAYER_HEIGHT;
 	caSpriteRender(&s[0]);	// 移動
-
-	// フレームアニメーション
-	player_frame = game_frame/4 % 24;
 
 	// 画面からはみ出た
 	if (player_y + PLAYER_HEIGHT < -SCREEN_HEIGHT/2 || player_y > SCREEN_HEIGHT/*/2*/) {
@@ -221,10 +224,7 @@ void SceneGame()
 			enemy_frame[i] += 1;
 			enemy_frame[i] %= 3;
 		}
-		float ux = (enemy_frame[i]%3)*1.0/3;
-//		float uy = (enemy_frame[i]/3)*1.0/1;
-		enemy[i].sx = ux *96;
-		//enemy[i].sy = uy *32;
+		enemy[i].sx = ((enemy_frame[i]%3)*1.0/3) *96;
 		caSpriteRender(&enemy[i]);
 
 		// プレイヤーとの衝突判定
@@ -241,6 +241,58 @@ void SceneGame()
 
 		// タイムを進める
 		enemy_time[i]++;
+	}
+
+	// アイテムを生成
+	if (game_frame % 60 == 0) {
+		for (int i=0; i<ITEM_MAX; i++) {
+			if (item[i].x < -ITEM_WIDTH-SCREEN_WIDTH/2) {
+				int r = rand() % 100;
+				if (r<10) {
+					item_frame[i] = DIAMOND_FRAME;
+				} else {
+					item_frame[i] = COIN_FRAME;
+				}
+//				float ux = (item_frame[i]%16)*1.0/16;
+//				float uy = (item_frame[i]/16)*1.0/5;
+//				item_sprt.setDataUV(i, ux, uy, ux+1.0/16, uy+1.0/5);
+//				item_sprt.dataPos(i).set(SCREEN_WIDTH/2+30, ckMath::rand(-SCREEN_HEIGHT/2, SCREEN_HEIGHT/2-ITEM_HEIGHT));
+				item[i].sx = ((item_frame[i]%16)*1.0/16) *256;
+				item[i].sy = ((item_frame[i]/16)*1.0/5) *80;
+				item[i].x = SCREEN_WIDTH+30;
+				item[i].y = rand() % SCREEN_HEIGHT/3 +SCREEN_HEIGHT/3;
+				break;
+			}
+		}
+	}
+	for (int i=0; i<ITEM_MAX; i++) {
+		if (item[i].x < -ITEM_WIDTH-SCREEN_WIDTH/2) continue;
+
+		// 移動
+		item[i].x += ITEM_SPEED;
+		caSpriteRender(&item[i]);
+
+		// 衝突判定
+		/*if (intersect(&item_sprt.dataPos(i),
+			item_sprt.dataW(i), item_sprt.dataH(i),
+			  &player_sprt.dataPos(0),
+			      player_sprt.dataW(0), player_sprt.dataH(0))) {
+			// 削除
+			item_sprt.dataPos(i).x = -ITEM_WIDTH-SCREEN_WIDTH/2-1;
+			if (item_frame[i] == COIN_FRAME) {
+				// スコア加算
+				score += COIN_POINT -20;
+				score_plus += 20;
+				font.DrawEString(player_sprt.dataPos(0).x-PLAYER_WIDTH/2, player_sprt.dataPos(0).y, (char*)"+100", 50);
+			} else {
+				// スコア加算
+				score += DIAMOND_POINT -40;
+				score_plus += 40;
+				font.DrawEString(player_sprt.dataPos(0).x-PLAYER_WIDTH/2, player_sprt.dataPos(0).y, (char*)"+1000", 50);
+			}
+			// SE 再生
+			ckSndMgr::play(TRACK_SE2, ckID_(SE_ITEM_GET), SE_VOL, false);
+		}*/
 	}
 
 	// ステージ処理
@@ -272,9 +324,13 @@ void SceneGameInit()
 	// 敵
 	for (int i=0; i<ENEMY_MAX; i++) {
 		enemy[i] = s[1];
-		/*enemy_sprt.setDataSize(i, ENEMY_WIDTH, ENEMY_HEIGHT);
-		enemy_sprt.setDataUV(i, 0.0f, 0.0f, 1.0/3, 1.0);*/
 		enemy_frame[i] = 0;
+	}
+
+	// アイテム
+	for (int i=0; i<ITEM_MAX; i++) {
+		item[i] = s[2];
+		item_frame[i] = 0;
 	}
 
 	// 全体
@@ -348,6 +404,7 @@ void caInit(int w, int h)
 	s[1].w = s[1].sw = ENEMY_WIDTH;
 	s[1].h = s[1].sh = ENEMY_HEIGHT;
 	caSpriteLoad(&s[2], IMAGE_ITEM, vg);
+	s[2].x = -ITEM_WIDTH-SCREEN_WIDTH/2;
 	s[2].w = s[2].sw = ITEM_WIDTH;
 	s[2].h = s[2].sh = ITEM_HEIGHT;
 	caSpriteLoad(&s[3], IMAGE_BACKGROUND, vg);
