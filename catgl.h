@@ -228,7 +228,6 @@ void caSpriteLoad(CATGL_SPRITE *s, char *name, NVGcontext *vg)
 	s->c = vg;
 	s->handle = nvgCreateImage(s->c, CATGL_ASSETS(name), 0);
 	nvgImageSize(s->c, s->handle, &s->width, &s->height);
-//	s->pattern = nvgImagePattern(s->c, 0, 0, s->width, s->height, 0, s->handle, 1);
 }
 void caSpriteRender(CATGL_SPRITE *s, int x, int y, int w, int h)
 {
