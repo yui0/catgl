@@ -117,13 +117,13 @@ void SceneTitle()
 	s[7].y = height/2-278/2;
 	caSpriteRender(&s[7]);
 
-	drawStringCenter("Kikyu!", 64, 0, 0, 0);
+	drawStringCenter("Kikyu!", 160, 0, 0);
 
 	// 消す
 /*	Init();
 	// タイトル
 	font.clear();
-	font.DrawStringCenter(64, (char*)"Kikyu!");
+	font.DrawStringCenter(64, (char*)"Kikyu!"); +96
 	//font.DrawPString(-80, 84, (char*)"♥キキュウ♥Aeronaut!");
 	//font.DrawPString(-120, -SCREEN_HEIGHT/2+80, (char*)"Press Return to Embark");
 	//font.DrawPString(-100, -SCREEN_HEIGHT/2+40, (char*)"(C)2013 YUICHIRO NAKADA");

@@ -234,7 +234,9 @@ void drawString(char *s, float x, float y, float sx, float sy)
 }
 void drawStringCenter(char *s, float y, float sx, float sy)
 {
-	drawString(s, -sx/2.0*strlen(s), y, sx, sy);
+	sx = sx ? sx : 16;
+	sy = sy ? sy : 16;
+	drawString(s, SCREEN_WIDTH/2 -sx/2.0*strlen(s), y, sx, sy);
 }
 
 #if 0
