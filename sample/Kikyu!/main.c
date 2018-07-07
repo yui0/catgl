@@ -4,14 +4,14 @@
 //		©2013,2018 Yuichiro Nakada
 //---------------------------------------------------------
 
-#include <time.h>
-
 #define CATGL_NANOVG
 #define CATGL_IMPLEMENTATION
 #define SCREEN_TITLE		"Kikyu!"
 #define SCREEN_WIDTH		854
 #define SCREEN_HEIGHT		480
 #include "catgl.h"
+#include "font.h"
+#include <time.h>
 
 // プレイヤー
 #define PLAYER_WIDTH		48	// 幅
@@ -109,36 +109,19 @@ void (*Scene)();
 
 void SceneTitle()
 {
+	// 背景
 	caSpriteRender(&s[6]);
+
+	// タイトル
 	s[7].x = width/2-196/2;
 	s[7].y = height/2-278/2;
 	caSpriteRender(&s[7]);
 
-/*	// 消す
-	Init();
-	player_sprt.dataPos(0).set(-PLAYER_WIDTH-SCREEN_WIDTH, 0);
-	//player_sprt.init(1, ckDrawMgr::DEFAULT_2D_SCREEN_ID);
-	//enemy_sprt.init(ENEMY_MAX, ckDrawMgr::DEFAULT_2D_SCREEN_ID);
-	//item_sprt.init(ITEM_MAX, ckDrawMgr::DEFAULT_2D_SCREEN_ID);
+	drawString("Kikyu!", 64, 0, 0, 0);
 
-	// 背景
-	bg_sprt.init(2, m_scr->getID());
-	bg_sprt.setTextureID(ckID_(IMAGE_BACKGROUND4));
-	bg_sprt.setBlendMode(ckDraw::BLEND_HALF, true);
-
-	bg_sprt.dataPos(1).set(0, 0);	// 真ん中・スプライトの中央の座標
-	bg_sprt.setDataSize(1, SCREEN_WIDTH, SCREEN_HEIGHT);
-	bg_sprt.setDataUV(1, 0.0f, 0.0f, (float)SCREEN_WIDTH/BACKGROUND_WIDTH, 1);
-
+	// 消す
+/*	Init();
 	// タイトル
-	title_sprt.init(1, ckDrawMgr::DEFAULT_2D_SCREEN_ID);
-	title_sprt.setTextureID(ckID_(IMAGE_TITLE));
-	title_sprt.setBlendMode(ckDraw::BLEND_HALF, true);
-	//title_sprt.dataPos(0).set(SCREEN_WIDTH/2-196/2, -SCREEN_HEIGHT/2+278/2);
-	title_sprt.dataPos(0).set(0, 0);
-	title_sprt.setDataSize(0, 196, 278);
-	title_sprt.setDataUV(0, 0.0f, 0.0f, 1, 1);
-
 	font.clear();
 	font.DrawStringCenter(64, (char*)"Kikyu!");
 	//font.DrawPString(-80, 84, (char*)"♥キキュウ♥Aeronaut!");
@@ -186,8 +169,6 @@ void SceneGame()
 	player_y += player_vy;
 	s[0].x = 70;
 	s[0].y = player_y;
-//	float w = s[n].frame % (tex->getSize().Width / cx);
-//	float h = s[n].frame / (tex->getSize().Width / cy);
 	s[0].sx = (player_frame % (288/PLAYER_WIDTH)) *PLAYER_WIDTH;
 	s[0].sy = (player_frame % (256/PLAYER_HEIGHT)) *PLAYER_HEIGHT;
 	caSpriteRender(&s[0]);	// 移動
@@ -203,10 +184,7 @@ void SceneGame()
 		for (int i=0; i<ENEMY_MAX; i++) {
 			if (enemy[i].x < -ENEMY_WIDTH-SCREEN_WIDTH/2) {
 				enemy_frame[i] = enemy_time[i] = 0;
-				//enemy[i].x = SCREEN_WIDTH/2+30;
-				//enemy[i].y = rand(-SCREEN_HEIGHT/2, SCREEN_HEIGHT/2-ENEMY_HEIGHT);
 				enemy[i].x = SCREEN_WIDTH+30;
-				//enemy[i].y = rand() % (SCREEN_HEIGHT-ENEMY_HEIGHT) -SCREEN_HEIGHT/2;
 				enemy[i].y = rand() % SCREEN_HEIGHT/3 +SCREEN_HEIGHT/3;
 				break;
 			}
@@ -253,10 +231,6 @@ void SceneGame()
 				} else {
 					item_frame[i] = COIN_FRAME;
 				}
-//				float ux = (item_frame[i]%16)*1.0/16;
-//				float uy = (item_frame[i]/16)*1.0/5;
-//				item_sprt.setDataUV(i, ux, uy, ux+1.0/16, uy+1.0/5);
-//				item_sprt.dataPos(i).set(SCREEN_WIDTH/2+30, ckMath::rand(-SCREEN_HEIGHT/2, SCREEN_HEIGHT/2-ITEM_HEIGHT));
 				item[i].sx = ((item_frame[i]%16)*1.0/16) *256;
 				item[i].sy = ((item_frame[i]/16)*1.0/5) *80;
 				item[i].x = SCREEN_WIDTH+30;
@@ -294,6 +268,18 @@ void SceneGame()
 			ckSndMgr::play(TRACK_SE2, ckID_(SE_ITEM_GET), SE_VOL, false);
 		}*/
 	}
+
+	// スコア表示
+	if (score_plus>0) {
+		score_plus--;
+		score++;
+	}
+/*	char msg[256];
+	sprintf(msg, "SCORE: %d", score);
+	font.clear();
+	font.DrawString(-SCREEN_WIDTH/2+16, SCREEN_HEIGHT/2-16, msg); // 0,0
+	sprintf(msg, "%dm", game_frame*2);
+	font.DrawStringRight(SCREEN_WIDTH/2, SCREEN_HEIGHT/2-16, msg);*/
 
 	// ステージ処理
 	if (game_frame*2 >= 10000) {
@@ -396,6 +382,7 @@ void caInit(int w, int h)
 	pixelRatio = (float)width / (float)height;
 
 	vg = nvgCreate(NVG_ANTIALIAS);
+	caFontInit(vg);
 	caSpriteLoad(&s[0], IMAGE_PLAYER, vg);
 	s[0].w = s[0].sw = PLAYER_WIDTH;
 	s[0].h = s[0].sh = PLAYER_HEIGHT;
