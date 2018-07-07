@@ -79,6 +79,7 @@ int player_frame;		// アニメーション
 float /*player_vx,*/ player_vy;	// 移動速度
 float player_y;
 
+CATGL_SPRITE enemy[ENEMY_MAX];
 int enemy_frame[ENEMY_MAX];	// アニメーション
 int enemy_time[ENEMY_MAX];	// 存在時間
 
@@ -107,8 +108,6 @@ void (*Scene)();
 
 void SceneTitle()
 {
-	s[6].width  = s[6].w = 480./768*2048;
-	s[6].height = s[6].h = SCREEN_HEIGHT;
 	caSpriteRender(&s[6]);
 	s[7].x = width/2-196/2;
 	s[7].y = height/2-278/2;
@@ -175,24 +174,10 @@ void SceneGame()
 	// スクロール
 	bg_scroll += SCROLL_SPEED;
 	if (bg_scroll >= 1.0) bg_scroll = 0;
-	//s[stage+2].x = -bg_scroll*SCREEN_WIDTH;
 	s[stage+2].x = -bg_scroll*(480./768*2048);
-	s[stage+2].width  = s[stage+2].w = 480./768*2048;
-	s[stage+2].height = s[stage+2].h = SCREEN_HEIGHT;
 	caSpriteRender(&s[stage+2]);
 	s[stage+2].x = -bg_scroll*(480./768*2048) +480./768*2048;
 	caSpriteRender(&s[stage+2]);
-/*	if (bg_scroll+(float)SCREEN_WIDTH/BACKGROUND_WIDTH >= 1.0) {
-		float a = SCREEN_WIDTH * (bg_scroll-(1-(float)SCREEN_WIDTH/BACKGROUND_WIDTH)) * 1/((float)SCREEN_WIDTH/BACKGROUND_WIDTH);
-		//printf("%f\n", a);
-		s[stage+2].x = -a;
-		caSpriteRender(&s[stage+2]);
-		s[stage+2].x = SCREEN_WIDTH-a;
-		caSpriteRender(&s[stage+2]);
-	} else {
-		// 範囲をずらす
-//		bg_sprt.setDataUV(1, bg_scroll, 0.0f, bg_scroll+(float)SCREEN_WIDTH/BACKGROUND_WIDTH, 1);
-	}*/
 
 	// プレイヤー処理
 	player_vy += PLAYER_GRAVIRY;		// 重力
@@ -208,6 +193,54 @@ void SceneGame()
 	if (player_y + PLAYER_HEIGHT < -SCREEN_HEIGHT/2 || player_y > SCREEN_HEIGHT/*/2*/) {
 		//ckSndMgr::play(TRACK_BGM1, ckID_(BGM_GAMEOVER), BGM_VOL, false);
 		Scene = SceneGameOver;
+	}
+
+	// 敵を生成
+	if (game_frame % enemy_freq == 0) {
+		for (int i=0; i<ENEMY_MAX; i++) {
+			if (enemy[i].x < -ENEMY_WIDTH-SCREEN_WIDTH/2) {
+				enemy_frame[i] = enemy_time[i] = 0;
+				//enemy[i].x = SCREEN_WIDTH/2+30;
+				//enemy[i].y = rand(-SCREEN_HEIGHT/2, SCREEN_HEIGHT/2-ENEMY_HEIGHT);
+				enemy[i].x = SCREEN_WIDTH+30;
+				//enemy[i].y = rand() % (SCREEN_HEIGHT-ENEMY_HEIGHT) -SCREEN_HEIGHT/2;
+				enemy[i].y = rand() % SCREEN_HEIGHT -SCREEN_HEIGHT/3;
+				break;
+			}
+		}
+	}
+
+	for (int i=0; i<ENEMY_MAX; i++) {
+		if (enemy[i].x < -ENEMY_WIDTH-SCREEN_WIDTH/2) continue;
+
+		// 移動
+		enemy[i].x += ENEMY_SPEED;
+		enemy[i].y += cos(enemy_time[i]*4 % 180);
+
+		// フレームアニメーション
+		if (enemy_time[i] % 5 == 0) {
+			enemy_frame[i] += 1;
+			enemy_frame[i] %= 3;
+		}
+		float ux = (enemy_frame[i]%3)*1.0/3;
+		float uy = (enemy_frame[i]/3)*1.0/1;
+//		enemy_sprt.setDataUV(i, ux, uy, ux+1.0/3, uy+1.0/1);
+		caSpriteRender(&enemy[i]);
+
+		// プレイヤーとの衝突判定
+/*		if (intersect(&enemy_sprt.dataPos(i),
+			enemy_sprt.dataW(i)/3, enemy_sprt.dataH(i)/4,
+			  &player_sprt.dataPos(0),
+			      player_sprt.dataW(0), player_sprt.dataH(0))) {
+			// SE 再生
+			ckSndMgr::play(TRACK_SE2, ckID_(SE_PYUU), SE_VOL, false);
+			//ckSndMgr::fadeTrackVolume(TRACK_BGM1, 0, 40);
+			ckSndMgr::play(TRACK_BGM1, ckID_(BGM_GAMEOVER), BGM_VOL, false);
+			Scene = &Game::SceneGameOver;
+		}*/
+
+		// タイムを進める
+		enemy_time[i]++;
 	}
 
 	// ステージ処理
@@ -230,9 +263,19 @@ void SceneGameInit()
 {
 //	Init();
 	bg_scroll = 0;
+
+	// プレイヤー
 	player_frame = 0;
 	player_vy = 0;
 	player_y = 0;
+
+	// 敵
+	for (int i=0; i<ENEMY_MAX; i++) {
+		enemy[i] = s[1];
+		/*enemy_sprt.setDataSize(i, ENEMY_WIDTH, ENEMY_HEIGHT);
+		enemy_sprt.setDataUV(i, 0.0f, 0.0f, 1.0/3, 1.0);*/
+		enemy_frame[i] = 0;
+	}
 
 	// 全体
 	score = 0;
@@ -301,15 +344,24 @@ void caInit(int w, int h)
 	s[0].w = PLAYER_WIDTH;
 	s[0].h = PLAYER_HEIGHT;
 	caSpriteLoad(&s[1], IMAGE_ENEMY, vg);
+	s[1].x = -ENEMY_WIDTH-SCREEN_WIDTH/2;
 	s[1].w = ENEMY_WIDTH;
 	s[1].h = ENEMY_HEIGHT;
 	caSpriteLoad(&s[2], IMAGE_ITEM, vg);
 	s[2].w = ITEM_WIDTH;
 	s[2].h = ITEM_HEIGHT;
 	caSpriteLoad(&s[3], IMAGE_BACKGROUND, vg);
+	s[3].width  = s[3].w = 480./768*2048;
+	s[3].height = s[3].h = SCREEN_HEIGHT;
 	caSpriteLoad(&s[4], IMAGE_BACKGROUND2, vg);
+	s[4].width  = s[4].w = 480./768*2048;
+	s[4].height = s[4].h = SCREEN_HEIGHT;
 	caSpriteLoad(&s[5], IMAGE_BACKGROUND3, vg);
+	s[5].width  = s[5].w = 480./768*2048;
+	s[5].height = s[5].h = SCREEN_HEIGHT;
 	caSpriteLoad(&s[6], IMAGE_BACKGROUND4, vg);
+	s[6].width  = s[6].w = 480./768*2048;
+	s[6].height = s[6].h = SCREEN_HEIGHT;
 	caSpriteLoad(&s[7], IMAGE_TITLE, vg);
 
 	score = 0;
