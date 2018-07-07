@@ -171,8 +171,7 @@ CATGL_FONTRECT rect[] = {
 0, 0, 0, 0, 0
 };
 
-CATGL_SPRITE c_fontset[2]/*, c_font[MAX_STRING]*/;
-//short n[3];
+CATGL_SPRITE c_fontset[2];
 short font_time[MAX_STRING]/*, font_timeP[MAX_STRING]*/;
 char type[MAX_STRING];	// エフェクトタイプ
 
@@ -181,7 +180,6 @@ void caFontInit(NVGcontext *vg)
 	caSpriteLoad(&c_fontset[0], IMAGE_FONT, vg);
 	c_fontset[0].w = c_fontset[0].sw = 16;
 	c_fontset[0].h = c_fontset[0].sh = 16;
-//	for (int i=0; i<MAX_STRING; i++) c_font[i] = c_fontset[0];
 }
 
 // 指定のキャラクターの範囲を返す(Nora Games)
@@ -217,7 +215,6 @@ void getRectWithASCII(char ascii, float *r)
 
 void drawString(char *s, float x, float y, float sx, float sy)
 {
-//	n[0] = 0;
 	sx = sx ? sx : 16;
 	sy = sy ? sy : 16;
 	CATGL_SPRITE f = c_fontset[0];
@@ -225,17 +222,6 @@ void drawString(char *s, float x, float y, float sx, float sy)
 		if (*s != ' ') {
 			float r[4];
 			getRectWithASCII(*s, r);
-#if 0
-			c_font[n[0]].x = x;
-			c_font[n[0]].y = y;
-			c_font[n[0]].sx = r[0]*256;
-			c_font[n[0]].sy = r[1]*192;
-//			sprt.setDataSize(/*i*/n[0], /*16*/sx, /*16*/sy);
-//			sprt.setDataUV(/*i*/n[0], r[0], r[1], r[2], r[3]);
-			caSpriteRender(&c_font[n[0]]);
-			n[0]++;
-#endif
-
 			f.x = x;
 			f.y = y;
 			f.sx = r[0]*256;
@@ -245,6 +231,10 @@ void drawString(char *s, float x, float y, float sx, float sy)
 		s++;
 		x += sx;
 	}
+}
+void drawStringCenter(char *s, float y, float sx, float sy)
+{
+	drawString(s, -sx/2.0*strlen(s), y, sx, sy);
 }
 
 #if 0

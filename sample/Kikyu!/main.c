@@ -117,7 +117,7 @@ void SceneTitle()
 	s[7].y = height/2-278/2;
 	caSpriteRender(&s[7]);
 
-	drawString("Kikyu!", 64, 0, 0, 0);
+	drawStringCenter("Kikyu!", 64, 0, 0, 0);
 
 	// 消す
 /*	Init();
