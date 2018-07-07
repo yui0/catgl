@@ -107,6 +107,8 @@ void (*Scene)();
 
 void SceneTitle()
 {
+	s[6].width  = s[6].w = 480./768*2048;
+	s[6].height = s[6].h = SCREEN_HEIGHT;
 	caSpriteRender(&s[6]);
 	s[7].x = width/2-196/2;
 	s[7].y = height/2-278/2;
@@ -173,8 +175,24 @@ void SceneGame()
 	// スクロール
 	bg_scroll += SCROLL_SPEED;
 	if (bg_scroll >= 1.0) bg_scroll = 0;
-	s[3].x = -bg_scroll*SCREEN_WIDTH;
-	caSpriteRender(&s[3]);
+	//s[stage+2].x = -bg_scroll*SCREEN_WIDTH;
+	s[stage+2].x = -bg_scroll*(480./768*2048);
+	s[stage+2].width  = s[stage+2].w = 480./768*2048;
+	s[stage+2].height = s[stage+2].h = SCREEN_HEIGHT;
+	caSpriteRender(&s[stage+2]);
+	s[stage+2].x = -bg_scroll*(480./768*2048) +480./768*2048;
+	caSpriteRender(&s[stage+2]);
+/*	if (bg_scroll+(float)SCREEN_WIDTH/BACKGROUND_WIDTH >= 1.0) {
+		float a = SCREEN_WIDTH * (bg_scroll-(1-(float)SCREEN_WIDTH/BACKGROUND_WIDTH)) * 1/((float)SCREEN_WIDTH/BACKGROUND_WIDTH);
+		//printf("%f\n", a);
+		s[stage+2].x = -a;
+		caSpriteRender(&s[stage+2]);
+		s[stage+2].x = SCREEN_WIDTH-a;
+		caSpriteRender(&s[stage+2]);
+	} else {
+		// 範囲をずらす
+//		bg_sprt.setDataUV(1, bg_scroll, 0.0f, bg_scroll+(float)SCREEN_WIDTH/BACKGROUND_WIDTH, 1);
+	}*/
 
 	// プレイヤー処理
 	player_vy += PLAYER_GRAVIRY;		// 重力
@@ -190,6 +208,22 @@ void SceneGame()
 	if (player_y + PLAYER_HEIGHT < -SCREEN_HEIGHT/2 || player_y > SCREEN_HEIGHT/*/2*/) {
 		//ckSndMgr::play(TRACK_BGM1, ckID_(BGM_GAMEOVER), BGM_VOL, false);
 		Scene = SceneGameOver;
+	}
+
+	// ステージ処理
+	if (game_frame*2 >= 10000) {
+		game_frame = 0;
+		stage++;
+		switch (stage) {
+		case 2:
+			enemy_freq = 50;
+			break;
+		case 3:
+			enemy_freq = 40;
+			break;
+		case 4:
+			enemy_freq = 30;
+		}
 	}
 }
 void SceneGameInit()
