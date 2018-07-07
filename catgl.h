@@ -218,8 +218,10 @@ void (*caKeyEvent)(int key, int action);
 
 typedef struct {
 	int handle;
-	int x, y, w, h;
-	int width;
+	float a;		// alpha
+	float x, y, w, h;	// position and size of the sprite rectangle on screen
+	float sx, sy, sw, sh;	// sprite location on texture
+	int width;		// image size
 	int height;
 	NVGcontext *c;
 	NVGpaint pattern;
@@ -229,13 +231,19 @@ void caSpriteLoad(CATGL_SPRITE *s, char *name, NVGcontext *vg)
 	s->c = vg;
 	s->handle = nvgCreateImage(s->c, CATGL_ASSETS(name), 0);
 	nvgImageSize(s->c, s->handle, &s->width, &s->height);
-	s->x = s->y = 0;
-	s->w = s->width;
-	s->h = s->height;
+	s->x = s->y = s->sx = s->sy = 0;
+	s->w = s->sw = s->width;
+	s->h = s->sh = s->height;
+	s->a = 1;
 }
 void caSpriteRender(CATGL_SPRITE *s)
 {
-	s->pattern = nvgImagePattern(s->c, s->x, s->y, s->width, s->height, 0, s->handle, 1);
+	// Aspect ration of pixel in x an y dimensions. This allows us to scale
+	// the sprite to fill the whole rectangle.
+	float ax = s->w / s->sw;
+	float ay = s->h / s->sh;
+	s->pattern = nvgImagePattern(s->c, s->x -s->sx*ax, s->y -s->sy*ay, s->width*ax, s->height*ay, 0, s->handle, s->a);
+//	s->pattern = nvgImagePattern(s->c, s->x, s->y, s->width, s->height, 0, s->handle, 1);
 	nvgBeginPath(s->c);
 	nvgRect(s->c, s->x, s->y, s->w, s->h);
 	nvgFillPaint(s->c, s->pattern);

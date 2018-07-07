@@ -176,7 +176,7 @@ void SceneGame()
 	if (bg_scroll >= 1.0) bg_scroll = 0;
 	s[stage+2].x = -bg_scroll*(480./768*2048);
 	caSpriteRender(&s[stage+2]);
-	s[stage+2].x = -bg_scroll*(480./768*2048) +480./768*2048;
+	s[stage+2].x = -bg_scroll*(480./768*2048) +480./768*2048 -1;
 	caSpriteRender(&s[stage+2]);
 
 	// プレイヤー処理
@@ -204,12 +204,11 @@ void SceneGame()
 				//enemy[i].y = rand(-SCREEN_HEIGHT/2, SCREEN_HEIGHT/2-ENEMY_HEIGHT);
 				enemy[i].x = SCREEN_WIDTH+30;
 				//enemy[i].y = rand() % (SCREEN_HEIGHT-ENEMY_HEIGHT) -SCREEN_HEIGHT/2;
-				enemy[i].y = rand() % SCREEN_HEIGHT -SCREEN_HEIGHT/3;
+				enemy[i].y = rand() % SCREEN_HEIGHT/3 +SCREEN_HEIGHT/3;
 				break;
 			}
 		}
 	}
-
 	for (int i=0; i<ENEMY_MAX; i++) {
 		if (enemy[i].x < -ENEMY_WIDTH-SCREEN_WIDTH/2) continue;
 
@@ -223,8 +222,9 @@ void SceneGame()
 			enemy_frame[i] %= 3;
 		}
 		float ux = (enemy_frame[i]%3)*1.0/3;
-		float uy = (enemy_frame[i]/3)*1.0/1;
-//		enemy_sprt.setDataUV(i, ux, uy, ux+1.0/3, uy+1.0/1);
+//		float uy = (enemy_frame[i]/3)*1.0/1;
+		enemy[i].sx = ux *96;
+		//enemy[i].sy = uy *32;
 		caSpriteRender(&enemy[i]);
 
 		// プレイヤーとの衝突判定
@@ -341,27 +341,27 @@ void caInit(int w, int h)
 
 	vg = nvgCreate(NVG_ANTIALIAS);
 	caSpriteLoad(&s[0], IMAGE_PLAYER, vg);
-	s[0].w = PLAYER_WIDTH;
-	s[0].h = PLAYER_HEIGHT;
+	s[0].w = s[0].sw = PLAYER_WIDTH;
+	s[0].h = s[0].sh = PLAYER_HEIGHT;
 	caSpriteLoad(&s[1], IMAGE_ENEMY, vg);
 	s[1].x = -ENEMY_WIDTH-SCREEN_WIDTH/2;
-	s[1].w = ENEMY_WIDTH;
-	s[1].h = ENEMY_HEIGHT;
+	s[1].w = s[1].sw = ENEMY_WIDTH;
+	s[1].h = s[1].sh = ENEMY_HEIGHT;
 	caSpriteLoad(&s[2], IMAGE_ITEM, vg);
-	s[2].w = ITEM_WIDTH;
-	s[2].h = ITEM_HEIGHT;
+	s[2].w = s[2].sw = ITEM_WIDTH;
+	s[2].h = s[2].sh = ITEM_HEIGHT;
 	caSpriteLoad(&s[3], IMAGE_BACKGROUND, vg);
-	s[3].width  = s[3].w = 480./768*2048;
-	s[3].height = s[3].h = SCREEN_HEIGHT;
+	s[3].width  = s[3].w = s[3].sw = 480./768*2048;
+	s[3].height = s[3].h = s[3].sh = SCREEN_HEIGHT;
 	caSpriteLoad(&s[4], IMAGE_BACKGROUND2, vg);
-	s[4].width  = s[4].w = 480./768*2048;
-	s[4].height = s[4].h = SCREEN_HEIGHT;
+	s[4].width  = s[4].w = s[4].sw = 480./768*2048;
+	s[4].height = s[4].h = s[4].sh = SCREEN_HEIGHT;
 	caSpriteLoad(&s[5], IMAGE_BACKGROUND3, vg);
-	s[5].width  = s[5].w = 480./768*2048;
-	s[5].height = s[5].h = SCREEN_HEIGHT;
+	s[5].width  = s[5].w = s[5].sw = 480./768*2048;
+	s[5].height = s[5].h = s[5].sh = SCREEN_HEIGHT;
 	caSpriteLoad(&s[6], IMAGE_BACKGROUND4, vg);
-	s[6].width  = s[6].w = 480./768*2048;
-	s[6].height = s[6].h = SCREEN_HEIGHT;
+	s[6].width  = s[6].w = s[6].sw = 480./768*2048;
+	s[6].height = s[6].h = s[6].sh = SCREEN_HEIGHT;
 	caSpriteLoad(&s[7], IMAGE_TITLE, vg);
 
 	score = 0;
