@@ -218,6 +218,7 @@ void (*caKeyEvent)(int key, int action);
 
 typedef struct {
 	int handle;
+	int x, y, w, h;
 	int width;
 	int height;
 	NVGcontext *c;
@@ -228,15 +229,15 @@ void caSpriteLoad(CATGL_SPRITE *s, char *name, NVGcontext *vg)
 	s->c = vg;
 	s->handle = nvgCreateImage(s->c, CATGL_ASSETS(name), 0);
 	nvgImageSize(s->c, s->handle, &s->width, &s->height);
+	s->x = s->y = 0;
+	s->w = s->width;
+	s->h = s->height;
 }
-void caSpriteRender(CATGL_SPRITE *s, int x, int y, int w, int h)
+void caSpriteRender(CATGL_SPRITE *s)
 {
-	if (!w) w = s->width;
-	if (!h) h = s->height;
-
-	s->pattern = nvgImagePattern(s->c, x, y, s->width, s->height, 0, s->handle, 1);
+	s->pattern = nvgImagePattern(s->c, s->x, s->y, s->width, s->height, 0, s->handle, 1);
 	nvgBeginPath(s->c);
-	nvgRect(s->c, x, y, w, h);
+	nvgRect(s->c, s->x, s->y, s->w, s->h);
 	nvgFillPaint(s->c, s->pattern);
 	nvgFill(s->c);
 }

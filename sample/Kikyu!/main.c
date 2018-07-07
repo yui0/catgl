@@ -107,8 +107,10 @@ void (*Scene)();
 
 void SceneTitle()
 {
-	caSpriteRender(&s[6], 0, 0, 0, 0);
-	caSpriteRender(&s[7], width/2-196/2, height/2-278/2, 0, 0);
+	caSpriteRender(&s[6]);
+	s[7].x = width/2-196/2;
+	s[7].y = height/2-278/2;
+	caSpriteRender(&s[7]);
 
 /*	// 消す
 	Init();
@@ -171,13 +173,15 @@ void SceneGame()
 	// スクロール
 	bg_scroll += SCROLL_SPEED;
 	if (bg_scroll >= 1.0) bg_scroll = 0;
-	caSpriteRender(&s[3], -bg_scroll*SCREEN_WIDTH, 0, 0, 0);
+	s[3].x = -bg_scroll*SCREEN_WIDTH;
+	caSpriteRender(&s[3]);
 
 	// プレイヤー処理
 	player_vy += PLAYER_GRAVIRY;		// 重力
 	player_y += player_vy;
-	//caSpriteRender(&s[0], 70, player_y);	// 移動
-	caSpriteRender(&s[0], 70, player_y, PLAYER_WIDTH, PLAYER_HEIGHT);
+	s[0].x = 70;
+	s[0].y = player_y;
+	caSpriteRender(&s[0]);	// 移動
 
 	// フレームアニメーション
 	player_frame = game_frame/4 % 24;
@@ -260,8 +264,14 @@ void caInit(int w, int h)
 
 	vg = nvgCreate(NVG_ANTIALIAS);
 	caSpriteLoad(&s[0], IMAGE_PLAYER, vg);
+	s[0].w = PLAYER_WIDTH;
+	s[0].h = PLAYER_HEIGHT;
 	caSpriteLoad(&s[1], IMAGE_ENEMY, vg);
+	s[1].w = ENEMY_WIDTH;
+	s[1].h = ENEMY_HEIGHT;
 	caSpriteLoad(&s[2], IMAGE_ITEM, vg);
+	s[2].w = ITEM_WIDTH;
+	s[2].h = ITEM_HEIGHT;
 	caSpriteLoad(&s[3], IMAGE_BACKGROUND, vg);
 	caSpriteLoad(&s[4], IMAGE_BACKGROUND2, vg);
 	caSpriteLoad(&s[5], IMAGE_BACKGROUND3, vg);
@@ -296,8 +306,6 @@ void caRender()
 
 	nvgBeginFrame(vg, width, height, pixelRatio);
 	Scene();
-//	static int x = 0; x++; x = x>width ? 0: x;
-//	caSpriteRender(&s[0], x, sin(x/10.)*height/2+height/2, 0, 0);
 	nvgEndFrame(vg);
 }
 

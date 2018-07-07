@@ -64,7 +64,9 @@ void caRender()
 
 	static int x = 0; x++; x = x>width ? 0: x;
 	nvgBeginFrame(vg, width, height, pixelRatio);
-	caSpriteRender(&s, x, sin_fast(x/10.)*height/2+height/2, 0, 0);
+	s.x = x;
+	s.y = sin_fast(x/10.)*height/2+height/2;
+	caSpriteRender(&s);
 	nvgEndFrame(vg);
 }
 
