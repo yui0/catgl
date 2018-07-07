@@ -1,13 +1,14 @@
 //---------------------------------------------------------
 //	catgl
 //
-//		©2015 Yuichiro Nakada
+//		©2015,2018 Yuichiro Nakada
 //---------------------------------------------------------
 
 #define GLFW_INCLUDE_GLU
 #include <GLFW/glfw3.h>
 
 #ifndef SCREEN_WIDTH
+#define SCREEN_TITLE	"Catgl"
 #define SCREEN_WIDTH	1280
 #define SCREEN_HEIGHT	720
 #endif
@@ -83,7 +84,7 @@ int main()
 	//glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 	//glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-	window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Catgl", 0, 0);
+	window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE, 0, 0);
 	if (!window) {
 		//printf("Error at glfwCreateWindow!\n");
 		glfwTerminate();
