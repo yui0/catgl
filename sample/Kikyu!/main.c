@@ -128,6 +128,7 @@ void SceneTitle()
 
 void SceneGameOver()
 {
+	drawStringCenter("Game Over", 16, 32, 32);
 /*	font.clear();
 	font.DrawStringCenter(16, (char*)"Game Over", 32, 32);
 	char msg[256];
@@ -138,9 +139,9 @@ void SceneGameOver()
 
 	if (ckKeyMgr::isPressed(ckKeyMgr::KEY_ENTER) || ckKeyMgr::isPressed(ckKeyMgr::KEY_LBUTTON)) {
 		SceneTitleInit();
-	}*/
+	}
 
-	Scene = SceneTitle;
+	Scene = SceneTitle;*/
 }
 
 void SceneGame()
@@ -324,29 +325,34 @@ void SceneGameInit()
 void keyEvent(int key, int action)
 {
 	if (action == CATGL_ACTION_DOWN) {
-		switch (key) {
-		case CATGL_KEY_UP:	// ジャンプ
-			player_vy = PLAYER_JUMP;
-//			ckSndMgr::play(TRACK_SE1, ckID_(SE_JUMP), SE_VOL, false);
+		switch (Scene) {
+		case SceneTitle:
+			switch (key) {
+			case CATGL_KEY_P:	// title
+				Scene = SceneGameInit;
+				break;
+			}
 			break;
 
-		case CATGL_KEY_P:	// title
-			if (Scene == SceneTitle) Scene = SceneGameInit;
+		case SceneGame:
+			switch (key) {
+			case CATGL_KEY_UP:	// ジャンプ
+				player_vy = PLAYER_JUMP;
+//				ckSndMgr::play(TRACK_SE1, ckID_(SE_JUMP), SE_VOL, false);
+				break;
+			}
+			break;
+
+		case SceneGameOver:
+			switch (key) {
+			case CATGL_KEY_P:	// title
+				Scene = SceneTitle;
+				break;
+			}
 			break;
 		}
 	}
 }
-/*void keyEventTitle(int key, int action)
-{
-	if (action == CATGL_ACTION_DOWN) {
-		switch (key) {
-		case CATGL_KEY_P:
-			Scene = SceneGameInit;
-			caKeyEvent = keyEvent;
-			break;
-		}
-	}
-}*/
 void mouseEvent(int button, int action, int x, int y)
 {
 	if (action == CATGL_ACTION_DOWN) {
