@@ -118,19 +118,12 @@ void SceneTitle()
 	caSpriteRender(&s[7]);
 
 	drawStringCenter("Kikyu!", 160, 0, 0);
-	drawPStringCenter("♥キキュウ♥Aeronaut!", 180);
-
-	drawPString("Kikyu!", 100, 200);
+	drawPStringCenter("♥キキュウ♥Aeronaut!", 140);
+	drawPStringCenter("Press Return to Embark", SCREEN_HEIGHT/2+150);
+	drawPStringCenter("(C)2013,2018 YUICHIRO NAKADA", SCREEN_HEIGHT/2+190);
 
 	// 消す
-/*	Init();
-	// タイトル
-	font.DrawStringCenter(64, (char*)"Kikyu!"); +96
-	font.DrawPStringCenter(84, (char*)"♥キキュウ♥Aeronaut!");
-	font.DrawPStringCenter(-SCREEN_HEIGHT/2+80, (char*)"Press Return to Embark");
-	font.DrawPStringCenter(-SCREEN_HEIGHT/2+40, (char*)"(C)2013 YUICHIRO NAKADA");
-
-	Scene = &Game::SceneTitle;*/
+//	Init();
 }
 
 void SceneGameOver()

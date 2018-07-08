@@ -227,6 +227,8 @@ void drawString(char *s, float x, float y, float sx, float sy)
 			f.y = y;
 			f.sx = r[0];
 			f.sy = r[1];
+			f.w = sx;
+			f.h = sy;
 			caSpriteRender(&f);
 		}
 		s++;
@@ -259,7 +261,6 @@ int drawPString(char *s, float x, float y)
 	CATGL_SPRITE f = c_fontset[1];
 	while (*s) {
 		unsigned short *r = getRectWithString(s, &s);
-		//s++;
 		if (!r) {
 			x += 16;
 		} else {
@@ -268,17 +269,16 @@ int drawPString(char *s, float x, float y)
 			f.y = y;
 			f.sx = r[0];
 			f.sy = r[1];
-			f.w = f.sw = r[2];
-			f.h = f.sh = r[3];
+			f.sw = r[2] -1;
+			f.sh = r[3] -1;
+			f.w = r[2]*2;
+			f.h = r[3]*2;
 			caSpriteRender(&f);
-//			sprtP.dataPos(n[1]).set(x, y);
-//			sprtP.setDataSize(n[1], r[2]*2, r[3]*2);
-//			sprtP.setDataUV(n[1], r[0]/128.0, r[1]/128.0, (r[0]+r[2])/128.0, (r[1]+r[3])/128.0);
-//			n[1]++;
-			x += r[2]*2;
+			x += r[2]*2 +1;
 		}
 	}
-	return x;
+//	return f.x;
+	return x+100;
 }
 void drawPStringCenter(char *s, float y)
 {
