@@ -85,7 +85,7 @@ mal_uint32 on_send_frames_to_device(mal_device* pDevice, mal_uint32 frameCount, 
 #define BGM_STAGE2		"bgm_maoudamashii_4_vehicle01.mp3"
 #define BGM_STAGE3		"bgm_maoudamashii_4_vehicle02.mp3"
 #define BGM_STAGE4		"bgm_maoudamashii_3_theme09.mp3"
-#define BGM_TITLE		"song_shiho_shining_star.mp3"
+#define BGM_TITLE		"song_shiho_shining_star.mp3" // https://maoudamashii.jokersounds.com/archives/song_shiho_shining_star.html
 //#define BGM_STAGE1		"arasuji_03.mp3"
 //#define BGM_GAMESTART		"bgm_gamestart_1.wav"
 #define BGM_GAMEOVER		"bgm_gameover_1.mp3"
