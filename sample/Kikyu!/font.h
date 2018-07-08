@@ -241,6 +241,12 @@ void drawStringCenter(char *s, float y, float sx, float sy)
 	sy = sy ? sy : 16;
 	drawString(s, SCREEN_WIDTH/2 -sx/2.0*strlen(s), y, sx, sy);
 }
+void drawStringRight(char *s, float x, float y, float sx, float sy)
+{
+	sx = sx ? sx : 16;
+	sy = sy ? sy : 16;
+	drawString(s, x+SCREEN_WIDTH/2 -sx*strlen(s), y, sx, sy);
+}
 
 unsigned short *getRectWithString(char *c, char **s)
 {

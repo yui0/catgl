@@ -128,20 +128,16 @@ void SceneTitle()
 
 void SceneGameOver()
 {
-	drawStringCenter("Game Over", 16, 32, 32);
-/*	font.clear();
-	font.DrawStringCenter(16, (char*)"Game Over", 32, 32);
+//	caSpriteRender(&s[stage+2]);
+//	caSpriteRender(&s[stage+2]);
+//	caSpriteRender(&s[0]);
+
+	drawStringCenter("Game Over", SCREEN_HEIGHT/2-16, 32, 32);
 	char msg[256];
 	sprintf(msg, "SCORE: %d", score);
-	font.DrawString(-SCREEN_WIDTH/2+16, SCREEN_HEIGHT/2-16, msg); // 0,0
+	drawString(msg, 8, 8, 0, 0);
 	sprintf(msg, "%dm", game_frame*2);
-	font.DrawStringRight(SCREEN_WIDTH/2, SCREEN_HEIGHT/2-16, msg);
-
-	if (ckKeyMgr::isPressed(ckKeyMgr::KEY_ENTER) || ckKeyMgr::isPressed(ckKeyMgr::KEY_LBUTTON)) {
-		SceneTitleInit();
-	}
-
-	Scene = SceneTitle;*/
+	drawStringRight(msg, SCREEN_WIDTH/2-8, 8, 0, 0);
 }
 
 void SceneGame()
@@ -267,12 +263,11 @@ void SceneGame()
 		score_plus--;
 		score++;
 	}
-/*	char msg[256];
+	char msg[256];
 	sprintf(msg, "SCORE: %d", score);
-	font.clear();
-	font.DrawString(-SCREEN_WIDTH/2+16, SCREEN_HEIGHT/2-16, msg); // 0,0
+	drawString(msg, 8, 8, 0, 0);
 	sprintf(msg, "%dm", game_frame*2);
-	font.DrawStringRight(SCREEN_WIDTH/2, SCREEN_HEIGHT/2-16, msg);*/
+	drawStringRight(msg, SCREEN_WIDTH/2-8, 8, 0, 0);
 
 	// ステージ処理
 	if (game_frame*2 >= 10000) {
@@ -325,31 +320,25 @@ void SceneGameInit()
 void keyEvent(int key, int action)
 {
 	if (action == CATGL_ACTION_DOWN) {
-		switch (Scene) {
-		case SceneTitle:
+		if (Scene == SceneTitle) {
 			switch (key) {
 			case CATGL_KEY_P:	// title
 				Scene = SceneGameInit;
 				break;
 			}
-			break;
-
-		case SceneGame:
+		} else if (Scene == SceneGame) {
 			switch (key) {
 			case CATGL_KEY_UP:	// ジャンプ
 				player_vy = PLAYER_JUMP;
 //				ckSndMgr::play(TRACK_SE1, ckID_(SE_JUMP), SE_VOL, false);
 				break;
 			}
-			break;
-
-		case SceneGameOver:
+		} else if (Scene == SceneGameOver) {
 			switch (key) {
 			case CATGL_KEY_P:	// title
 				Scene = SceneTitle;
 				break;
 			}
-			break;
 		}
 	}
 }
@@ -358,6 +347,7 @@ void mouseEvent(int button, int action, int x, int y)
 	if (action == CATGL_ACTION_DOWN) {
 		if (Scene == SceneTitle) Scene = SceneGameInit;
 		if (Scene == SceneGame) player_vy = PLAYER_JUMP;
+		if (Scene == SceneGameOver) Scene = SceneTitle;
 	}
 /*	static int lx, ly;
 	if (action == CATGL_ACTION_DOWN) {
