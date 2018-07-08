@@ -172,8 +172,8 @@ CATGL_FONTRECT rect[] = {
 };
 
 CATGL_SPRITE c_fontset[2];
-short font_time[MAX_STRING]/*, font_timeP[MAX_STRING]*/;
-char type[MAX_STRING];	// エフェクトタイプ
+//short font_time[MAX_STRING]/*, font_timeP[MAX_STRING]*/;
+//char type[MAX_STRING];	// エフェクトタイプ
 
 void caFontInit(NVGcontext *vg)
 {
@@ -291,11 +291,12 @@ void drawPStringCenter(char *s, float y)
 	float x = drawPString(s, -100, -100);
 	drawPString(s, SCREEN_WIDTH/2 -x/2, y);
 }
+/*int drawEString(char *s, float x, float y, int t)
+{
+//	sx = sx ? sx : 16;
+}*/
 
 #if 0
-void DrawStringRight(float x, float y, char *s, float sx=16, float sy=16) {
-	DrawString(x-sx*strlen(s), y, s);
-}
 void DrawEString(float x, float y, char *s, int t=-1) {
 	if (n[2]>=MAX_STRING-10) n[2]=0;
 	while (*s) {

@@ -11,7 +11,35 @@
 #define SCREEN_HEIGHT		480
 #include "catgl.h"
 #include "font.h"
+
+#define DR_MP3_IMPLEMENTATION
+#include "dr_mp3.h"
 #include <time.h>
+#define MINI_AL_IMPLEMENTATION
+#include <alloca.h>
+#if /*defined(__MACH__) &&*/ !defined(CLOCK_REALTIME)
+#include <sys/time.h>
+#define CLOCK_REALTIME 0
+// clock_gettime is not implemented on older versions of OS X (< 10.12).
+// If implemented, CLOCK_REALTIME will have already been defined.
+int clock_gettime(int clk_id, struct timespec* t)
+{
+	struct timeval now;
+	int rv = gettimeofday(&now, NULL);
+	if (rv) return rv;
+	t->tv_sec  = now.tv_sec;
+	t->tv_nsec = now.tv_usec * 1000;
+	return 0;
+}
+#endif
+#include "mini_al.h"
+// This is the function that's used for sending more data to the device for playback.
+mal_uint32 on_send_frames_to_device(mal_device* pDevice, mal_uint32 frameCount, void* pSamples)
+{
+	mal_decoder* pDecoder = (mal_decoder*)pDevice->pUserData;
+	if (pDecoder == NULL) return 0;
+	return (mal_uint32)mal_decoder_read(pDecoder, frameCount, pSamples);
+}
 
 // プレイヤー
 #define PLAYER_WIDTH		48	// 幅
@@ -57,6 +85,7 @@
 #define BGM_STAGE2		"bgm_maoudamashii_4_vehicle01.mp3"
 #define BGM_STAGE3		"bgm_maoudamashii_4_vehicle02.mp3"
 #define BGM_STAGE4		"bgm_maoudamashii_3_theme09.mp3"
+#define BGM_TITLE		"song_shiho_shining_star.mp3"
 //#define BGM_STAGE1		"arasuji_03.mp3"
 //#define BGM_GAMESTART		"bgm_gamestart_1.wav"
 #define BGM_GAMEOVER		"bgm_gameover_1.mp3"
@@ -86,26 +115,15 @@ int enemy_time[ENEMY_MAX];	// 存在時間
 CATGL_SPRITE item[ITEM_MAX];
 int item_frame[ITEM_MAX];		// アニメーション
 
-NVGcontext* vg;
-int width, height;
-float pixelRatio;
-
 CATGL_SPRITE s[10];
 void (*Scene)();
 
-/*int intersect(ckVec *a, r32 aw, r32 ah, ckVec *b, r32 bw, r32 bh) {
-	aw /= 2;
-	ah /= 2;
-	bw /= 2;
-	bh /= 2;
-	if (b->x-bw <= a->x+aw && b->y-bh <= a->y+ah && b->x+bw >= a->x-aw && b->y+bh >= a->y-ah) {
-	//if (b->x <= a->x+aw && b->y <= a->y+ah && b->x+bw >= a->x && b->y+bh >= a->y) {
-//		printf("(%f,%f)-(%f,%f) (%f,%f)-(%f,%f)\n", a->x, a->y, aw, ah, b->x, b->y, bw, bh);
-		return 1;
-	} else {
-		return 0;
-	}
-}*/
+mal_decoder decoder[10];
+mal_device device;
+
+NVGcontext* vg;
+int width, height;
+float pixelRatio;
 
 void SceneTitle()
 {
@@ -122,8 +140,7 @@ void SceneTitle()
 	drawPStringCenter("Press Return to Embark", SCREEN_HEIGHT/2+150);
 	drawPStringCenter("(C)2013,2018 YUICHIRO NAKADA", SCREEN_HEIGHT/2+190);
 
-	// 消す
-//	Init();
+	mal_device_start(&device);
 }
 
 void SceneGameOver()
@@ -133,6 +150,8 @@ void SceneGameOver()
 //	caSpriteRender(&s[0]);
 
 	drawStringCenter("Game Over", SCREEN_HEIGHT/2-16, 32, 32);
+
+	// スコア表示
 	char msg[256];
 	sprintf(msg, "SCORE: %d", score);
 	drawString(msg, 8, 8, 0, 0);
@@ -195,16 +214,13 @@ void SceneGame()
 		caSpriteRender(&enemy[i]);
 
 		// プレイヤーとの衝突判定
-/*		if (intersect(&enemy_sprt.dataPos(i),
-			enemy_sprt.dataW(i)/3, enemy_sprt.dataH(i)/4,
-			  &player_sprt.dataPos(0),
-			      player_sprt.dataW(0), player_sprt.dataH(0))) {
+		if (caSpriteIntersect(&enemy[i], &s[0])) {
 			// SE 再生
-			ckSndMgr::play(TRACK_SE2, ckID_(SE_PYUU), SE_VOL, false);
+//			ckSndMgr::play(TRACK_SE2, ckID_(SE_PYUU), SE_VOL, false);
 			//ckSndMgr::fadeTrackVolume(TRACK_BGM1, 0, 40);
-			ckSndMgr::play(TRACK_BGM1, ckID_(BGM_GAMEOVER), BGM_VOL, false);
-			Scene = &Game::SceneGameOver;
-		}*/
+//			ckSndMgr::play(TRACK_BGM1, ckID_(BGM_GAMEOVER), BGM_VOL, false);
+			Scene = SceneGameOver;
+		}
 
 		// タイムを進める
 		enemy_time[i]++;
@@ -236,27 +252,25 @@ void SceneGame()
 		caSpriteRender(&item[i]);
 
 		// 衝突判定
-		/*if (intersect(&item_sprt.dataPos(i),
-			item_sprt.dataW(i), item_sprt.dataH(i),
-			  &player_sprt.dataPos(0),
-			      player_sprt.dataW(0), player_sprt.dataH(0))) {
+		if (caSpriteIntersect(&item[i], &s[0])) {
 			// 削除
-			item_sprt.dataPos(i).x = -ITEM_WIDTH-SCREEN_WIDTH/2-1;
+			item[i].x = -ITEM_WIDTH-SCREEN_WIDTH/2-1;
 			if (item_frame[i] == COIN_FRAME) {
 				// スコア加算
 				score += COIN_POINT -20;
 				score_plus += 20;
-				font.DrawEString(player_sprt.dataPos(0).x-PLAYER_WIDTH/2, player_sprt.dataPos(0).y, (char*)"+100", 50);
+//				font.DrawEString(player_sprt.dataPos(0).x-PLAYER_WIDTH/2, player_sprt.dataPos(0).y, (char*)"+100", 50);
 			} else {
 				// スコア加算
 				score += DIAMOND_POINT -40;
 				score_plus += 40;
-				font.DrawEString(player_sprt.dataPos(0).x-PLAYER_WIDTH/2, player_sprt.dataPos(0).y, (char*)"+1000", 50);
+//				font.DrawEString(player_sprt.dataPos(0).x-PLAYER_WIDTH/2, player_sprt.dataPos(0).y, (char*)"+1000", 50);
 			}
 			// SE 再生
-			ckSndMgr::play(TRACK_SE2, ckID_(SE_ITEM_GET), SE_VOL, false);
-		}*/
+//			ckSndMgr::play(TRACK_SE2, ckID_(SE_ITEM_GET), SE_VOL, false);
+		}
 	}
+	//effect();
 
 	// スコア表示
 	if (score_plus>0) {
@@ -349,16 +363,6 @@ void mouseEvent(int button, int action, int x, int y)
 		if (Scene == SceneGame) player_vy = PLAYER_JUMP;
 		if (Scene == SceneGameOver) Scene = SceneTitle;
 	}
-/*	static int lx, ly;
-	if (action == CATGL_ACTION_DOWN) {
-		lx = x;
-		ly = y;
-	} else if (action == CATGL_ACTION_MOVE && lx>0) {
-		x_angle += (y-ly)/8;
-		y_angle += (x-lx)/8;
-	} else {
-		lx = 0;
-	}*/
 }
 
 // 表示の初期化
@@ -404,9 +408,18 @@ void caInit(int w, int h)
 	srand(time(NULL));
 
 	Scene = SceneTitle;
-	//caKeyEvent = keyEventTitle;
 	caKeyEvent = keyEvent;
 	caMouseEvent = mouseEvent;
+
+	mal_result result = mal_decoder_init_file(CATGL_ASSETS(BGM_TITLE), NULL, &decoder[0]);
+	//if (result != MAL_SUCCESS) return -2;
+	mal_device_config config = mal_device_config_init_playback(
+		decoder[0].outputFormat, decoder[0].outputChannels, decoder[0].outputSampleRate, on_send_frames_to_device);
+	if (mal_device_init(NULL, mal_device_type_playback, NULL, &config, &decoder[0], &device) != MAL_SUCCESS) {
+		printf("Failed to open playback device.\n");
+		mal_decoder_uninit(&decoder[0]);
+//		return -3;
+	}
 }
 
 // 描画
@@ -429,6 +442,9 @@ void caRender()
 
 void caEnd()
 {
+	mal_device_uninit(&device);
+	mal_decoder_uninit(&decoder[0]);
+
 	for (int i=0; i<8; i++) caSpriteDelete(&s[i]);
 	nvgDelete(vg);
 }

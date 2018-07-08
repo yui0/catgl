@@ -255,6 +255,15 @@ void caSpriteDelete(CATGL_SPRITE *s)
 	s->handle = 0;
 	s->c = 0;
 }
+int caSpriteIntersect(CATGL_SPRITE *a, CATGL_SPRITE *b)
+{
+	if (b->x <= a->x+a->w/2 && b->y <= a->y+a->h/2
+		&& b->x+b->w/2 >= a->x && b->y+b->h/2 >= a->y) {
+		return 1;
+	} else {
+		return 0;
+	}
+}
 #endif
 
 int caMode = 4;// = CATGL_MODE_TRIANGLES;
