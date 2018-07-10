@@ -14,6 +14,8 @@
 
 #define DR_MP3_IMPLEMENTATION
 #include "dr_mp3.h"
+#define DR_WAV_IMPLEMENTATION
+#include "dr_wav.h"
 #include <time.h>
 #define MINI_AL_IMPLEMENTATION
 #define MAL_NO_PULSEAUDIO
@@ -121,6 +123,7 @@ void (*Scene)();
 
 mal_decoder decoder[10];
 mal_device device;
+mal_device_config config;
 
 NVGcontext* vg;
 int width, height;
@@ -340,6 +343,7 @@ void keyEvent(int key, int action)
 			switch (key) {
 			case CATGL_KEY_KP_ENTER:// title
 			case CATGL_KEY_ENTER:	// title
+//				mal_device_init(NULL, mal_device_type_playback, NULL, &config, &decoder[5], &device);
 				Scene = SceneGameInit;
 				break;
 			}
@@ -378,6 +382,7 @@ void caInit(int w, int h)
 	height = h;
 	pixelRatio = (float)width / (float)height;
 
+	// images
 	vg = nvgCreate(NVG_ANTIALIAS);
 	caFontInit(vg);
 	caSpriteLoad(&s[0], IMAGE_PLAYER, vg);
@@ -405,6 +410,27 @@ void caInit(int w, int h)
 	s[6].height = s[6].h = s[6].sh = SCREEN_HEIGHT;
 	caSpriteLoad(&s[7], IMAGE_TITLE, vg);
 
+	// sound
+	mal_decoder_init_file(CATGL_ASSETS(BGM_TITLE), NULL, &decoder[0]);
+	mal_decoder_init_file(CATGL_ASSETS(BGM_STAGE1), NULL, &decoder[1]);
+	mal_decoder_init_file(CATGL_ASSETS(BGM_STAGE2), NULL, &decoder[2]);
+	mal_decoder_init_file(CATGL_ASSETS(BGM_STAGE3), NULL, &decoder[3]);
+	mal_decoder_init_file(CATGL_ASSETS(BGM_STAGE4), NULL, &decoder[4]);
+	mal_decoder_init_file(CATGL_ASSETS(SE_GAMESTART), NULL, &decoder[5]);
+	mal_decoder_init_file(CATGL_ASSETS(SE_JUMP), NULL, &decoder[6]);
+	mal_decoder_init_file(CATGL_ASSETS(SE_PYUU), NULL, &decoder[7]);
+	mal_decoder_init_file(CATGL_ASSETS(SE_ITEM_GET), NULL, &decoder[8]);
+
+	/*mal_result result = mal_decoder_init_file(CATGL_ASSETS(BGM_TITLE), NULL, &decoder[0]);
+	if (result != MAL_SUCCESS) return -2;*/
+	/*mal_device_config*/ config = mal_device_config_init_playback(
+		decoder[0].outputFormat, decoder[0].outputChannels, decoder[0].outputSampleRate, on_send_frames_to_device);
+	if (mal_device_init(NULL, mal_device_type_playback, NULL, &config, &decoder[0], &device) != MAL_SUCCESS) {
+		printf("Failed to open playback device.\n");
+		mal_decoder_uninit(&decoder[0]);
+//		return -3;
+	}
+
 	score = 0;
 	score_plus = 0;
 	game_frame = 0;
@@ -415,16 +441,6 @@ void caInit(int w, int h)
 	Scene = SceneTitle;
 	caKeyEvent = keyEvent;
 	caMouseEvent = mouseEvent;
-
-	mal_result result = mal_decoder_init_file(CATGL_ASSETS(BGM_TITLE), NULL, &decoder[0]);
-	//if (result != MAL_SUCCESS) return -2;
-	mal_device_config config = mal_device_config_init_playback(
-		decoder[0].outputFormat, decoder[0].outputChannels, decoder[0].outputSampleRate, on_send_frames_to_device);
-	if (mal_device_init(NULL, mal_device_type_playback, NULL, &config, &decoder[0], &device) != MAL_SUCCESS) {
-		printf("Failed to open playback device.\n");
-		mal_decoder_uninit(&decoder[0]);
-//		return -3;
-	}
 }
 
 // 描画
