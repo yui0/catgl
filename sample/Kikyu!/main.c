@@ -12,6 +12,7 @@
 #include "catgl.h"
 #include "font.h"
 
+#if 0
 #define DR_MP3_IMPLEMENTATION
 #include "dr_mp3.h"
 #define DR_WAV_IMPLEMENTATION
@@ -43,6 +44,9 @@ mal_uint32 on_send_frames_to_device(mal_device* pDevice, mal_uint32 frameCount, 
 	if (pDecoder == NULL) return 0;
 	return (mal_uint32)mal_decoder_read(pDecoder, frameCount, pSamples);
 }
+#endif
+#include "berry_sound.h"
+BERRY_SOUND snd;
 
 // プレイヤー
 #define PLAYER_WIDTH		48	// 幅
@@ -121,9 +125,9 @@ int item_frame[ITEM_MAX];		// アニメーション
 CATGL_SPRITE s[10];
 void (*Scene)();
 
-mal_decoder decoder[10];
+/*mal_decoder decoder[10];
 mal_device device;
-mal_device_config config;
+mal_device_config config;*/
 
 NVGcontext* vg;
 int width, height;
@@ -141,10 +145,12 @@ void SceneTitle()
 
 	drawStringCenter("Kikyu!", 160, 0, 0);
 	drawPStringCenter("♥キキュウ♥Aeronaut!", 140);
-	drawPStringCenter("Press Return to Embark", SCREEN_HEIGHT/2+150);
+	static int time = 0; time++;
+	if (time<40) drawPStringCenter("Press Return to Embark", SCREEN_HEIGHT/2+150);
+	if (time>80) time = 0;
 	drawPStringCenter("(C)2013,2018 YUICHIRO NAKADA", SCREEN_HEIGHT/2+190);
 
-	mal_device_start(&device);
+//	mal_device_start(&device);
 }
 
 void SceneGameOver()
@@ -188,6 +194,7 @@ void SceneGame()
 	// 画面からはみ出た
 	if (player_y + PLAYER_HEIGHT < -SCREEN_HEIGHT/2 || player_y > SCREEN_HEIGHT/*/2*/) {
 		//ckSndMgr::play(TRACK_BGM1, ckID_(BGM_GAMEOVER), BGM_VOL, false);
+		b_sound_play_file(&snd, CATGL_ASSETS(BGM_GAMEOVER), TRACK_BGM1);
 		Scene = SceneGameOver;
 	}
 
@@ -223,6 +230,7 @@ void SceneGame()
 //			ckSndMgr::play(TRACK_SE2, ckID_(SE_PYUU), SE_VOL, false);
 			//ckSndMgr::fadeTrackVolume(TRACK_BGM1, 0, 40);
 //			ckSndMgr::play(TRACK_BGM1, ckID_(BGM_GAMEOVER), BGM_VOL, false);
+			b_sound_play_file(&snd, CATGL_ASSETS(BGM_GAMEOVER), TRACK_BGM1);
 			Scene = SceneGameOver;
 		}
 
@@ -335,6 +343,8 @@ void SceneGameInit()
 //	ckSndMgr::play(TRACK_BGM1, ckID_(BGM_STAGE1), BGM_VOL, true);
 //	ckSndMgr::fadeTrackVolume(TRACK_BGM1, BGM_VOL, 40);
 //	mal_device_stop(&device);
+
+	b_sound_play_file(&snd, CATGL_ASSETS(BGM_STAGE1), TRACK_BGM1);
 }
 void keyEvent(int key, int action)
 {
@@ -352,6 +362,7 @@ void keyEvent(int key, int action)
 			case CATGL_KEY_SPACE:	// ジャンプ
 			case CATGL_KEY_UP:	// ジャンプ
 				player_vy = PLAYER_JUMP;
+//				b_sound_play_file(&snd, CATGL_ASSETS(SE_JUMP), TRACK_SE1);
 //				ckSndMgr::play(TRACK_SE1, ckID_(SE_JUMP), SE_VOL, false);
 				break;
 			}
@@ -360,6 +371,7 @@ void keyEvent(int key, int action)
 			case CATGL_KEY_KP_ENTER:// title
 			case CATGL_KEY_ENTER:	// title
 				Scene = SceneTitle;
+				b_sound_play_file(&snd, CATGL_ASSETS(BGM_TITLE), TRACK_BGM1);
 				break;
 			}
 		}
@@ -368,9 +380,15 @@ void keyEvent(int key, int action)
 void mouseEvent(int button, int action, int x, int y)
 {
 	if (action == CATGL_ACTION_DOWN) {
-		if (Scene == SceneTitle) Scene = SceneGameInit;
-		if (Scene == SceneGame) player_vy = PLAYER_JUMP;
-		if (Scene == SceneGameOver) Scene = SceneTitle;
+		if (Scene == SceneTitle) {
+			Scene = SceneGameInit;
+		} else if (Scene == SceneGame) {
+			player_vy = PLAYER_JUMP;
+//			b_sound_play_file(&snd, CATGL_ASSETS(SE_JUMP), TRACK_SE1);
+		} else if (Scene == SceneGameOver) {
+			Scene = SceneTitle;
+			b_sound_play_file(&snd, CATGL_ASSETS(BGM_TITLE), TRACK_BGM1);
+		}
 	}
 }
 
@@ -411,6 +429,7 @@ void caInit(int w, int h)
 	caSpriteLoad(&s[7], IMAGE_TITLE, vg);
 
 	// sound
+#if 0
 	mal_decoder_init_file(CATGL_ASSETS(BGM_TITLE), NULL, &decoder[0]);
 	mal_decoder_init_file(CATGL_ASSETS(BGM_STAGE1), NULL, &decoder[1]);
 	mal_decoder_init_file(CATGL_ASSETS(BGM_STAGE2), NULL, &decoder[2]);
@@ -430,6 +449,9 @@ void caInit(int w, int h)
 		mal_decoder_uninit(&decoder[0]);
 //		return -3;
 	}
+#endif
+	b_open_sound_device(&snd);
+	b_sound_play_file(&snd, CATGL_ASSETS(BGM_TITLE), TRACK_BGM1);
 
 	score = 0;
 	score_plus = 0;
@@ -463,8 +485,9 @@ void caRender()
 
 void caEnd()
 {
-	mal_device_uninit(&device);
-	mal_decoder_uninit(&decoder[0]);
+//	mal_device_uninit(&device);
+//	mal_decoder_uninit(&decoder[0]);
+	b_close_soound_device(&snd);
 
 	for (int i=0; i<8; i++) caSpriteDelete(&s[i]);
 	nvgDelete(vg);
