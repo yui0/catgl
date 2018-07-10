@@ -429,27 +429,6 @@ void caInit(int w, int h)
 	caSpriteLoad(&s[7], IMAGE_TITLE, vg);
 
 	// sound
-#if 0
-	mal_decoder_init_file(CATGL_ASSETS(BGM_TITLE), NULL, &decoder[0]);
-	mal_decoder_init_file(CATGL_ASSETS(BGM_STAGE1), NULL, &decoder[1]);
-	mal_decoder_init_file(CATGL_ASSETS(BGM_STAGE2), NULL, &decoder[2]);
-	mal_decoder_init_file(CATGL_ASSETS(BGM_STAGE3), NULL, &decoder[3]);
-	mal_decoder_init_file(CATGL_ASSETS(BGM_STAGE4), NULL, &decoder[4]);
-	mal_decoder_init_file(CATGL_ASSETS(SE_GAMESTART), NULL, &decoder[5]);
-	mal_decoder_init_file(CATGL_ASSETS(SE_JUMP), NULL, &decoder[6]);
-	mal_decoder_init_file(CATGL_ASSETS(SE_PYUU), NULL, &decoder[7]);
-	mal_decoder_init_file(CATGL_ASSETS(SE_ITEM_GET), NULL, &decoder[8]);
-
-	/*mal_result result = mal_decoder_init_file(CATGL_ASSETS(BGM_TITLE), NULL, &decoder[0]);
-	if (result != MAL_SUCCESS) return -2;*/
-	/*mal_device_config*/ config = mal_device_config_init_playback(
-		decoder[0].outputFormat, decoder[0].outputChannels, decoder[0].outputSampleRate, on_send_frames_to_device);
-	if (mal_device_init(NULL, mal_device_type_playback, NULL, &config, &decoder[0], &device) != MAL_SUCCESS) {
-		printf("Failed to open playback device.\n");
-		mal_decoder_uninit(&decoder[0]);
-//		return -3;
-	}
-#endif
 	b_open_sound_device(&snd);
 	b_sound_play_file(&snd, CATGL_ASSETS(BGM_TITLE), TRACK_BGM1);
 
@@ -485,8 +464,6 @@ void caRender()
 
 void caEnd()
 {
-//	mal_device_uninit(&device);
-//	mal_decoder_uninit(&decoder[0]);
 	b_close_soound_device(&snd);
 
 	for (int i=0; i<8; i++) caSpriteDelete(&s[i]);
