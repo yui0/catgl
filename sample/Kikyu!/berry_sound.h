@@ -11,20 +11,28 @@
  *
  * */
 
-//#ifdef BERRY_SOUND_USE_ALSA
+#define BERRY_SOUND_ALSA
+
+#ifdef BERRY_SOUND_ALSA
 // Use the newer ALSA API
 #define ALSA_PCM_NEW_HW_PARAMS_API
 #define __timespec_defined
 #include <alloca.h>
 #include <alsa/asoundlib.h>
+#else
+#include <fcntl.h>
+#include <unistd.h>
+#endif
 
 #include <pthread.h>
 
 #define BERRY_SOUND_MAXTRACK	10
 
 typedef struct {
+#ifdef BERRY_SOUND_ALSA
 	snd_pcm_t *handle;
 	snd_pcm_uframes_t frames;
+#endif
 	char *pcm;
 	int size;
 
@@ -33,6 +41,7 @@ typedef struct {
 } BERRY_SOUND;
 
 // ALSA
+#ifdef BERRY_SOUND_ALSA
 int b_sound_init_ALSA(BERRY_SOUND *thiz, char *dev, unsigned int val, int ch, int frames, int flag)
 {
 	// Open PCM device.
@@ -109,7 +118,7 @@ int b_sound_init_ALSA(BERRY_SOUND *thiz, char *dev, unsigned int val, int ch, in
 	return 0;
 }
 
-int b_sound_frame_ALSA(BERRY_SOUND *thiz)
+int b_sound_record_ALSA(BERRY_SOUND *thiz)
 {
 	int rc = snd_pcm_readi(thiz->handle, thiz->pcm, thiz->frames);
 	if (rc == -EPIPE) {
@@ -156,6 +165,13 @@ void b_sound_close_ALSA(BERRY_SOUND *thiz)
 	snd_pcm_close(thiz->handle);
 	free(thiz->pcm);
 }
+#else
+int b_sound_init_ALSA(BERRY_SOUND *thiz, char *dev, unsigned int val, int ch, int frames, int flag) {}
+int b_sound_record_ALSA(BERRY_SOUND *thiz) {}
+int b_sound_play_ALSA(BERRY_SOUND *thiz, char *data, int frames) {}
+void b_sound_wait_ALSA(BERRY_SOUND *thiz, int msec) {}
+void b_sound_close_ALSA(BERRY_SOUND *thib_sound_frame_ALSAz) {}
+#endif
 
 // API
 void b_sound_play_thread()
@@ -177,7 +193,6 @@ int b_open_sound_device(BERRY_SOUND *a)
 void b_close_soound_device(BERRY_SOUND *a)
 {
 	for (int i=0; i<BERRY_SOUND_MAXTRACK; i++) pthread_cancel(a->thread[i]);
-//	for (int i=0; i<BERRY_SOUND_MAXTRACK; i++) pthread_detach(a->thread[i]);
 	b_sound_close_ALSA(a);
 }
 
@@ -192,7 +207,6 @@ void *b_sound_play_mp3(void *args)
 	short sample_buf[MP3_MAX_SAMPLES_PER_FRAME];
 	int bytes_left;
 	int frame_size;
-//	int value;
 
 	int fd = open(a->name, O_RDONLY);
 	if (fd < 0) {
@@ -211,12 +225,7 @@ void *b_sound_play_mp3(void *args)
 		printf("Error: not a valid MP3 audio file!\n");
 		return (void*)1;
 	}
-
 //	printf("%dHz %dch\n", info.sample_rate, info.channels);
-/*	AUDIO a;
-	if (AUDIO_init(&a, dev, info.sample_rate, info.channels, FRAMES, 1)) {
-		return 1;
-	}*/
 
 	int c = 0;
 	printf("\e[?25l");
@@ -233,18 +242,14 @@ void *b_sound_play_mp3(void *args)
 	}
 	printf("\e[?25h");
 
-//	AUDIO_close(&a);
 	mp3_done(mp3);
 	munmap(file_data, len);
 	close(fd);
-//	pthread_exit(NULL);
-//	a->thread
 	return (void*)0;
 }
 
 void b_sound_stop(BERRY_SOUND *a, int n)
 {
-//	if (a->thread[n]) pthread_detach(a->thread[n]);
 	if (a->thread[n]) pthread_cancel(a->thread[n]);
 	a->thread[n] = 0;
 }

@@ -93,6 +93,7 @@ BERRY_SOUND snd;
 #define BGM_STAGE3		"bgm_maoudamashii_4_vehicle02.mp3"
 #define BGM_STAGE4		"bgm_maoudamashii_3_theme09.mp3"
 #define BGM_TITLE		"song_shiho_shining_star.mp3" // https://maoudamashii.jokersounds.com/archives/song_shiho_shining_star.html
+//#define BGM_TITLE		"short_song_shiho_shining_star.mp3" // https://maoudamashii.jokersounds.com/archives/song_shiho_shining_star.html
 //#define BGM_STAGE1		"arasuji_03.mp3"
 //#define BGM_GAMESTART		"bgm_gamestart_1.wav"
 #define BGM_GAMEOVER		"bgm_gameover_1.mp3"
@@ -149,8 +150,6 @@ void SceneTitle()
 	if (time<40) drawPStringCenter("Press Return to Embark", SCREEN_HEIGHT/2+150);
 	if (time>80) time = 0;
 	drawPStringCenter("(C)2013,2018 YUICHIRO NAKADA", SCREEN_HEIGHT/2+190);
-
-//	mal_device_start(&device);
 }
 
 void SceneGameOver()
@@ -302,12 +301,15 @@ void SceneGame()
 		switch (stage) {
 		case 2:
 			enemy_freq = 50;
+			b_sound_play_file(&snd, CATGL_ASSETS(BGM_STAGE2), TRACK_BGM1);
 			break;
 		case 3:
 			enemy_freq = 40;
+			b_sound_play_file(&snd, CATGL_ASSETS(BGM_STAGE3), TRACK_BGM1);
 			break;
 		case 4:
 			enemy_freq = 30;
+			b_sound_play_file(&snd, CATGL_ASSETS(BGM_STAGE4), TRACK_BGM1);
 		}
 	}
 }
