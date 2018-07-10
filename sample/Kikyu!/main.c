@@ -16,6 +16,7 @@
 #include "dr_mp3.h"
 #include <time.h>
 #define MINI_AL_IMPLEMENTATION
+#define MAL_NO_PULSEAUDIO
 #include <alloca.h>
 #if /*defined(__MACH__) &&*/ !defined(CLOCK_REALTIME)
 #include <sys/time.h>
@@ -330,18 +331,21 @@ void SceneGameInit()
 	Scene = SceneGame;
 //	ckSndMgr::play(TRACK_BGM1, ckID_(BGM_STAGE1), BGM_VOL, true);
 //	ckSndMgr::fadeTrackVolume(TRACK_BGM1, BGM_VOL, 40);
+//	mal_device_stop(&device);
 }
 void keyEvent(int key, int action)
 {
 	if (action == CATGL_ACTION_DOWN) {
 		if (Scene == SceneTitle) {
 			switch (key) {
-			case CATGL_KEY_P:	// title
+			case CATGL_KEY_KP_ENTER:// title
+			case CATGL_KEY_ENTER:	// title
 				Scene = SceneGameInit;
 				break;
 			}
 		} else if (Scene == SceneGame) {
 			switch (key) {
+			case CATGL_KEY_SPACE:	// ジャンプ
 			case CATGL_KEY_UP:	// ジャンプ
 				player_vy = PLAYER_JUMP;
 //				ckSndMgr::play(TRACK_SE1, ckID_(SE_JUMP), SE_VOL, false);
@@ -349,7 +353,8 @@ void keyEvent(int key, int action)
 			}
 		} else if (Scene == SceneGameOver) {
 			switch (key) {
-			case CATGL_KEY_P:	// title
+			case CATGL_KEY_KP_ENTER:// title
+			case CATGL_KEY_ENTER:	// title
 				Scene = SceneTitle;
 				break;
 			}
