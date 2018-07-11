@@ -153,9 +153,20 @@ void SceneTitle()
 
 void SceneGameOver()
 {
-//	caSpriteRender(&s[stage+2]);
-//	caSpriteRender(&s[stage+2]);
-//	caSpriteRender(&s[0]);
+	s[stage+2].x = -bg_scroll*(480./768*2048);
+	caSpriteRender(&s[stage+2]);
+	s[stage+2].x = -bg_scroll*(480./768*2048) +480./768*2048 -1;
+	caSpriteRender(&s[stage+2]);
+
+	caSpriteRender(&s[0]);
+	for (int i=0; i<ENEMY_MAX; i++) {
+		if (enemy[i].x < -ENEMY_WIDTH-SCREEN_WIDTH/2) continue;
+		caSpriteRender(&enemy[i]);
+	}
+	for (int i=0; i<ITEM_MAX; i++) {
+		if (item[i].x < -ITEM_WIDTH-SCREEN_WIDTH/2) continue;
+		caSpriteRender(&item[i]);
+	}
 
 	drawStringCenter("Game Over", SCREEN_HEIGHT/2-16, 32, 32);
 
