@@ -71,7 +71,7 @@ BERRY_SOUND snd;
 // 背景
 #define BACKGROUND_WIDTH	1320
 #define BACKGROUND_HEIGHT	320
-#define SCROLL_SPEED		 0.004
+#define SCROLL_SPEED		0.006
 // 画像
 #define IMAGE_PLAYER		"Balloon.png"	// http://korcs.info/material.html
 #define IMAGE_ENEMY		"enemy.png"
@@ -80,7 +80,6 @@ BERRY_SOUND snd;
 #define IMAGE_BACKGROUND2	"side02.jpg"
 #define IMAGE_BACKGROUND3	"side03.jpg"
 #define IMAGE_BACKGROUND4	"side04.jpg"
-//#define IMAGE_BACKGROUND	"side01.png"
 #define IMAGE_TITLE		"0627a.png"
 // 音
 #define TRACK_BGM1		0
