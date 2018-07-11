@@ -178,8 +178,15 @@ void SceneGameOver()
 	drawStringRight(msg, SCREEN_WIDTH/2-8, 8, 0, 0);
 }
 
+char *text[] = {
+	"+100",
+	"+1000",
+};
 void SceneGame()
 {
+	static int score_x, score_y;
+	static int score_time = 0;
+	static char *score_text;
 	game_frame++;
 
 	// スクロール
@@ -281,17 +288,30 @@ void SceneGame()
 				score += COIN_POINT -20;
 				score_plus += 20;
 //				font.DrawEString(player_sprt.dataPos(0).x-PLAYER_WIDTH/2, player_sprt.dataPos(0).y, (char*)"+100", 50);
+				score_x = s[0].x-PLAYER_WIDTH/2;
+				score_y = s[0].y;
+				score_text = text[0];
+				score_time = 40;
 			} else {
 				// スコア加算
 				score += DIAMOND_POINT -40;
 				score_plus += 40;
 //				font.DrawEString(player_sprt.dataPos(0).x-PLAYER_WIDTH/2, player_sprt.dataPos(0).y, (char*)"+1000", 50);
+				score_x = s[0].x-PLAYER_WIDTH/2;
+				score_y = s[0].y;
+				score_text = text[1];
+				score_time = 40;
 			}
 			// SE 再生
 //			ckSndMgr::play(TRACK_SE2, ckID_(SE_ITEM_GET), SE_VOL, false);
 		}
 	}
-	//effect();
+	if (score_time>0) {
+		score_time--;
+//		drawString("+100", score_x, score_y, 0, 0);
+		drawString(score_text, score_x, score_y, 0, 0);
+//		drawPString(score_text, score_x, score_y);
+	}
 
 	// スコア表示
 	if (score_plus>0) {
