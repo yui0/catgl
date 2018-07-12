@@ -63,7 +63,8 @@ typedef struct {
 	char *pcm;
 	int size;
 	char *name;
-	pthread_t thread[BERRY_SOUND_MAXTRACK+1];
+	pthread_t thread;
+//	pthread_t thread[BERRY_SOUND_MAXTRACK+1];
 
 //	int playing;
 	BERRY_SOUND_TRACK track[BERRY_SOUND_MAXTRACK];
@@ -223,18 +224,20 @@ void *b_sound_play_thread(void *args)
 			if (!a->track[i].loop) continue;
 
 			int frame = berry_mp3_decode_frame(&a->track[i].mp3);
+			if (!frame) {
+				if (a->track[i].loop>0) a->track[i].loop--;
+				/*if (!a->track[i].loop) {
+					berry_mp3_destroy(&a->track[i].mp3);
+				}*/
+				continue;
+			}
 			if (max_frame<frame) max_frame = frame;
 
 			for (int n=0; n<frame*2; n++) {
 				b_sound_pcm[n] += a->track[i].mp3.p[n];
 			}
-//		b_sound_play(a, (char*)a->track[i].mp3.p, max_frame);
-//		b_sound_play(a, (char*)b_sound_pcm, frame);
-
-//			float *p = &a->track[i].pcm[a->track[i].pos];
 /*			short *p = &a->track[i].pcm[a->track[i].pos];
 			for (int n=0; n<BERRY_SOUND_BUFFER_SIZE; n++) {
-//				b_sound_pcm[n] += *p++ *65535;
 				b_sound_pcm[n] += *p++;
 				a->track[i].pos++;
 				if (a->track[i].pos > a->track[i].size) {
@@ -246,7 +249,6 @@ void *b_sound_play_thread(void *args)
 
 //		b_sound_play(a, (char*)b_sound_pcm, BERRY_SOUND_BUFFER_SIZE/2);
 		b_sound_play(a, (char*)b_sound_pcm, max_frame);
-//		b_sound_play(a, (char*)a->track[0].mp3.p, max_frame);
 		b_sound_wait(a, 100);
 //		pthread_yield();
 	}
@@ -260,7 +262,8 @@ int b_open_sound_device(BERRY_SOUND *a)
 	int r = b_sound_init_ALSA(a, "default", 44100, 2, 32, 1);
 
 //	a->playing = 1;
-	int ret = pthread_create(&a->thread[BERRY_SOUND_MAXTRACK], NULL, b_sound_play_thread, (void*)a);
+//	int ret = pthread_create(&a->thread[BERRY_SOUND_MAXTRACK], NULL, b_sound_play_thread, (void*)a);
+	int ret = pthread_create(&a->thread, NULL, b_sound_play_thread, (void*)a);
 	if (ret != 0) {
 		printf("pthread_create() failed.\n");
 	}
@@ -269,125 +272,27 @@ int b_open_sound_device(BERRY_SOUND *a)
 }
 void b_close_soound_device(BERRY_SOUND *a)
 {
-	for (int i=0; i<BERRY_SOUND_MAXTRACK+1; i++) pthread_cancel(a->thread[i]);
+//	for (int i=0; i<BERRY_SOUND_MAXTRACK+1; i++) pthread_cancel(a->thread[i]);
+	pthread_cancel(a->thread);
 	b_sound_close_ALSA(a);
 }
 
-//short *b_mp3_load(char *name, int *plen)
-/*void b_mp3_load(char *name, short **data, int *plen)
-{
-	int len;
-	void *file_data = preload(name, &len);
-	unsigned char *stream_pos = (unsigned char *)file_data;
-	int bytes_left = len - 100;
-
-	int c = 0;
-	int size = len*10;
-	short *pcm = malloc(size);
-	short *p = pcm;
-	mp3_info_t info;
-	mp3_decoder_t mp3 = mp3_create();
-	int frame_size = mp3_decode(mp3, stream_pos, bytes_left, p, &info);
-	*data = pcm;
-	while ((bytes_left >= 0) && (frame_size > 0)) {
-		stream_pos += frame_size;
-		bytes_left -= frame_size;
-		p += info.audio_bytes/2;
-		c += info.audio_bytes/2;
-		if (c > size-info.audio_bytes/2) {
-			size += 1024*1024;
-			pcm = realloc(pcm, size);
-			p = pcm+c;
-		}
-
-		frame_size = mp3_decode(mp3, stream_pos, bytes_left, p, NULL);
-	}
-	*plen = c;
-
-	mp3_free(mp3);
-	munmap(file_data, len);
-//	return pcm;
-}*/
-/*void *b_sound_play_mp3(void *args)
-{
-	BERRY_SOUND_TRACK *t = (BERRY_SOUND_TRACK*)args;
-	b_mp3_load(t->name, &t->pcm, &t->size);
-}*/
-void *b_sound_play_mp3(void *args)
-{
-	BERRY_SOUND *a = (BERRY_SOUND*)args;
-	short sample_buf[MP3_MAX_SAMPLES_PER_FRAME];
-
-	int len;
-	void *file_data = preload(a->name, &len);
-	unsigned char *stream_pos = (unsigned char *)file_data;
-	int bytes_left = len - 100;
-
-	mp3_info_t info;
-	mp3_decoder_t mp3 = mp3_create();
-	int frame_size = mp3_decode(mp3, stream_pos, bytes_left, sample_buf, &info);
-	if (!frame_size) {
-		printf("Error: not a valid MP3 audio file!\n");
-		return (void*)1;
-	}
-//	printf("%dHz %dch\n", info.sample_rate, info.channels);
-
-	int c = 0;
-	printf("\e[?25l");
-	while ((bytes_left >= 0) && (frame_size > 0)) {
-//		printf("\r%d", c);
-
-		stream_pos += frame_size;
-		bytes_left -= frame_size;
-		b_sound_play(a, (char*)sample_buf, info.audio_bytes/2/info.channels);
-		b_sound_wait(a, 100);
-
-		c += frame_size;
-		frame_size = mp3_decode(mp3, stream_pos, bytes_left, sample_buf, NULL);
-	}
-	printf("\e[?25h");
-
-	mp3_free(mp3);
-	munmap(file_data, len);
-	return (void*)0;
-}
-
-void b_sound_stop(BERRY_SOUND *a, int n)
+/*void b_sound_stop(BERRY_SOUND *a, int n)
 {
 	if (a->thread[n]) pthread_cancel(a->thread[n]);
 	a->thread[n] = 0;
-}
-int b_sound_play_file(BERRY_SOUND *a, char *name, int n)
+}*/
+int b_sound_play_file(BERRY_SOUND *a, char *name, int n, int loop)
 {
-#if 0
 	a->track[n].loop = 0;
-//	if (a->track[n].pcm) free(a->track[n].pcm);
-	a->track[n].name = name;
-//	a->track[n].pcm = b_mp3_load(name, &a->track[n].size);
-	a->track[n].pos = 0;
-//	a->track[n].loop = -1;
-
-	b_sound_stop(a, n);
-	if (a->track[n].pcm) {
-		free(a->track[n].pcm);
-		a->track[n].pcm = 0;
+//	if (strcmp(a->track[n].name, name)) {
+	if (a->track[n].mp3.data) {
+		berry_mp3_destroy(&a->track[n].mp3);
 	}
-	int ret = pthread_create(&a->thread[n], NULL, b_sound_play_mp3, (void*)&a->track[n]);
-	if (ret != 0) {
-		printf("pthread_create() failed.\n");
-	}
-//	sleep(1);
-//	a->track[n].loop = -1;
-#endif
-/*	b_sound_stop(a, n);
 
-	a->name = name;
-	int ret = pthread_create(&a->thread[n], NULL, b_sound_play_mp3, (void*)a);
-	if (ret != 0) {
-		printf("pthread_create() failed.\n");
-	}*/
-
-	berry_mp3_decode_init(&a->track[n].mp3, name);
-	a->track[n].loop = -1;
+//	b_sound_stop(a, n);
+//	a->name = name;
+/*	if (!a->track[n].mp3.data)*/ berry_mp3_init(&a->track[n].mp3, name);
+	a->track[n].loop = loop;
 	return 0;
 }

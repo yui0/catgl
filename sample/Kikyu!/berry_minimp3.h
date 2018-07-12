@@ -2830,7 +2830,7 @@ typedef struct {
 	int len, left;
 	short p[MP3_MAX_SAMPLES_PER_FRAME];
 } berry_mp3;
-void berry_mp3_decode_init(berry_mp3 *b, char *name)
+void berry_mp3_init(berry_mp3 *b, char *name)
 {
 	b->data = preload(name, &b->len);
 	b->pos = (unsigned char *)b->data;
@@ -2846,9 +2846,17 @@ int berry_mp3_decode_frame(berry_mp3 *b)
 		b->left -= frame_size;
 		return b->info.audio_bytes/2/b->info.channels;
 	}
+//	mp3_free(b->mp3);
+//	munmap(b->data, b->len);
+	b->pos = (unsigned char *)b->data;
+	b->left = b->len - 100;
+	return 0;
+}
+void berry_mp3_destroy(berry_mp3 *b)
+{
 	mp3_free(b->mp3);
 	munmap(b->data, b->len);
-	return 0;
+	b->data = 0;
 }
 
 #undef UPDATE_CACHE
