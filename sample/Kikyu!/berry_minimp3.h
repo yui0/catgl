@@ -2809,5 +2809,47 @@ int mp3_decode(mp3_decoder_t *dec, void *buf, int bytes, signed short *out, mp3_
 	return s->frame_size;
 }
 
+#include <sys/mman.h>
+void *preload(char *name, int *len)
+{
+	int fd = open(name, O_RDONLY);
+	if (fd < 0) {
+		printf("Error: cannot open `%s`\n", name);
+		return 0;
+	}
+	*len = lseek(fd, 0, SEEK_END);
+	void *p = mmap(0, *len, PROT_READ, MAP_PRIVATE, fd, 0);
+	close(fd);
+	return p;
+}
+typedef struct {
+	mp3_info_t info;
+	mp3_decoder_t mp3;
+	void *data;
+	unsigned char *pos;
+	int len, left;
+	short p[MP3_MAX_SAMPLES_PER_FRAME];
+} berry_mp3;
+void berry_mp3_decode_init(berry_mp3 *b, char *name)
+{
+	b->data = preload(name, &b->len);
+	b->pos = (unsigned char *)b->data;
+	b->left = b->len - 100;
+
+	b->mp3 = mp3_create();
+}
+int berry_mp3_decode_frame(berry_mp3 *b)
+{
+	int frame_size = mp3_decode(b->mp3, b->pos, b->left, b->p, &b->info);
+	if ((b->left >= 0) && (frame_size > 0)) {
+		b->pos += frame_size;
+		b->left -= frame_size;
+		return b->info.audio_bytes/2/b->info.channels;
+	}
+	mp3_free(b->mp3);
+	munmap(b->data, b->len);
+	return 0;
+}
+
 #undef UPDATE_CACHE
 #undef BF
