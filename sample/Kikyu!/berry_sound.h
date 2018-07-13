@@ -28,7 +28,6 @@
 
 #define BERRY_SOUND_MAXTRACK	10
 #define BERRY_SOUND_BUFFER_SIZE	4096 // PCM data samples (i.e. 16bit, Mono: 8Kb)
-//#define BERRY_SOUND_BUFFER_SIZE	8192*2 // PCM data samples (i.e. 16bit, Mono: 8Kb)
 
 #include "berry_minimp3.h"
 typedef struct {
@@ -64,7 +63,6 @@ typedef struct {
 	int size;
 	char *name;
 	pthread_t thread;
-//	pthread_t thread[BERRY_SOUND_MAXTRACK+1];
 
 //	int playing;
 	BERRY_SOUND_TRACK track[BERRY_SOUND_MAXTRACK];
@@ -236,15 +234,6 @@ void *b_sound_play_thread(void *args)
 			for (int n=0; n<frame*2; n++) {
 				b_sound_pcm[n] += a->track[i].mp3.p[n];
 			}
-/*			short *p = &a->track[i].pcm[a->track[i].pos];
-			for (int n=0; n<BERRY_SOUND_BUFFER_SIZE; n++) {
-				b_sound_pcm[n] += *p++;
-				a->track[i].pos++;
-				if (a->track[i].pos > a->track[i].size) {
-					a->track[i].pos = 0;
-					if (a->track[i].loop>0) a->track[i].loop--;
-				}
-			}*/
 		}
 
 //		b_sound_play(a, (char*)b_sound_pcm, BERRY_SOUND_BUFFER_SIZE/2);
@@ -262,7 +251,6 @@ int b_open_sound_device(BERRY_SOUND *a)
 	int r = b_sound_init_ALSA(a, "default", 44100, 2, 32, 1);
 
 //	a->playing = 1;
-//	int ret = pthread_create(&a->thread[BERRY_SOUND_MAXTRACK], NULL, b_sound_play_thread, (void*)a);
 	int ret = pthread_create(&a->thread, NULL, b_sound_play_thread, (void*)a);
 	if (ret != 0) {
 		printf("pthread_create() failed.\n");
@@ -272,7 +260,6 @@ int b_open_sound_device(BERRY_SOUND *a)
 }
 void b_close_soound_device(BERRY_SOUND *a)
 {
-//	for (int i=0; i<BERRY_SOUND_MAXTRACK+1; i++) pthread_cancel(a->thread[i]);
 	pthread_cancel(a->thread);
 	b_sound_close_ALSA(a);
 }
