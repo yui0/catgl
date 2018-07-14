@@ -86,7 +86,7 @@ BERRY_SOUND snd;
 #define TRACK_BGM2		1
 #define TRACK_SE1		2
 #define TRACK_SE2		3
-#define BGM_VOL			240
+#define BGM_VOL			1.0
 #define BGM_STAGE1		"bgm_maoudamashii_4_vehicle03.mp3"	// http://maoudamashii.jokersounds.com
 #define BGM_STAGE2		"bgm_maoudamashii_4_vehicle01.mp3"
 #define BGM_STAGE3		"bgm_maoudamashii_4_vehicle02.mp3"
@@ -96,7 +96,7 @@ BERRY_SOUND snd;
 //#define BGM_STAGE1		"arasuji_03.mp3"
 //#define BGM_GAMESTART		"bgm_gamestart_1.wav"
 #define BGM_GAMEOVER		"bgm_gameover_1.mp3"
-#define SE_VOL			240
+#define SE_VOL			0.7
 //#define SE_GAMESTART		"se_maoudamashii_system46.mp3"
 #define SE_GAMESTART		"se_kusano_06_girl_ikimasu.mp3"	// http://www.otonomori.info/
 #define SE_JUMP			"se_jump_short.mp3"	// ユウラボ8bitサウンド工房
@@ -210,7 +210,8 @@ void SceneGame()
 	// 画面からはみ出た
 	if (player_y + PLAYER_HEIGHT < -SCREEN_HEIGHT/2 || player_y > SCREEN_HEIGHT/*/2*/) {
 		//ckSndMgr::play(TRACK_BGM1, ckID_(BGM_GAMEOVER), BGM_VOL, false);
-		b_sound_play_file(&snd, CATGL_ASSETS(BGM_GAMEOVER), TRACK_BGM1, 1);
+		b_sound_play_file(&snd, CATGL_ASSETS(SE_PYUU), TRACK_SE2, SE_VOL, 1);
+		b_sound_play_file(&snd, CATGL_ASSETS(BGM_GAMEOVER), TRACK_BGM1, BGM_VOL, 1);
 		Scene = SceneGameOver;
 	}
 
@@ -245,8 +246,8 @@ void SceneGame()
 			// SE 再生
 //			ckSndMgr::play(TRACK_SE2, ckID_(SE_PYUU), SE_VOL, false);
 			//ckSndMgr::fadeTrackVolume(TRACK_BGM1, 0, 40);
-//			b_sound_play_file(&snd, CATGL_ASSETS(SE_PYUU), TRACK_SE2, 1);
-			b_sound_play_file(&snd, CATGL_ASSETS(BGM_GAMEOVER), TRACK_BGM1, 1);
+			b_sound_play_file(&snd, CATGL_ASSETS(SE_PYUU), TRACK_SE2, SE_VOL, 1);
+			b_sound_play_file(&snd, CATGL_ASSETS(BGM_GAMEOVER), TRACK_BGM1, BGM_VOL, 1);
 			Scene = SceneGameOver;
 		}
 
@@ -304,7 +305,7 @@ void SceneGame()
 			}
 			// SE 再生
 //			ckSndMgr::play(TRACK_SE2, ckID_(SE_ITEM_GET), SE_VOL, false);
-//			b_sound_play_file(&snd, CATGL_ASSETS(SE_ITEM_GET), TRACK_SE2, 1);
+//			b_sound_play_file(&snd, CATGL_ASSETS(SE_ITEM_GET), TRACK_SE2, SE_VOL, 1);
 		}
 	}
 	if (score_time>0) {
@@ -331,15 +332,15 @@ void SceneGame()
 		switch (stage) {
 		case 2:
 			enemy_freq = 50;
-			b_sound_play_file(&snd, CATGL_ASSETS(BGM_STAGE2), TRACK_BGM1, -1);
+			b_sound_play_file(&snd, CATGL_ASSETS(BGM_STAGE2), TRACK_BGM1, BGM_VOL, -1);
 			break;
 		case 3:
 			enemy_freq = 40;
-			b_sound_play_file(&snd, CATGL_ASSETS(BGM_STAGE3), TRACK_BGM1, -1);
+			b_sound_play_file(&snd, CATGL_ASSETS(BGM_STAGE3), TRACK_BGM1, BGM_VOL, -1);
 			break;
 		case 4:
 			enemy_freq = 30;
-			b_sound_play_file(&snd, CATGL_ASSETS(BGM_STAGE4), TRACK_BGM1, -1);
+			b_sound_play_file(&snd, CATGL_ASSETS(BGM_STAGE4), TRACK_BGM1, BGM_VOL, -1);
 		}
 	}
 }
@@ -373,7 +374,7 @@ void SceneGameInit()
 	enemy_freq = 60;
 	Scene = SceneGame;
 //	ckSndMgr::fadeTrackVolume(TRACK_BGM1, BGM_VOL, 40);
-	b_sound_play_file(&snd, CATGL_ASSETS(BGM_STAGE1), TRACK_BGM1, -1);
+	b_sound_play_file(&snd, CATGL_ASSETS(BGM_STAGE1), TRACK_BGM1, BGM_VOL, -1);
 }
 void keyEvent(int key, int action)
 {
@@ -382,7 +383,7 @@ void keyEvent(int key, int action)
 			switch (key) {
 			case CATGL_KEY_KP_ENTER:
 			case CATGL_KEY_ENTER:
-				b_sound_play_file(&snd, CATGL_ASSETS(SE_GAMESTART), TRACK_SE1, 1);
+				b_sound_play_file(&snd, CATGL_ASSETS(SE_GAMESTART), TRACK_SE1, SE_VOL, 1);
 				Scene = SceneGameInit;
 				break;
 			}
@@ -391,7 +392,7 @@ void keyEvent(int key, int action)
 			case CATGL_KEY_SPACE:	// ジャンプ
 			case CATGL_KEY_UP:	// ジャンプ
 				player_vy = PLAYER_JUMP;
-//				b_sound_play_file(&snd, CATGL_ASSETS(SE_JUMP), TRACK_SE1, 1);
+				b_sound_play_file(&snd, CATGL_ASSETS(SE_JUMP), TRACK_SE1, SE_VOL, 1);
 //				ckSndMgr::play(TRACK_SE1, ckID_(SE_JUMP), SE_VOL, false);
 				break;
 			}
@@ -400,7 +401,7 @@ void keyEvent(int key, int action)
 			case CATGL_KEY_KP_ENTER:
 			case CATGL_KEY_ENTER:
 				Scene = SceneTitle;
-				b_sound_play_file(&snd, CATGL_ASSETS(BGM_TITLE), TRACK_BGM1, -1);
+				b_sound_play_file(&snd, CATGL_ASSETS(BGM_TITLE), TRACK_BGM1, BGM_VOL, -1);
 				break;
 			}
 		}
@@ -410,14 +411,14 @@ void mouseEvent(int button, int action, int x, int y)
 {
 	if (action == CATGL_ACTION_DOWN) {
 		if (Scene == SceneTitle) {
-			b_sound_play_file(&snd, CATGL_ASSETS(SE_GAMESTART), TRACK_SE1, 1);
+			b_sound_play_file(&snd, CATGL_ASSETS(SE_GAMESTART), TRACK_SE1, SE_VOL, 1);
 			Scene = SceneGameInit;
 		} else if (Scene == SceneGame) {
 			player_vy = PLAYER_JUMP;
-//			b_sound_play_file(&snd, CATGL_ASSETS(SE_JUMP), TRACK_SE1, 1);
+			b_sound_play_file(&snd, CATGL_ASSETS(SE_JUMP), TRACK_SE1, SE_VOL, 1);
 		} else if (Scene == SceneGameOver) {
 			Scene = SceneTitle;
-			b_sound_play_file(&snd, CATGL_ASSETS(BGM_TITLE), TRACK_BGM1, -1);
+			b_sound_play_file(&snd, CATGL_ASSETS(BGM_TITLE), TRACK_BGM1, BGM_VOL, -1);
 		}
 	}
 }
@@ -460,7 +461,7 @@ void caInit(int w, int h)
 
 	// sound
 	b_open_sound_device(&snd);
-	b_sound_play_file(&snd, CATGL_ASSETS(BGM_TITLE), TRACK_BGM1, -1);
+	b_sound_play_file(&snd, CATGL_ASSETS(BGM_TITLE), TRACK_BGM1, BGM_VOL, -1);
 
 	score = 0;
 	score_plus = 0;

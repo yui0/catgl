@@ -44,6 +44,7 @@ typedef struct {
 	jar_mod_context_t ctxMod;	// MOD chiptune context
 #endif
 	berry_mp3 mp3;
+	float vol;
 
 	int loop;			// Loops count (times music repeats), -1 means infinite loop
 //	unsigned int totalSamples;	// Total number of samples
@@ -224,6 +225,7 @@ void *b_sound_play_thread(void *args)
 			int frame = berry_mp3_decode_frame(&a->track[i].mp3);
 			if (!frame) {
 				if (a->track[i].loop>0) a->track[i].loop--;
+				a->track[i].pos = 0;
 				/*if (!a->track[i].loop) {
 					berry_mp3_destroy(&a->track[i].mp3);
 				}*/
@@ -232,7 +234,7 @@ void *b_sound_play_thread(void *args)
 			if (max_frame<frame) max_frame = frame;
 
 			for (int n=0; n<frame*2; n++) {
-				b_sound_pcm[n] += a->track[i].mp3.p[n];
+				b_sound_pcm[n] += a->track[i].mp3.p[n] *a->track[i].vol;
 			}
 		}
 
@@ -246,8 +248,6 @@ void *b_sound_play_thread(void *args)
 int b_open_sound_device(BERRY_SOUND *a)
 {
 //	return b_sound_init_ALSA(a, "default", 48000, 2, 32, 1);
-//	return b_sound_init_ALSA(a, "default", 44100, 2, 32, 1);
-
 	int r = b_sound_init_ALSA(a, "default", 44100, 2, 32, 1);
 
 //	a->playing = 1;
@@ -269,17 +269,35 @@ void b_close_soound_device(BERRY_SOUND *a)
 	if (a->thread[n]) pthread_cancel(a->thread[n]);
 	a->thread[n] = 0;
 }*/
-int b_sound_play_file(BERRY_SOUND *a, char *name, int n, int loop)
+/*#include <ctype.h>
+char *find_ext(char *path)
+{
+	static char ext[10];
+	char *e = &ext[9];
+	*e-- = 0;
+	int len = strlen(path)-1;
+	for (int i=len; i>len-9; i--) {
+		if (path[i] == '.' ) break;
+		*e-- = tolower(path[i]);
+	}
+	return e+1;
+}*/
+int b_sound_play_file(BERRY_SOUND *a, char *name, int n, float vol, int loop)
 {
 	a->track[n].loop = 0;
-//	if (strcmp(a->track[n].name, name)) {
-	if (a->track[n].mp3.data) {
-		berry_mp3_destroy(&a->track[n].mp3);
+	if (a->track[n].name && strcmp(a->track[n].name, name)) {
+		if (a->track[n].mp3.data) {
+			berry_mp3_destroy(&a->track[n].mp3);
+		} else {
+			a->track[n].pos = 0;
+		}
 	}
 
 //	b_sound_stop(a, n);
 //	a->name = name;
 /*	if (!a->track[n].mp3.data)*/ berry_mp3_init(&a->track[n].mp3, name);
 	a->track[n].loop = loop;
+	a->track[n].name = name;
+	a->track[n].vol = vol;
 	return 0;
 }

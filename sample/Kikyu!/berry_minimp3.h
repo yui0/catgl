@@ -2,7 +2,12 @@
  *	©2017-2018 Yuichiro Nakada
  *
  * Basic usage:
- *
+ *	berry_mp3 mp3;
+ *	berry_mp3_init(&mp3, "file.mp3");
+ *	int frame = berry_mp3_decode_frame(&mp3);
+ *	//b_sound_play(a, (char*)mp3.p, frame);
+ *	//b_sound_wait(a, 100);
+ *	berry_mp3_destroy(&mp3);
  * */
 
 /*
